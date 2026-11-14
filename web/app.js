@@ -105,6 +105,7 @@
   }
   const dungTatCa = () => {
     document.querySelectorAll(".mau-nut .xem-thu").forEach(l => dungThu(l.closest(".mau-nut")));
+    dungThu($("dt-phat"));
     document.querySelectorAll("video.doan").forEach(v => v.pause());
   };
 
@@ -198,11 +199,14 @@
   // Màn hình đầu: tường mẫu đang chạy để khách thấy ngay nhiều kiểu video, không phải một mẫu duy nhất.
   // Máy tính: ba cột trôi dọc ngược chiều nhau. Điện thoại: một hàng trôi ngang.
   // Mỗi cột hoặc hàng được lặp hai lần để chạy liền mạch; bản lặp ẩn với trình đọc màn hình và phím Tab.
-  function oTuong(m, lap) {
+  // Tường mẫu giờ là nền trôi phía sau điện thoại: chỉ để trang trí, nên ẩn với trình đọc màn hình và phím Tab
+  // (thư viện mẫu bên dưới và chính chiếc điện thoại vẫn mở được từng mẫu).
+  function oTuong(m) {
     const the = nutMau(m, () => cauHinh.mau, false, false, "nho");
     the.classList.add("o-tuong");
     the.querySelector(".khung").append(tao("span", "nhan-nganh", m.nhom));
-    if (lap) { the.setAttribute("aria-hidden", "true"); the.querySelector("button").tabIndex = -1; }
+    the.querySelector("button").tabIndex = -1;
+    const anh = the.querySelector("img"); anh.loading = "eager";
     ganDoan(the);
     return the;
   }
@@ -211,20 +215,130 @@
     for (let c = 0; c < soCot; c += 1) {
       const cot = tao("div", "tuong-cot"), chay = tao("div", "tuong-chay");
       const cua = ds.filter((_, i) => i % soCot === c);
-      [false, true].forEach(lap => cua.forEach(m => chay.append(oTuong(m, lap))));
+      [0, 1].forEach(() => cua.forEach(m => chay.append(oTuong(m))));
       cot.append(chay); $("tuong-doc").append(cot);
     }
-    const hang = tao("div", "tuong-chay");
-    [false, true].forEach(lap => ds.forEach(m => hang.append(oTuong(m, lap))));
-    $("tuong-ngang").append(hang);
+    // Điện thoại: hai hàng trôi ngược chiều nhau, chéo phía sau máy.
+    [ds, [...ds].reverse()].forEach(thuTu => {
+      const hang = tao("div", "tuong-chay");
+      [0, 1].forEach(() => thuTu.forEach(m => hang.append(oTuong(m))));
+      $("tuong-ngang").append(hang);
+    });
     document.querySelectorAll("[data-so-mau]").forEach(e => { e.textContent = ds.length; });
     document.querySelectorAll("[data-so-nganh]").forEach(e => { e.textContent = new Set(ds.map(m => m.nhom)).size; });
     $("tuong-dung").addEventListener("click", () => {
       tamDung = $("tuong").classList.toggle("dung");
+      document.body.classList.toggle("dung-chuyen-dong", tamDung);
       if (tamDung) dungTatCa(); else chayLaiDoan();
       $("tuong-dung").setAttribute("aria-pressed", String(tamDung));
-      $("tuong-dung").textContent = tamDung ? "Chạy tiếp" : "Dừng chuyển động";
+      $("tuong-dung").setAttribute("aria-label", tamDung ? "Chạy tiếp chuyển động" : "Dừng chuyển động");
+      dtCapNhat();
     });
+    veDienThoai(); ganXoay(); veDaiChu();
+  }
+
+  // ---------- Điện thoại ở màn hình đầu: lướt lần lượt các video mẫu như đang xem TikTok ----------
+  // Mỗi mẫu hiện khoảng 4 giây rồi trượt lên mẫu kế. Bấm vào máy để xem có tiếng; rê chuột vào thì phát thử thật.
+  const DT_LUOT = 4000;
+  const dt = { ds: [], i: 0, hen: 0, re: false, trongTam: true, canh: new Map(), henPhat: 0 };
+  const dtChay = () => !itChuyenDong && !tamDung && !dt.re && dt.trongTam && !document.hidden && !$("xem").open && !$("bat-dau-hop").open;
+  function dtCanh(m) {
+    let c = dt.canh.get(m.ma);
+    if (c) return c;
+    c = tao("div", "dt-mot"); const k = khungAnh(m, true), anh = k.querySelector("img");
+    anh.alt = ""; anh.loading = "eager"; if (!dt.canh.size) anh.fetchPriority = "high";
+    if (m.doan && !tietKiem && !itChuyenDong) {
+      const v = tao("video", "doan"); v.muted = true; v.defaultMuted = true; v.setAttribute("muted", ""); v.loop = true; v.playsInline = true;
+      v.preload = "metadata"; v.src = m.doan; v.setAttribute("aria-hidden", "true"); v.tabIndex = -1;
+      v.addEventListener("playing", () => c.classList.add("co-doan"), { once: true }); k.append(v);
+    }
+    c.append(k); dt.canh.set(m.ma, c); $("dt-canh").append(c);
+    return c;
+  }
+  function dtHien(viTri, huong = 1) {
+    const n = dt.ds.length; if (!n) return;
+    viTri = ((viTri % n) + n) % n;
+    const cu = dt.canh.get(dt.ds[dt.i].ma), m = dt.ds[viTri], moi = dtCanh(m);
+    dungThu($("dt-phat"));
+    if (cu && cu !== moi) {
+      cu.classList.remove("hien", "ra-tren", "ra-duoi"); cu.classList.add(huong > 0 ? "ra-tren" : "ra-duoi");
+      cu.querySelector("video")?.pause();
+      moi.classList.remove("ra-tren", "ra-duoi"); moi.classList.add(huong > 0 ? "cho-duoi" : "cho-tren");
+      void moi.offsetWidth;                                   // để trình duyệt nhận vị trí xuất phát trước khi trượt
+      moi.classList.remove("cho-duoi", "cho-tren");
+    }
+    moi.classList.add("hien");
+    const v = moi.querySelector("video"); if (v && dtChay()) { v.currentTime = 0; v.play().catch(() => {}); }
+    dt.i = viTri;
+    dtCanh(dt.ds[(viTri + 1) % n]);                            // tải sẵn mẫu kế tiếp
+    $("dt-ma").textContent = m.ma; $("dt-dem").textContent = `${viTri + 1}/${n}`;
+    $("dt-nganh").textContent = m.nhom; $("dt-ten").textContent = m.ten; $("dt-kieu").textContent = m.kieu || "";
+    $("dt-mo").setAttribute("aria-label", `Phát video mẫu ${m.ma}: ${m.ten}, có tiếng`);
+    [$("dt-duoi"), $("dt-man")].forEach(e => { e.classList.remove("doi"); void e.offsetWidth; e.classList.add("doi"); });
+    dtCapNhat();
+  }
+  function dtCapNhat() {
+    clearTimeout(dt.hen);
+    const chay = dtChay(), tien = $("dt-tien");
+    $("dt-man").classList.toggle("dung", !chay);
+    tien.classList.remove("chay"); void tien.offsetWidth;
+    if (chay) { tien.classList.add("chay"); dt.hen = setTimeout(() => dtHien(dt.i + 1, 1), DT_LUOT); }
+  }
+  function veDienThoai() {
+    const uuTien = maNoiBat.map(ma => mau[ma]).filter(Boolean);
+    dt.ds = [...uuTien, ...cauHinh.mau.filter(m => !maNoiBat.includes(m.ma))];
+    if (!dt.ds.length) return;
+    $("dt-tien").style.animationDuration = `${DT_LUOT}ms`;
+    dtHien(0);
+    $("dt-mo").addEventListener("click", () => { if (dt.vuot) { dt.vuot = false; return; } moXem(dt.ds, dt.ds[dt.i].ma); });
+    $("dt-truoc").addEventListener("click", () => dtHien(dt.i - 1, -1));
+    $("dt-sau").addEventListener("click", () => dtHien(dt.i + 1, 1));
+    const may = $("dien-thoai");
+    // Máy tính: rê chuột vào máy thì dừng lướt và phát thử video thật (không tiếng) của mẫu đang hiện.
+    may.addEventListener("pointerenter", e => {
+      if (e.pointerType !== "mouse") return;
+      dt.re = true; dtCapNhat();
+      clearTimeout(dt.henPhat);
+      dt.henPhat = setTimeout(() => { const p = $("dt-phat"); p._mau = dt.ds[dt.i]; if (!p._mau.doan) phatThu(p); }, 450);
+    });
+    may.addEventListener("pointerleave", e => {
+      if (e.pointerType !== "mouse") return;
+      clearTimeout(dt.henPhat); dungThu($("dt-phat")); dt.re = false; dtCapNhat();
+    });
+    // Điện thoại: vuốt ngang trên máy để đổi mẫu (vuốt dọc vẫn là cuộn trang).
+    let x0 = null, y0 = null;
+    may.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+    may.addEventListener("touchend", e => {
+      if (x0 == null) return;
+      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { dt.vuot = true; setTimeout(() => { dt.vuot = false; }, 400); dtHien(dt.i + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); }
+    }, { passive: true });
+    if ("IntersectionObserver" in window) new IntersectionObserver(([e]) => { dt.trongTam = e.isIntersecting; dtCapNhat(); }, { threshold: 0.15 }).observe(may);
+    document.addEventListener("visibilitychange", dtCapNhat);
+    $("xem").addEventListener("close", dtCapNhat);
+    $("bat-dau-hop").addEventListener("close", dtCapNhat);
+  }
+
+  // Tên nền tảng trong tiêu đề đổi lần lượt; nhãn nền tảng cạnh điện thoại sáng lên cùng lúc.
+  function ganXoay() {
+    const chu = [...document.querySelectorAll("#xoay > span")], nhan = [...document.querySelectorAll(".dt-nen-tang li")];
+    let dang = 0;
+    const dat = moi => {
+      chu.forEach((c, k) => { c.classList.toggle("hien", k === moi); c.classList.toggle("ra", k === dang && k !== moi); });
+      nhan.forEach((p, k) => p.classList.toggle("dang", k === moi));
+      dang = moi;
+    };
+    dat(0);
+    if (itChuyenDong) return;
+    setInterval(() => { if (!tamDung && !document.hidden) dat((dang + 1) % chu.length); }, 2600);
+  }
+
+  // Dải chữ chạy dưới màn hình đầu: các ngành hàng đã có mẫu.
+  function veDaiChu() {
+    const cacNhom = [...new Set(cauHinh.mau.map(m => m.nhom))];
+    const muc = [...cacNhom, "Video dọc 9:16", "TikTok", "Facebook", "Instagram"];
+    const mot = () => muc.flatMap(t => [tao("span", "dai-chu-muc", t), tao("span", "dai-chu-sao", "✦")]);
+    $("dai-chu").append(...mot(), ...mot());
   }
 
   function veMau() {
@@ -358,7 +472,7 @@
     $("xem-chon").hidden = !$("phieu").hidden || !$("cam-on").hidden || !$("xem-form").hidden;
     $("xem-chi-tiet").hidden = !m.kieu || !$("cam-on").hidden;
   }
-  function moXem(ds, ma) { dungTatCa(); dsXem = ds; viTriXem = Math.max(0, ds.findIndex(m => m.ma === ma)); veXem(); if (!$("xem").open) $("xem").showModal(); }
+  function moXem(ds, ma) { dungTatCa(); dsXem = ds; viTriXem = Math.max(0, ds.findIndex(m => m.ma === ma)); veXem(); if (!$("xem").open) $("xem").showModal(); dtCapNhat(); }
   function chuyenXem(buoc) { const moi = viTriXem + buoc; if (moi < 0 || moi >= dsXem.length) return; viTriXem = moi; veXem(); }
   function ganXem() {
     const hop = $("xem"); let batDauX = null;

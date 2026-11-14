@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://www.youtube-nocookie.com">
 <link rel="preload" href="/fonts/Lora-Variable.woff" as="font" type="font/woff" crossorigin>
 <link rel="preload" href="/fonts/Carlito-Regular.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="/anh-mau/ST029.jpg" as="image">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -27,17 +28,37 @@
   </nav>
 </header>
 <main id="noi-dung">
-  <section class="mo-dau" id="mo-dau" aria-labelledby="tieu-de-chinh">
+  <section class="mo-dau san-khau" id="mo-dau" aria-labelledby="tieu-de-chinh">
     <div class="mo-dau-chu">
-      <h1 id="tieu-de-chinh">Video giới thiệu sản phẩm cho TikTok, Facebook và Instagram</h1>
+      <h1 id="tieu-de-chinh"><span class="h1-dong">Video giới thiệu</span> <span class="h1-dong">sản phẩm cho</span> <span class="h1-dong h1-nen"><span class="xoay" id="xoay" aria-hidden="true"><span>TikTok</span><span>Facebook</span><span>Instagram</span></span><span class="xoay-chu">TikTok, Facebook và Instagram</span></span></h1>
       <p class="dan">Mời anh chị xem các video mẫu chúng tôi đã làm bằng AI. Thích kiểu nào, anh chị bấm vào để xem có tiếng và nhờ chúng tôi tư vấn cho sản phẩm của mình.</p>
     </div>
-    <div class="tuong" id="tuong" aria-label="Video mẫu đang chạy. Bấm vào một mẫu để xem có tiếng.">
-      <div class="tuong-doc" id="tuong-doc"></div>
-      <div class="tuong-ngang" id="tuong-ngang"></div>
+    <div class="tuong" id="tuong">
+      <div class="tuong-nen" aria-hidden="true">
+        <div class="tuong-doc" id="tuong-doc"></div>
+        <div class="tuong-ngang" id="tuong-ngang"></div>
+      </div>
+      <div class="dt-hop">
+        <ul class="dt-nen-tang" aria-hidden="true"><li>TikTok</li><li>Facebook</li><li>Instagram</li></ul>
+        <div class="dien-thoai" id="dien-thoai">
+          <div class="dt-man" id="dt-man">
+            <div class="dt-canh" id="dt-canh"></div>
+            <div class="dt-phat" id="dt-phat"><div class="khung"></div></div>
+            <div class="dt-tren" aria-hidden="true"><span class="dt-ma" id="dt-ma"></span><span class="dt-dem" id="dt-dem"></span></div>
+            <div class="dt-ray" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.6.7-1.4 2.2-2.6 4.3-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M12 3C6.5 3 2 6.9 2 11.6c0 2.5 1.3 4.8 3.4 6.3L4.6 21l3.9-1.9c1.1.3 2.3.5 3.5.5 5.5 0 10-3.9 10-8.6S17.5 3 12 3z"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M14 4l8 7.5-8 7.5v-4.6c-5.3 0-8.8 1.6-11.6 5.6 1-5.6 4.2-10.7 11.6-11.6V4z"/></svg>
+            </div>
+            <div class="dt-duoi" id="dt-duoi" aria-hidden="true"><span class="dt-nganh" id="dt-nganh"></span><p class="dt-ten" id="dt-ten"></p><p class="dt-kieu" id="dt-kieu"></p><span class="dt-nghe"><span class="dt-nghe-tam-giac"></span>Bấm để xem có tiếng</span></div>
+            <div class="dt-tien" aria-hidden="true"><span id="dt-tien"></span></div>
+            <button type="button" class="dt-mo" id="dt-mo" aria-label="Phát video mẫu"></button>
+          </div>
+        </div>
+        <div class="dt-dieu-khien"><button type="button" class="dt-nut" id="dt-truoc" aria-label="Video mẫu trước">‹</button><button type="button" class="dt-nut tuong-dung" id="tuong-dung" aria-pressed="false" aria-label="Dừng chuyển động"><span class="dt-dung" aria-hidden="true"></span></button><button type="button" class="dt-nut" id="dt-sau" aria-label="Video mẫu tiếp theo">›</button></div>
+      </div>
       <div class="tuong-chan">
         <p><span data-so-mau>13</span> video mẫu trong <span data-so-nganh>6</span> ngành hàng. Một số mẫu có chữ tiếng Nhật; video của anh chị dùng ngôn ngữ anh chị chọn.</p>
-        <button type="button" class="nut-chu tuong-dung" id="tuong-dung" aria-pressed="false">Dừng chuyển động</button>
       </div>
     </div>
     <div class="hero-footer">
@@ -51,6 +72,8 @@
       <p class="bao-loi" id="loi-mo-dau" role="alert" hidden></p>
     </div>
   </section>
+
+  <div class="dai-chu" aria-hidden="true"><div class="dai-chu-chay" id="dai-chu"></div></div>
 
   <section class="goi-y-muc" id="goi-y" aria-labelledby="goi-y-tieu-de">
     <div class="goi-y-dau">
