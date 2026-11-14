@@ -11,6 +11,7 @@ import html
 import hmac
 import io
 import json
+import mimetypes
 import os
 import re
 import secrets
@@ -40,6 +41,10 @@ if (GOC / ".env").exists():
         if _dau and _ten and not _ten.startswith("#"):
             os.environ.setdefault(_ten.strip(), _gia_tri.strip().strip('"'))
 WEB = GOC / "web"
+# Python 3.12 trên Vercel không tự biết các đuôi này và trả "application/octet-stream".
+for _kieu, _duoi in (("image/webp", ".webp"), ("font/woff2", ".woff2"), ("font/woff", ".woff"), ("video/mp4", ".mp4"),
+                     ("video/webm", ".webm"), ("image/svg+xml", ".svg"), ("text/javascript", ".js"), ("text/css", ".css")):
+    mimetypes.add_type(_kieu, _duoi)
 BO_CAU_HOI = json.loads((GOC / "cau_hoi.json").read_text(encoding="utf-8"))
 MAU = json.loads((GOC / "mau.json").read_text(encoding="utf-8"))
 CAU = BO_CAU_HOI["cau_hoi"]
@@ -849,11 +854,15 @@ async def nv_excel(request):
 
 # ---------- Trang và ứng dụng ----------
 
+# Trang công khai không chứa dữ liệu riêng của ai: trình duyệt luôn hỏi lại, CDN Vercel giữ bản sao tới lần triển khai sau.
+TRANG_CONG_KHAI = "public, max-age=0, must-revalidate, s-maxage=86400"
+
+
 async def trang_chu(request):
     # Gắn sẵn bộ câu hỏi và danh sách mẫu vào trang để trình duyệt không phải gọi thêm một lượt.
     du_lieu = json.dumps(du_lieu_cau_hinh(), ensure_ascii=False).replace("</", "<\\/")
     trang = (WEB / "index.html").read_text(encoding="utf-8").replace("__CAU_HINH__", du_lieu)
-    return HTMLResponse(trang, headers={"Cache-Control": "no-cache"})
+    return HTMLResponse(trang, headers={"Cache-Control": TRANG_CONG_KHAI})
 
 
 async def trang_chinh_sach(request):
@@ -862,7 +871,7 @@ async def trang_chinh_sach(request):
     if LINK_LIEN_HE:
         lien_he = f'<a href="{html.escape(LINK_LIEN_HE, quote=True)}">{lien_he}</a>'
     trang = trang.replace("__LIEN_HE_STUDIO__", lien_he)
-    return HTMLResponse(trang, headers={"Cache-Control": "no-cache"})
+    return HTMLResponse(trang, headers={"Cache-Control": TRANG_CONG_KHAI})
 
 
 async def trang_nhan_vien(request):
@@ -911,8 +920,15 @@ class BaoVe:
                 duong = scope.get("path", "")
                 if not any(ten.lower() == b"cache-control" for ten, _ in tieu_de):
                     # Phông, ảnh mẫu, video mẫu hầu như không đổi nên cho trình duyệt giữ 30 ngày; còn lại luôn hỏi lại máy chủ.
+                    # s-maxage: CDN của Vercel giữ bản sao gần khách nên trang mở nhanh, không phải gọi Python mỗi lần;
+                    # Vercel tự xóa bản sao này mỗi lần triển khai bản mới.
                     lau = duong.startswith(("/fonts/", "/anh-mau/", "/video-mau/")) or duong.endswith(".svg")
-                    tieu_de.append((b"cache-control", b"public, max-age=2592000" if lau else b"no-store" if duong.startswith("/api/") else b"no-cache"))
+                    cong_khai = (tin.get("status") == 200 and scope.get("method") in ("GET", "HEAD")
+                                 and not duong.startswith(("/api/", "/nhan-vien")))
+                    tieu_de.append((b"cache-control", b"no-store" if duong.startswith("/api/")
+                                    else b"public, max-age=2592000, s-maxage=2592000" if lau and cong_khai
+                                    else b"public, max-age=0, must-revalidate, s-maxage=86400" if cong_khai
+                                    else b"no-cache"))
                 tieu_de += [(b"x-content-type-options", b"nosniff"), (b"x-frame-options", b"DENY"),
                             (b"referrer-policy", b"strict-origin-when-cross-origin"),
                             (b"content-security-policy", b"default-src 'self'; img-src 'self' data: blob: https://i.ytimg.com; style-src 'self'; "
