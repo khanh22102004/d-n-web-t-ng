@@ -1,0 +1,15 @@
+[
+  {"ma": "ST029", "ten": "Quảng cáo son tint", "nhom": "Làm đẹp", "kieu": "Người mẫu giới thiệu sản phẩm", "id": "dh8TnhpcutA", "hien": "video"},
+  {"ma": "ST033", "ten": "Video gây chú ý cho nước uống", "nhom": "Đồ ăn, thức uống", "kieu": "Video vui, gây chú ý", "id": "fCYmUOi18iY", "hien": "video"},
+  {"ma": "ST051", "ten": "Giới thiệu son dưỡng dạng thỏi", "nhom": "Làm đẹp", "kieu": "Chỉ có sản phẩm, sang trọng", "id": "fg1A4YsODeQ", "hien": "dong"},
+  {"ma": "ST025", "ten": "Hoạt hình giới thiệu món ăn", "nhom": "Đồ ăn, thức uống", "kieu": "Hoạt hình", "id": "G7q3wGO_mPg", "hien": "video"},
+  {"ma": "ST052", "ten": "Tinh chất chăm sóc da", "nhom": "Làm đẹp", "kieu": "Người thật, đời thường", "id": "wyxdW7Fxpu8", "hien": "dong"},
+  {"ma": "ST056", "ten": "Quảng cáo ứng dụng nhân sự", "nhom": "Ứng dụng", "kieu": "Giới thiệu ứng dụng", "id": "ewML01QHtVk", "hien": "dong"},
+  {"ma": "ST053", "ten": "Quảng cáo ứng dụng game", "nhom": "Ứng dụng", "kieu": "Giới thiệu ứng dụng", "id": "buIhQLUtgFE", "hien": "video"},
+  {"ma": "ST027", "ten": "Quảng cáo sân tập golf", "nhom": "Trường học, dịch vụ", "kieu": "Người thật, đời thường", "id": "kgq_tOykW7c", "hien": "video"},
+  {"ma": "ST035", "ten": "Giới thiệu trường dạy làm bánh", "nhom": "Trường học, dịch vụ", "kieu": "", "id": "fPhkzTv9zV8", "hien": "anh"},
+  {"ma": "ST012", "ten": "Quảng cáo tuyển sinh trường học", "nhom": "Trường học, dịch vụ", "kieu": "Người thật, đời thường", "id": "Mn0Lv7N8uEY", "hien": "anh"},
+  {"ma": "ST057", "ten": "Hoạt hình tuyển dụng ngành chăm sóc", "nhom": "Tuyển dụng", "kieu": "Hoạt hình", "id": "9BzRHOdMyNo", "hien": "dong"},
+  {"ma": "ST105", "ten": "Tuyển dụng: ngày đầu đi làm", "nhom": "Tuyển dụng", "kieu": "Người thật, đời thường", "id": "pSE7bJZZMv0", "hien": "dong"},
+  {"ma": "ST011", "ten": "Nhân vật AI nhảy theo trào lưu", "nhom": "Nhân vật AI", "kieu": "Video vui, gây chú ý", "id": "7Nv_cjRGvCY", "hien": "video"}
+]

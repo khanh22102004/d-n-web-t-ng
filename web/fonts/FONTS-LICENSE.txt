@@ -1,0 +1,9 @@
+Phông chữ đi kèm (không chỉnh sửa):
+
+- Carlito (Regular, Bold, Italic) — Copyright 2010-2013 tyPoland Lukasz Dziedzic, Reserved Font Name "Carlito".
+  Nguồn: https://github.com/googlefonts/carlito
+- Lora (bản variable) — Copyright 2011 The Lora Project Authors, Reserved Font Name "Lora".
+  Nguồn: https://github.com/cyrealtype/Lora-Cyrillic
+
+Cả hai dùng giấy phép SIL Open Font License 1.1: https://openfontlicense.org
+Được dùng, nhúng và phân phối kèm phần mềm; không bán riêng phông chữ.

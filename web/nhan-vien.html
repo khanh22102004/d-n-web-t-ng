@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Nhân viên | B Productions</title>
+<link rel="icon" href="/bieu-tuong.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/nhan-vien.css">
+</head>
+<body>
+<header class="dau-trang">
+  <a class="ten-studio" href="/">B Productions</a>
+  <nav><button type="button" class="nut-chu" id="dang-xuat" hidden>Đăng xuất</button></nav>
+</header>
+
+<main class="nv">
+  <form id="form-dang-nhap" class="dang-nhap" hidden>
+    <h1>Đăng nhập nhân viên</h1>
+    <label class="nhan" for="mat-khau">Mật khẩu</label>
+    <input type="password" id="mat-khau" autocomplete="current-password" required>
+    <p class="bao-loi" id="loi-dang-nhap" role="alert" hidden></p>
+    <div class="hang-nut"><button type="submit" class="nut">Đăng nhập</button></div>
+  </form>
+
+  <div id="bang" hidden>
+    <div class="nv-dau">
+      <h1>Phiếu của khách</h1>
+      <a class="nut" href="/api/nhan-vien/xuat-excel">Tải file Excel</a>
+    </div>
+
+    <ul class="so-lieu" id="so-lieu"></ul>
+
+    <div class="hai-cot">
+      <section><h2>Khách dừng ở phần nào</h2><table id="bang-dung"><thead><tr><th>Phần</th><th>Số phiếu dở</th></tr></thead><tbody></tbody></table></section>
+      <section><h2>Theo nguồn</h2><table id="bang-nguon"><thead><tr><th>Nguồn</th><th>Mở trang</th><th>Gửi phiếu</th></tr></thead><tbody></tbody></table></section>
+    </div>
+
+    <h2>Danh sách phiếu</h2>
+    <form id="loc-phieu" class="hang-nut">
+      <div><label class="nhan" for="tim-phieu">Tìm trong phiếu</label><input type="text" id="tim-phieu" maxlength="100" placeholder="Tên, sản phẩm, số điện thoại…"></div>
+      <div><label class="nhan" for="trang-thai">Trạng thái</label><select id="trang-thai"><option value="">Tất cả</option><option value="dang-do">Đang dở</option><option value="cho-lien-he">Chờ liên hệ</option><option value="da-lien-he">Đã liên hệ</option></select></div>
+      <button type="submit" class="nut nho">Tìm phiếu</button>
+    </form>
+    <p id="loi-tai" class="bao-loi" role="alert" hidden></p>
+    <nav class="hang-nut" aria-label="Trang danh sách phiếu"><button type="button" class="nut nho" id="trang-truoc">Trang trước</button><span id="phan-trang" aria-live="polite"></span><button type="button" class="nut nho" id="trang-sau">Trang sau</button></nav>
+    <p class="dan" id="trong" hidden>Không có phiếu phù hợp.</p>
+    <div id="ds-phieu"></div>
+  </div>
+</main>
+<script src="/nhan-vien.js" defer></script>
+</body>
+</html>

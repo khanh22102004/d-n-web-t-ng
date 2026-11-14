@@ -1,0 +1,135 @@
+{
+  "phien_ban": "2026-11-13",
+  "nhom": [
+    {"id": "san-pham", "ten": "Sản phẩm", "mo_ta": "Anh chị muốn giới thiệu sản phẩm nào"},
+    {"id": "muc-dich", "ten": "Mục đích và người xem", "mo_ta": "Video dùng để làm gì và dành cho ai"},
+    {"id": "hinh-thuc", "ten": "Hình thức video", "mo_ta": "Nơi đăng, số lượng, độ dài và kiểu video"},
+    {"id": "noi-dung", "ten": "Nội dung", "mo_ta": "Những gì đã có và điều cần lưu ý"},
+    {"id": "thoi-gian", "ten": "Thời gian và chi phí", "mo_ta": "Thời hạn và ngân sách dự kiến"},
+    {"id": "lien-he", "ten": "Liên hệ", "mo_ta": "Để chúng tôi liên hệ lại với anh chị"}
+  ],
+  "cau_hoi": [
+    {"so": 1, "nhom": "san-pham", "cau": "Anh chị muốn giới thiệu sản phẩm nào, của thương hiệu nào?", "co_anh": true,
+     "truong": [
+       {"id": "san_pham", "kieu": "chu", "nhan": "Tên sản phẩm", "vi_du": "Son tint màu san hô", "bat_buoc": true},
+       {"id": "thuong_hieu", "kieu": "chu", "nhan": "Tên thương hiệu hoặc cửa hàng", "vi_du": "Nắng Cosmetics", "bat_buoc": true},
+       {"id": "link", "kieu": "chu", "nhan": "Link sản phẩm, nếu có", "vi_du": "https://…", "bat_buoc": false}
+     ]},
+    {"so": 2, "nhom": "san-pham", "cau": "Sản phẩm của anh chị thuộc nhóm nào?",
+     "truong": [
+       {"id": "nhom", "kieu": "mot", "bat_buoc": true, "tu_dien": true,
+        "lua_chon": ["Mỹ phẩm, làm đẹp", "Đồ ăn, thức uống", "Thời trang", "Ứng dụng, phần mềm", "Cửa hàng, dịch vụ"]}
+     ]},
+    {"so": 3, "nhom": "san-pham", "cau": "Anh chị muốn người xem nhớ nhất điều gì về sản phẩm?", "goi_y": "Anh chị chọn tối đa ba.",
+     "truong": [
+       {"id": "diem_nho", "kieu": "nhieu", "toi_da": 3, "bat_buoc": true, "tu_dien": true,
+        "lua_chon": ["Giá tốt", "Chất lượng", "Khuyến mãi", "Thương hiệu uy tín", "Tính năng nổi bật"]}
+     ]},
+
+    {"so": 4, "nhom": "muc-dich", "cau": "Xin hỏi, video này anh chị định dùng để làm gì?", "goi_y": "Anh chị chọn một mục chính.",
+     "truong": [
+       {"id": "muc_dich", "kieu": "mot", "bat_buoc": true, "tu_dien": true,
+        "lua_chon": ["Bán hàng", "Giới thiệu thương hiệu", "Ra mắt sản phẩm mới", "Thông báo khuyến mãi"]}
+     ]},
+    {"so": 5, "nhom": "muc-dich", "cau": "Sau khi xem video, anh chị muốn người xem làm gì?",
+     "truong": [
+       {"id": "hanh_dong", "kieu": "mot", "bat_buoc": true, "tu_dien": true,
+        "lua_chon": ["Mua hàng", "Nhắn tin hoặc gọi điện", "Vào website", "Đăng ký", "Chỉ cần nhớ thương hiệu"]},
+       {"id": "hien_dung", "kieu": "chu", "nhan": "Thông tin cần hiện đúng từng chữ, nếu có", "vi_du": "0901 234 567, nang.vn, mã NANG10", "bat_buoc": false}
+     ]},
+    {"so": 6, "nhom": "muc-dich", "cau": "Xin hỏi, người xem video của anh chị là những ai?",
+     "truong": [
+       {"id": "tuoi", "kieu": "nhieu", "nhan": "Độ tuổi", "bat_buoc": true,
+        "lua_chon": ["Dưới 18", "18 đến 24", "25 đến 34", "35 đến 44", "Từ 45 trở lên"]},
+       {"id": "gioi_tinh", "kieu": "mot", "nhan": "Giới tính", "bat_buoc": true,
+        "lua_chon": ["Nam", "Nữ", "Cả hai"]}
+     ]},
+
+    {"so": 7, "nhom": "hinh-thuc", "cau": "Anh chị định đăng video ở đâu?", "goi_y": "Anh chị chọn được nhiều nơi.",
+     "truong": [
+       {"id": "noi_dang", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true,
+        "lua_chon": ["TikTok", "Facebook, Instagram", "YouTube Shorts", "Zalo"]}
+     ]},
+    {"so": 8, "nhom": "hinh-thuc", "cau": "Anh chị có định dùng video này để chạy quảng cáo trả phí không?",
+     "truong": [
+       {"id": "quang_cao", "kieu": "mot", "bat_buoc": true,
+        "lua_chon": ["Có", "Không", "Chưa quyết định"]}
+     ]},
+    {"so": 9, "nhom": "hinh-thuc", "cau": "Anh chị cần làm bao nhiêu video?", "goi_y": "Video được làm theo khung dọc 9:16 để đăng mạng xã hội.",
+     "truong": [
+       {"id": "so_video", "kieu": "mot", "bat_buoc": true, "tu_dien": true,
+        "lua_chon": ["1 video", "2 đến 3 video", "4 đến 10 video", "Trên 10 video"]}
+     ]},
+    {"so": 10, "nhom": "hinh-thuc", "cau": "Mỗi video anh chị muốn dài khoảng bao lâu?",
+     "truong": [
+       {"id": "do_dai", "kieu": "mot", "bat_buoc": true,
+        "lua_chon": ["Dưới 15 giây", "15 đến 30 giây", "30 đến 60 giây", "Nhờ chúng tôi tư vấn"]}
+     ]},
+    {"so": 11, "nhom": "hinh-thuc", "cau": "Trong các mẫu của chúng tôi, anh chị thích kiểu video nào?", "goi_y": "Anh chị chọn tối đa hai. Bấm vào ảnh để xem video mẫu.",
+     "truong": [
+       {"id": "kieu", "kieu": "nhieu", "toi_da": 2, "bat_buoc": true, "tu_dien": true, "dang_the": true,
+        "lua_chon": [
+          {"ten": "Người mẫu giới thiệu sản phẩm", "mau": "ST029"},
+          {"ten": "Video vui, gây chú ý", "mau": "ST033"},
+          {"ten": "Chỉ có sản phẩm, sang trọng", "mau": "ST051"},
+          {"ten": "Hoạt hình", "mau": "ST025"},
+          {"ten": "Người thật, đời thường", "mau": "ST052"},
+          {"ten": "Giới thiệu ứng dụng", "mau": "ST056"}
+        ]}
+     ]},
+
+    {"so": 12, "nhom": "noi-dung", "cau": "Hiện tại anh chị đã có sẵn những gì?", "goi_y": "Anh chị chọn được nhiều mục.",
+     "truong": [
+       {"id": "da_co", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "rieng": "Chưa có gì",
+        "lua_chon": ["Ảnh sản phẩm", "Video sản phẩm", "Logo", "Kịch bản hoặc ý tưởng", "Video mẫu muốn làm giống", "Chưa có gì"]}
+     ]},
+    {"so": 13, "nhom": "noi-dung", "cau": "Anh chị có điều gì cần tránh, hoặc câu chữ nào cần giữ nguyên không?", "goi_y": "Nếu không có, anh chị có thể để trống.",
+     "truong": [
+       {"id": "can_tranh", "kieu": "doan", "nhan": "Điều cần tránh", "vi_du": "Không nhắc tên đối thủ", "bat_buoc": false},
+       {"id": "giu_nguyen", "kieu": "doan", "nhan": "Câu chữ cần giữ nguyên", "vi_du": "Khẩu hiệu: “Ngon từ hạt đầu tiên”", "bat_buoc": false}
+     ]},
+    {"so": 14, "nhom": "noi-dung", "cau": "Anh chị muốn video dùng ngôn ngữ nào?", "goi_y": "Anh chị chọn được nhiều ngôn ngữ.",
+     "truong": [
+       {"id": "ngon_ngu", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true,
+        "lua_chon": ["Tiếng Việt", "Tiếng Nhật", "Tiếng Anh"]}
+     ]},
+    {"so": 15, "nhom": "noi-dung", "cau": "Anh chị muốn giọng đọc như thế nào?",
+     "truong": [
+       {"id": "giong", "kieu": "mot", "nhan": "Giọng đọc", "bat_buoc": true,
+        "lua_chon": ["Giọng nam", "Giọng nữ", "Không cần giọng đọc"]},
+       {"id": "vung", "kieu": "mot", "nhan": "Giọng vùng", "bat_buoc": true, "bo_qua_neu": {"truong": "giong", "la": "Không cần giọng đọc"},
+        "lua_chon": ["Miền Bắc", "Miền Trung", "Miền Nam"]},
+       {"id": "toc_do", "kieu": "mot", "nhan": "Tốc độ", "bat_buoc": true, "bo_qua_neu": {"truong": "giong", "la": "Không cần giọng đọc"},
+        "lua_chon": ["Chậm", "Vừa", "Nhanh"]}
+     ]},
+    {"so": 16, "nhom": "noi-dung", "cau": "Anh chị có đồng ý cho chúng tôi dùng AI để tạo hình ảnh, video và giọng đọc không?",
+     "truong": [
+       {"id": "ai", "kieu": "mot", "bat_buoc": true,
+        "lua_chon": ["Đồng ý", "Đồng ý, nhưng không tạo người thật hoặc giọng người thật", "Không đồng ý"]}
+     ]},
+
+    {"so": 17, "nhom": "thoi-gian", "cau": "Khi nào anh chị cần có video?",
+     "truong": [
+       {"id": "han", "kieu": "mot", "bat_buoc": true,
+        "lua_chon": ["Trong 3 ngày", "Trong 1 đến 2 tuần", "Hơn 2 tuần", "Chưa có hạn"]}
+     ]},
+    {"so": 18, "nhom": "thoi-gian", "cau": "Anh chị dự định chi khoảng bao nhiêu cho video này?",
+     "truong": [
+       {"id": "ngan_sach", "kieu": "mot", "bat_buoc": true,
+        "lua_chon": ["Dưới 5 triệu đồng", "5 đến 15 triệu đồng", "15 đến 50 triệu đồng", "Trên 50 triệu đồng", "Nhờ chúng tôi báo giá"]}
+     ]},
+
+    {"so": 19, "nhom": "lien-he", "cau": "Anh chị vui lòng cho chúng tôi biết tên, và chúng tôi nên liên hệ với anh chị bằng cách nào?",
+     "truong": [
+       {"id": "ten", "kieu": "chu", "nhan": "Tên của anh chị", "vi_du": "Nguyễn Văn A", "bat_buoc": true},
+       {"id": "kenh", "kieu": "mot", "nhan": "Cách liên hệ", "bat_buoc": true,
+        "lua_chon": ["Zalo", "Điện thoại", "Email", "Messenger"]},
+       {"id": "dia_chi", "kieu": "chu", "nhan": "Số điện thoại, email hoặc link Messenger", "vi_du": "0901 234 567", "bat_buoc": true, "kiem_tra": "lien_he"}
+     ]},
+    {"so": 20, "nhom": "lien-he", "cau": "Anh chị biết đến B Productions qua đâu?",
+     "truong": [
+       {"id": "nguon", "kieu": "mot", "bat_buoc": true, "tu_dien": true,
+        "lua_chon": ["TikTok", "Facebook", "YouTube", "Người quen giới thiệu"]}
+     ]}
+  ]
+}

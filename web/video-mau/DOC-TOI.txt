@@ -1,0 +1,6 @@
+Đặt đoạn video ngắn của từng mẫu vào thư mục này. Trang sẽ tự phát các đoạn này (không tiếng) ở màn hình đầu và trong thư viện, nhiều mẫu cùng lúc, thay cho ảnh tĩnh.
+
+- Tên tệp trùng mã mẫu trong mau.json: ST029.mp4, ST033.mp4...
+- Nên dùng MP4 (H.264) để chạy được trên iPhone. Có thể thêm WebM nếu muốn, trang ưu tiên MP4.
+- Dài 5 đến 8 giây, khung dọc 9:16, rộng khoảng 480 điểm ảnh, không tiếng, dưới 1 MB mỗi tệp.
+- Chạy lại web sau khi thêm tệp. Khung xem đầy đủ có tiếng vẫn dùng video YouTube.

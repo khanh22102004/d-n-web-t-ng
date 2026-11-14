@@ -1,0 +1,25 @@
+# Render: New -> Blueprint -> chọn repo này. Một dịch vụ duy nhất phục vụ cả trang web lẫn phần lưu phiếu.
+# Sau khi tạo, vào Environment để điền ADMIN_PASSWORD và DATABASE_URL (chuỗi kết nối Neon).
+services:
+  - type: web
+    name: b-productions-tiep-nhan
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn may_chu:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/suc-khoe
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: TRUST_PROXY
+        value: "true"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: STUDIO_CONTACT
+        value: "0941761768"

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B Productions | Kể câu chuyện sản phẩm bằng video AI</title>
+<meta name="description" content="Khám phá video sản phẩm bằng AI cho TikTok, Facebook và Instagram. Xem mẫu theo ngành hàng hoặc để lại sản phẩm và số liên hệ để B Productions tư vấn.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="B Productions | Kể câu chuyện sản phẩm bằng video AI">
+<meta property="og:description" content="Chọn phong cách anh chị thích. Cùng chúng tôi lên ý tưởng video cho sản phẩm của anh chị.">
+<meta name="theme-color" content="#0e5a4b">
+<link rel="icon" href="/bieu-tuong.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://i.ytimg.com">
+<link rel="preconnect" href="https://www.youtube-nocookie.com">
+<link rel="preload" href="/fonts/Lora-Variable.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="/fonts/Carlito-Regular.woff" as="font" type="font/woff" crossorigin>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<a class="bo-qua" href="#noi-dung">Đến nội dung chính</a>
+<header class="dau-trang">
+  <a class="ten-studio" href="/" aria-label="B Productions — trang chủ">B Productions<span class="logo-cham" aria-hidden="true">.</span></a>
+  <nav aria-label="Điều hướng chính">
+    <a href="#mau" data-chi-trang-chu>Xem mẫu</a>
+    <a href="#cach-lam" data-chi-trang-chu>Cách làm</a>
+    <a class="nut nho" href="#tu-van">Nhận báo giá</a>
+  </nav>
+</header>
+<main id="noi-dung">
+  <section class="mo-dau" id="mo-dau" aria-labelledby="tieu-de-chinh">
+    <div class="mo-dau-chu">
+      <h1 id="tieu-de-chinh">Video giới thiệu sản phẩm cho TikTok, Facebook và Instagram</h1>
+      <p class="dan">Mời anh chị xem các video mẫu chúng tôi đã làm bằng AI. Thích kiểu nào, anh chị bấm vào để xem có tiếng và nhờ chúng tôi tư vấn cho sản phẩm của mình.</p>
+    </div>
+    <div class="tuong" id="tuong" aria-label="Video mẫu đang chạy. Bấm vào một mẫu để xem có tiếng.">
+      <div class="tuong-doc" id="tuong-doc"></div>
+      <div class="tuong-ngang" id="tuong-ngang"></div>
+      <div class="tuong-chan">
+        <p><span data-so-mau>13</span> video mẫu trong <span data-so-nganh>6</span> ngành hàng. Một số mẫu có chữ tiếng Nhật; video của anh chị dùng ngôn ngữ anh chị chọn.</p>
+        <button type="button" class="nut-chu tuong-dung" id="tuong-dung" aria-pressed="false">Dừng chuyển động</button>
+      </div>
+    </div>
+    <div class="hero-footer">
+      <div class="hang-nut">
+        <a class="nut" href="#tu-van">Nhận báo giá</a>
+        <a class="nut-phu" href="#goi-y">Gợi ý kiểu video</a>
+      </div>
+      <ul class="hero-diem"><li>Chưa cần kịch bản</li><li>Khung dọc 9:16</li><li>Duyệt phương án trước khi làm</li></ul>
+      <button type="button" class="nut-chu lien-chi-tiet" data-bat-dau>Tôi đã có yêu cầu cụ thể →</button>
+      <p class="dang-do" id="dang-do" hidden></p>
+      <p class="bao-loi" id="loi-mo-dau" role="alert" hidden></p>
+    </div>
+  </section>
+
+  <section class="goi-y-muc" id="goi-y" aria-labelledby="goi-y-tieu-de">
+    <div class="goi-y-dau">
+      <h2 id="goi-y-tieu-de">Chưa biết chọn kiểu video nào?</h2>
+      <p class="dan">Anh chị trả lời 3 câu, mỗi câu bấm một lần. Chúng tôi gợi ý ngay những mẫu hợp với sản phẩm của anh chị.</p>
+    </div>
+    <div class="goi-y-hop" id="goi-y-than" aria-live="polite"></div>
+  </section>
+
+  <section class="mau" id="mau" aria-labelledby="mau-tieu-de">
+    <div class="muc-dau"><div><h2 id="mau-tieu-de">Anh chị muốn sản phẩm<br>xuất hiện như thế nào?</h2></div><p class="dan">Bắt đầu từ một mẫu anh chị thích. Chọn ngành hàng để tìm thêm ý tưởng, bấm vào ảnh để xem video có tiếng.</p></div>
+    <div class="loc" id="loc" role="group" aria-label="Lọc mẫu video"></div>
+    <div class="loc loc-nganh" id="loc-nganh" role="group" aria-label="Chọn ngành hàng" hidden></div>
+    <p class="loc-dang-chon" id="loc-dang-chon" hidden></p>
+    <div class="ray-hop">
+      <ul class="ray" id="luoi-mau" tabindex="0" aria-label="Danh sách mẫu video" aria-describedby="ray-goi-y"></ul>
+      <div class="ray-huong-dan" id="ray-huong-dan" hidden>
+        <p id="ray-goi-y">Vuốt ngang để xem thêm <span aria-hidden="true">↔</span></p>
+        <div class="ray-dieu-huong"><span id="ray-vi-tri" aria-live="polite" aria-atomic="true"></span><button type="button" class="ray-nut" id="ray-truoc" aria-label="Xem mẫu trước" aria-controls="luoi-mau">‹</button><button type="button" class="ray-nut" id="ray-sau" aria-label="Xem mẫu tiếp theo" aria-controls="luoi-mau">›</button></div>
+      </div>
+    </div>
+    <button type="button" class="nut-phu xem-them-mau" id="xem-them-mau" hidden></button>
+    <div class="mau-duoi"><p class="dan dem-mau" id="dem-mau" aria-live="polite"></p><a href="#tu-van" class="nut-chu">Chưa biết chọn? Nhờ chúng tôi gợi ý →</a></div>
+    <p class="ghi-chu-mau">Các video mẫu được làm bằng AI; một số mẫu có nội dung tiếng Nhật. Khi tư vấn, chúng tôi sẽ trao đổi về ngôn ngữ và nội dung phù hợp với thương hiệu của anh chị.</p>
+  </section>
+
+  <section class="cach-lam" id="cach-lam" aria-labelledby="cach-lam-tieu-de">
+    <h2 id="cach-lam-tieu-de">Ba bước từ ý tưởng đến video.</h2>
+    <ol class="buoc">
+      <li><h3>Kể về sản phẩm</h3><p>Chỉ cần tên sản phẩm và số liên hệ để bắt đầu.</p></li>
+      <li><h3>Nhận phương án và báo giá</h3><p>Cùng trao đổi nhu cầu, chi phí và lịch thực hiện.</p></li>
+      <li><h3>Duyệt rồi sản xuất</h3><p>Thống nhất nội dung trước khi làm video dọc 9:16.</p></li>
+    </ol>
+  </section>
+
+  <section class="tu-van" id="tu-van" aria-labelledby="tu-van-tieu-de">
+    <div class="tu-van-chu"><h2 id="tu-van-tieu-de">Sản phẩm của anh chị<br>có thể lên hình thế nào?</h2><p class="dan">Để lại tên sản phẩm và số liên hệ. Chúng tôi sẽ cùng anh chị tìm phong cách phù hợp và trao đổi chi phí.</p><p class="tu-van-hen">Phản hồi trong <strong data-hen>một ngày làm việc</strong>.</p><p class="tu-van-goi"><a id="goi-studio" hidden></a></p><p class="tu-van-chi-tiet">Đã có yêu cầu rõ ràng?<br><button type="button" class="nut-chu" data-bat-dau>Gửi yêu cầu chi tiết →</button></p></div>
+    <div class="tu-van-hop">
+      <form id="form-tu-van">
+        <h3>Nhận phương án và báo giá</h3><p class="form-mo-ta">Anh chị chỉ cần cho biết sản phẩm và số điện thoại.</p>
+        <div class="truong"><label class="nhan" for="tv-san-pham">Anh chị muốn giới thiệu sản phẩm gì?</label><input type="text" id="tv-san-pham" name="san_pham" maxlength="300" placeholder="Ví dụ: son dưỡng, cà phê, ứng dụng…" required></div>
+        <div class="truong"><label class="nhan" for="tv-lien-he">Số điện thoại của anh chị</label><input type="tel" id="tv-lien-he" name="lien_he" maxlength="30" autocomplete="tel" inputmode="tel" placeholder="0901 234 567" required aria-describedby="tv-lien-he-goi-y"><p id="tv-lien-he-goi-y" class="form-goi-y">Chỉ dùng để tư vấn về yêu cầu này.</p></div>
+        <fieldset class="truong tv-kenh"><legend class="nhan">Anh chị muốn nhận tư vấn qua</legend>
+          <div class="chon-nho"><label><input type="radio" name="kenh" value="Zalo" checked><span>Zalo</span></label><label><input type="radio" name="kenh" value="Điện thoại"><span>Gọi điện</span></label></div>
+        </fieldset>
+        <p id="tv-goi-y" class="tv-goi-y" hidden></p>
+        <div id="tv-mau" class="tv-mau" hidden><span>Mẫu anh chị quan tâm: <strong id="tv-mau-ten"></strong></span><button type="button" class="nut-chu" id="tv-bo-mau">Bỏ chọn</button></div>
+        <label class="dong-y tv-dong-y"><input type="checkbox" id="tv-dong-y" required><span>Tôi đồng ý gửi thông tin này để <span data-studio>B Productions</span> tư vấn và liên hệ lại. <a href="/chinh-sach" target="_blank" rel="noopener">Cách dùng thông tin</a></span></label>
+        <label class="an-di" aria-hidden="true">Trang web<input type="text" id="tv-trang-web" tabindex="-1" autocomplete="off"></label>
+        <p class="bao-loi" id="tv-loi" role="alert" hidden></p>
+        <button type="submit" class="nut tv-gui" id="tv-gui">Gửi cho tôi phương án và báo giá</button>
+        <p class="form-goi-y">Thông tin chỉ được gửi khi anh chị bấm nút. Không cần điền phiếu dài ở bước này.</p>
+      </form>
+      <div id="tv-thanh-cong" class="tv-thanh-cong" hidden role="status"><span class="dau-xong" aria-hidden="true">✓</span><h3 tabindex="-1" id="tv-cam-on">Chúng tôi đã nhận được yêu cầu của anh chị.</h3><p>Chúng tôi sẽ liên hệ qua <span id="tv-kenh-da-gui">Zalo</span> trong <span data-hen>một ngày làm việc</span> để trao đổi về <strong id="tv-san-pham-da-gui"></strong>.</p>
+        <form id="form-bo-sung" class="bo-sung" novalidate>
+          <h4>Anh chị trả lời thêm vài câu để chúng tôi chuẩn bị phương án sát hơn</h4>
+          <p class="form-goi-y">Không bắt buộc. Chọn câu nào cũng được, rồi bấm gửi.</p>
+          <div class="truong"><label class="nhan" for="bs-ten">Xin hỏi anh chị tên là gì?</label><input type="text" id="bs-ten" maxlength="300" autocomplete="name" placeholder="Ví dụ: Nguyễn Văn A"></div>
+          <div id="bs-cau"></div>
+          <p class="bao-loi" id="bs-loi" role="alert" hidden></p>
+          <button type="submit" class="nut tv-gui" id="bs-gui">Gửi thêm thông tin</button>
+        </form>
+        <p id="bs-xong" class="bs-xong" hidden role="status" tabindex="-1">Cảm ơn anh chị, chúng tôi đã ghi lại.</p>
+        <div class="hang-nut tv-tiep"><button type="button" class="nut-phu" data-bat-dau>Gửi yêu cầu chi tiết</button><a href="#mau" class="nut-chu">Xem thêm mẫu</a></div></div>
+    </div>
+  </section>
+
+  <section class="cau-hoi-thuong-gap" id="hoi-dap" aria-labelledby="hoi-dap-tieu-de"><div><h2 id="hoi-dap-tieu-de">Có thể anh chị đang băn khoăn.</h2></div><div class="hoi-dap-ds">
+    <details><summary>Chưa có kịch bản thì có làm được không?</summary><p>Anh chị có thể bắt đầu bằng tên sản phẩm và một vài điều muốn truyền đạt. Chúng tôi sẽ trao đổi thêm để đề xuất hướng nội dung.</p></details>
+    <details><summary>Chi phí được tính như thế nào?</summary><p>Chi phí phụ thuộc vào số lượng, độ dài, phong cách và nội dung video. Chúng tôi báo giá sau khi hiểu nhu cầu và trước khi hai bên thống nhất sản xuất.</p></details>
+    <details><summary>Các video mẫu có dùng AI không?</summary><p>Có. Các mẫu trên trang được làm bằng AI. Khi tư vấn, chúng tôi sẽ trao đổi về phạm vi dùng AI và những điều thương hiệu của anh chị cần lưu ý.</p></details>
+    <details><summary>Tôi có cần trả lời đủ 20 câu ngay không?</summary><p>Không cần cho bước tư vấn nhanh. Phiếu 20 câu dành cho khi anh chị muốn cung cấp yêu cầu chi tiết; anh chị có thể lưu dở và quay lại sau.</p></details>
+  </div></section>
+
+  <section class="phieu" id="phieu" hidden>
+    <div class="tien-do" id="tien-do"><div class="tien-do-chu"><span id="tien-do-nhom"></span><span id="tien-do-luu" aria-live="polite"></span></div><div class="tien-do-thanh"><div id="tien-do-day"></div></div></div>
+    <div class="phieu-than"><h2 id="ten-nhom" tabindex="-1"></h2><p class="dan" id="mo-ta-nhom"></p><div id="cac-cau"></div>
+      <div class="ket-thuc" id="ket-thuc" hidden><label class="dong-y"><input type="checkbox" id="dong-y"><span>Tôi đồng ý gửi phiếu và để <span data-studio>B Productions</span> dùng thông tin trong phiếu này để tư vấn, báo giá và liên hệ lại với tôi. <a href="/chinh-sach" target="_blank" rel="noopener">Xem cách chúng tôi dùng thông tin</a></span></label><label class="an-di" aria-hidden="true">Trang web <input type="text" id="trang-web" tabindex="-1" autocomplete="off"></label></div>
+      <p class="bao-loi" id="loi-phieu" role="alert" hidden></p><div class="hang-nut dieu-huong"><button type="button" class="nut-chu" id="quay-lai">Quay lại</button><button type="button" class="nut" id="tiep-tuc">Lưu và tiếp tục</button></div>
+    </div>
+  </section>
+  <section class="cam-on" id="cam-on" hidden><h2 tabindex="-1" id="cam-on-tieu-de">Chúng tôi đã nhận được phiếu của anh chị</h2><p class="dan"><span data-studio>B Productions</span> sẽ liên hệ lại kèm phương án và báo giá trong <span data-hen>một ngày làm việc</span>. <span id="cam-on-co-tom-tat">Dưới đây là những gì anh chị đã gửi.</span></p><dl class="tom-tat" id="tom-tat"></dl><div class="hang-nut"><a class="nut" id="zalo-cam-on" hidden target="_blank" rel="noopener">Nhắn Zalo cho chúng tôi</a><button type="button" class="nut-chu" id="in-phieu">In hoặc lưu bản tóm tắt này</button></div></section>
+</main>
+
+<dialog class="bat-dau-hop" id="bat-dau-hop" aria-labelledby="bat-dau-tieu-de" aria-describedby="bat-dau-mo-ta"><button type="button" class="hop-dong" id="bat-dau-huy" aria-label="Đóng">×</button><h2 id="bat-dau-tieu-de">Cùng làm rõ ý tưởng của anh chị.</h2><p class="dan" id="bat-dau-mo-ta">Phiếu gồm 20 câu trong 6 phần, mất khoảng 5–7 phút. Anh chị có thể dừng và quay lại làm tiếp.</p><label class="dong-y"><input type="checkbox" id="dong-y-luu"><span>Tôi đồng ý lưu câu trả lời và ảnh lên hệ thống ngay trong lúc điền để tiếp tục sau. Nhân viên có thể xem phiếu dở để hỗ trợ. Bản nháp cũng được lưu trên thiết bị này. <a href="/chinh-sach" target="_blank" rel="noopener">Cách dùng thông tin</a></span></label><p class="bao-loi" id="loi-dong-y-luu" role="alert" hidden></p><button type="button" class="nut" id="bat-dau-xac-nhan">Bắt đầu điền phiếu</button><button type="button" class="nut-chu" id="bat-dau-nhanh">Tôi muốn tư vấn nhanh trước</button></dialog>
+
+<dialog class="xem" id="xem" aria-labelledby="xem-ten"><div class="xem-dau"><div><span class="ma-mau" id="xem-ma"></span><h2 id="xem-ten"></h2></div><button type="button" class="xem-dong" id="xem-dong" aria-label="Đóng trình xem video">×</button></div><div class="xem-than"><button type="button" class="ray-nut" id="xem-truoc" aria-label="Mẫu trước">‹</button><div class="xem-khung" id="xem-khung"></div><button type="button" class="ray-nut" id="xem-sau" aria-label="Mẫu sau">›</button></div><div class="xem-chan"><span id="xem-dem"></span><button type="button" class="nut" id="xem-chon">Nhận báo giá làm video kiểu này</button><button type="button" class="nut-chu" id="xem-chi-tiet">Gửi yêu cầu chi tiết</button></div><div class="xem-form" id="xem-form" hidden></div></dialog>
+<div class="thanh-duoi" id="thanh-duoi" hidden><a class="nut" href="#tu-van">Nhận báo giá</a><a class="nut-phu" href="#goi-y">Gợi ý kiểu video</a></div>
+<footer class="chan-trang"><span data-studio>B Productions</span><span>Video AI cho câu chuyện của anh chị.</span><a id="lien-he-studio" hidden></a><a id="link-zalo" hidden target="_blank" rel="noopener">Nhắn Zalo</a><a href="/chinh-sach">Cách dùng thông tin</a><a href="/nhan-vien">Dành cho nhân viên</a></footer>
+<script type="application/json" id="cau-hinh">__CAU_HINH__</script><script src="/app.js" defer></script>
+</body>
+</html>
