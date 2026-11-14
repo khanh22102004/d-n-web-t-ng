@@ -114,7 +114,7 @@ Nguồn khách được lấy từ `?nguon=tiktok`, `?nguon=facebook`, `?nguon=z
 Repo có sẵn `app.py` (Vercel tìm biến `app` ở đây) và `.python-version`. Mỗi lần đẩy lên nhánh `main`, Vercel tự triển khai lại.
 
 1. Trên Neon, tạo một cơ sở dữ liệu riêng cho web này (không dùng chung với Video OS cũ) và chép chuỗi kết nối.
-2. Trong dự án Vercel: **Settings → Build and Deployment**: Framework Preset chọn Starlette nếu có trong danh sách, không có thì chọn Other, Root Directory để trống, tắt các ô Override của Build/Install/Output.
+2. Trong dự án Vercel: **Settings → Build and Deployment**: Framework Preset chọn **Python** (không chọn Other, vì Other không chạy tệp app.py), Root Directory để trống, tắt các ô Override của Build/Install/Output.
 3. **Settings → Environment Variables** (Production): `DATABASE_URL` (chuỗi Neon), `ADMIN_PASSWORD`, `SECRET_KEY` (chuỗi ngẫu nhiên dài), `COOKIE_SECURE=true`, `TRUST_PROXY=true`. Có thể thêm `STUDIO_CONTACT`, `ZALO_LINK`, `REPLY_WITHIN`.
 4. Vào **Deployments**, bấm **Redeploy** bản mới nhất. Mở `/api/suc-khoe` phải thấy `{"on":true}`.
 
