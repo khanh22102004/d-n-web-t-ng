@@ -1299,3 +1299,88 @@ body.dung-chuyen-dong .tv-man img, body.dung-chuyen-dong .dai-chu-2 .dai-chu-cha
 @media (max-width: 760px) { .tu-van-hang { display: block; margin-top: 0; } }
 .tu-van-them .tu-van-hen { margin-top: 6px; }
 .tu-van-them .tu-van-chi-tiet { margin-top: 26px; }
+
+/* ===== Bản 8: số nhảy (số thật), tim của khách, con trỏ "Xem", nút hút, chữ chứa video, dải nút cuối trang ===== */
+
+/* Số lăn như đồng hồ đếm: 13 mẫu · 6 ngành · 3 nền tảng */
+.so-noi { list-style: none; margin: 28px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 14px 30px; }
+.so-noi li { display: flex; align-items: baseline; gap: 8px; }
+.so-chay { display: inline-flex; font-family: var(--tieu-de); font-weight: 800; font-size: clamp(2rem, 3.2vw, 2.8rem); line-height: 1; letter-spacing: -.04em; color: var(--ho-phach); font-variant-numeric: tabular-nums; }
+.so-cot { display: inline-block; height: 1em; overflow: hidden; }
+.so-dai { display: flex; flex-direction: column; transition: transform 1.6s cubic-bezier(.2, .9, .1, 1); }
+.so-dai > span { height: 1em; line-height: 1; }
+.so-nhan { font-size: .95rem; font-weight: 600; color: #cfe0da; }
+.san-khau .so-noi + .hero-diem { margin-top: 18px; }
+
+/* Tim của khách: +1 bay lên, số dưới nút nảy nhẹ mỗi lần bấm */
+.tim-cong { position: absolute; left: -2px; top: -6px; font-weight: 800; font-size: .95rem; color: #fff; text-shadow: 0 2px 6px rgba(0, 0, 0, .5); animation: cong-bay .9s ease-out both; }
+@keyframes cong-bay { from { opacity: 1; transform: translateY(0) scale(.8); } to { opacity: 0; transform: translateY(-46px) scale(1.2); } }
+.dt-so.nay { animation: so-nay .35s cubic-bezier(.3, 1.8, .5, 1); }
+@keyframes so-nay { 0% { transform: scale(1); } 50% { transform: scale(1.45); color: #ffd1da; } 100% { transform: scale(1); } }
+
+/* Con trỏ riêng (máy tính) */
+.con-tro { position: fixed; left: 0; top: 0; z-index: 1000; pointer-events: none; opacity: 0; transition: opacity .2s ease; }
+.con-tro.hien { opacity: 1; }
+.con-tro::before { content: ""; position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(242, 176, 30, .9);
+  transition: transform .25s cubic-bezier(.2, .8, .2, 1), background .25s ease, border-color .25s ease; }
+.con-tro.ct-nut::before { transform: scale(2.4); background: rgba(242, 176, 30, .18); border-color: rgba(242, 176, 30, .6); }
+.con-tro.ct-an { opacity: 0; }
+.con-tro-chu { position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 92px; height: 92px; margin: -46px 0 0 -46px; border-radius: 50%;
+  background: var(--ho-phach); color: #14201c; font-weight: 800; font-size: .92rem; letter-spacing: -.01em; text-align: center; line-height: 1.15; padding: 8px;
+  transform: scale(0); transition: transform .3s cubic-bezier(.3, 1.5, .5, 1); box-shadow: 0 14px 30px -10px rgba(0, 0, 0, .45); }
+.con-tro.ct-xem::before { transform: scale(0); }
+.con-tro.ct-xem .con-tro-chu { transform: scale(1); }
+.co-con-tro #luoi-mau .mau-nut button, .co-con-tro #dt-mo { cursor: none; }
+
+/* Nút chính hút nhẹ theo chuột */
+.hut { transform: translate(var(--hx, 0px), var(--hy, 0px)); transition: transform .25s cubic-bezier(.2, .8, .2, 1), background .2s ease, box-shadow .2s ease; }
+
+/* Thư viện: rê vào một mẫu thì các mẫu khác tối đi, như rọi đèn */
+.mau-toi .ray > li { transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease, filter .35s ease, opacity .35s ease; }
+.mau-toi .ray:has(> li.nghieng) > li:not(.nghieng) { filter: saturate(.5) brightness(.7); }
+
+/* Chữ chứa video */
+.chu-video { padding: 40px 20px 96px; text-align: center; overflow: hidden; color: #eef4f1; background: linear-gradient(180deg, #0a2f28 0%, #061f1b 100%); }
+.chu-video-to { margin: 0; font-family: var(--tieu-de); font-weight: 800; line-height: 1.02; letter-spacing: -.055em; }
+.chu-video-to span { display: block; font-size: clamp(3.4rem, 13.5vw, 12.5rem); color: var(--ho-phach); }
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .chu-video.gan .chu-video-to span { color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, .14);
+    background: url("/anh-mau/day-mau.webp") 0 50% / auto 135% repeat-x; -webkit-background-clip: text; background-clip: text; animation: chay-nen 46s linear infinite; }
+  .chu-video.gan .chu-video-to span + span { animation-direction: reverse; animation-duration: 58s; }
+}
+@keyframes chay-nen { to { background-position: -2808px 50%; } }
+.chu-video-ghi { margin: 22px auto 0; max-width: 46ch; color: #a9c1b9; font-size: 1rem; }
+@supports (animation-timeline: view()) {
+  .chu-video-to { animation: phong-chu linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
+  @keyframes phong-chu { from { opacity: .3; transform: scale(.78) translateY(30px); } to { opacity: 1; transform: none; } }
+}
+body.dung-chuyen-dong .chu-video-to span, body.dung-chuyen-dong .dai-cta .dai-chu-chay { animation-play-state: paused; }
+
+/* Dải nút chạy cuối trang: bấm vào là tới form báo giá */
+.dai-cta { display: block; overflow: hidden; padding: 26px 0; background: var(--xanh-dam, #093f35); color: #fff; text-decoration: none; }
+.dai-cta .dai-chu-chay { animation-duration: 36s; }
+.dai-cta .dai-chu-muc { font-size: clamp(1.6rem, 4vw, 3.2rem); padding: 0 28px; }
+.dai-cta .dai-chu-sao { color: var(--ho-phach); opacity: 1; font-size: 1.4rem; }
+.dai-cta:hover .dai-chu-chay { animation-play-state: paused; }
+.dai-cta:hover .dai-chu-muc { color: var(--ho-phach); }
+.dai-cta:focus-visible { outline: 3px solid var(--ho-phach); outline-offset: -6px; }
+
+/* Hỏi đáp: mở ra mượt (trình duyệt hỗ trợ) */
+:root { interpolate-size: allow-keywords; }
+.hoi-dap-ds details::details-content { block-size: 0; overflow: hidden; transition: block-size .35s ease, content-visibility .35s allow-discrete; }
+.hoi-dap-ds details[open]::details-content { block-size: auto; }
+
+@media (max-width: 760px) {
+  .so-noi { order: 3; gap: 10px 22px; margin-top: 4px; }
+  .so-chay { font-size: 1.9rem; }
+  .so-nhan { font-size: .85rem; }
+  .chu-video { padding: 24px 12px 56px; }
+  .dai-cta { padding: 18px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .so-dai, .hut, .mau-toi .ray > li { transition: none; }
+  .chu-video-to, .chu-video.gan .chu-video-to span, .dai-cta .dai-chu-chay, .tim-cong, .dt-so.nay { animation: none !important; }
+  .hoi-dap-ds details::details-content { transition: none; }
+}
+.con-tro { transform: translate3d(-120px, -120px, 0); }
+@media (max-width: 760px) { .chu-video-to span { font-size: clamp(2.6rem, 11.2vw, 4rem); } }

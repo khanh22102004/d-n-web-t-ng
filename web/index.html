@@ -82,7 +82,7 @@
             <p class="dt-bao" id="dt-bao" role="status"></p>
             <div class="dt-tren" aria-hidden="true"><span class="dt-ma" id="dt-ma"></span><span class="dt-dem" id="dt-dem"></span></div>
             <div class="dt-ray">
-              <button type="button" class="dt-ray-nut" id="dt-tim" aria-pressed="false" aria-label="Thả tim cho mẫu này"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.6.7-1.4 2.2-2.6 4.3-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg><span class="dt-so" id="dt-so-tim"></span></button>
+              <button type="button" class="dt-ray-nut" id="dt-tim" aria-label="Thả tim cho mẫu này"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.6.7-1.4 2.2-2.6 4.3-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg><span class="dt-so" id="dt-so-tim"></span></button>
               <button type="button" class="dt-ray-nut" id="dt-hoi" aria-label="Hỏi về mẫu này"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.9 2 11.6c0 2.5 1.3 4.8 3.4 6.3L4.6 21l3.9-1.9c1.1.3 2.3.5 3.5.5 5.5 0 10-3.9 10-8.6S17.5 3 12 3z"/></svg><span class="dt-so" id="dt-so-bl"></span></button>
               <button type="button" class="dt-ray-nut" id="dt-chia-se" aria-label="Chia sẻ trang này"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4l8 7.5-8 7.5v-4.6c-5.3 0-8.8 1.6-11.6 5.6 1-5.6 4.2-10.7 11.6-11.6V4z"/></svg><span class="dt-so" id="dt-so-cs"></span></button>
             </div>
@@ -103,6 +103,11 @@
         <a class="nut" href="#tu-van">Nhận báo giá</a>
         <a class="nut-phu" href="#goi-y">Gợi ý kiểu video</a>
       </div>
+      <ul class="so-noi" id="so-noi" aria-label="Thư viện hiện có">
+        <li><span class="so-chay" data-so="mau" aria-hidden="true">0</span><span class="so-nhan">video mẫu</span></li>
+        <li><span class="so-chay" data-so="nganh" aria-hidden="true">0</span><span class="so-nhan">ngành hàng</span></li>
+        <li><span class="so-chay" data-so="3" aria-hidden="true">0</span><span class="so-nhan">nền tảng đăng video</span></li>
+      </ul>
       <ul class="hero-diem"><li>Chưa cần kịch bản</li><li>Khung dọc 9:16</li><li>Duyệt phương án trước khi làm</li></ul>
       <button type="button" class="nut-chu lien-chi-tiet" data-bat-dau>Tôi đã có yêu cầu cụ thể →</button>
       <p class="dang-do" id="dang-do" hidden></p>
@@ -128,6 +133,11 @@
     <button type="button" class="nut-phu xem-them-mau" id="xem-them-mau" hidden></button>
     <div class="mau-duoi"><p class="dan dem-mau" id="dem-mau" aria-live="polite"></p><a href="#goi-y" class="nut-chu">Chưa biết chọn? Trả lời 3 câu để được gợi ý →</a></div>
     <p class="ghi-chu-mau">Các video mẫu được làm bằng AI; một số mẫu có nội dung tiếng Nhật. Khi tư vấn, chúng tôi sẽ trao đổi về ngôn ngữ và nội dung phù hợp với thương hiệu của anh chị.</p>
+  </section>
+
+  <section class="chu-video" id="chu-video" aria-labelledby="chu-video-chu">
+    <p class="chu-video-to" id="chu-video-chu"><span>Chân thật,</span> <span>chất lượng cao.</span></p>
+    <p class="chu-video-ghi">Các khung hình bên trong chữ được cắt từ chính những video mẫu ở trên.</p>
   </section>
 
   <section class="goi-y-muc" id="goi-y" aria-labelledby="goi-y-tieu-de">
@@ -241,6 +251,7 @@
 
 <dialog class="xem" id="xem" aria-labelledby="xem-ten"><div class="xem-dau"><div><span class="ma-mau" id="xem-ma"></span><h2 id="xem-ten"></h2></div><button type="button" class="xem-dong" id="xem-dong" aria-label="Đóng trình xem video">×</button></div><div class="xem-than"><button type="button" class="ray-nut" id="xem-truoc" aria-label="Mẫu trước">‹</button><div class="xem-khung" id="xem-khung"></div><button type="button" class="ray-nut" id="xem-sau" aria-label="Mẫu sau">›</button></div><div class="xem-chan"><span id="xem-dem"></span><button type="button" class="nut" id="xem-chon">Nhận báo giá làm video kiểu này</button><button type="button" class="nut-chu" id="xem-chi-tiet">Gửi yêu cầu chi tiết</button></div><div class="xem-form" id="xem-form" hidden></div></dialog>
 <div class="thanh-duoi" id="thanh-duoi" hidden><a class="nut" href="#tu-van">Nhận báo giá</a><a class="nut-phu" href="#goi-y">Gợi ý kiểu video</a></div>
+<a class="dai-cta" id="dai-cta" href="#tu-van" aria-label="Nhận báo giá cho sản phẩm của anh chị"><span class="dai-chu-chay" id="dai-cta-chay" aria-hidden="true"></span></a>
 <footer class="chan-trang"><span data-studio>B Productions</span><span>Video AI cho câu chuyện của anh chị.</span><a id="lien-he-studio" hidden></a><a id="link-zalo" hidden target="_blank" rel="noopener">Nhắn Zalo</a><a href="/chinh-sach">Cách dùng thông tin</a><a href="/nhan-vien">Dành cho nhân viên</a></footer>
 <script type="application/json" id="cau-hinh">__CAU_HINH__</script><script src="/app.js" defer></script>
 </body>
