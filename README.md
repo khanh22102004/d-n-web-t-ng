@@ -144,8 +144,11 @@ Khi có, điện thoại ở màn hình đầu hiện số dưới các nút tim
 
 ## Điện thoại ở màn hình đầu
 
-- Ảnh bìa hiện ngay; trang tải xong và mạng không ở chế độ tiết kiệm dữ liệu thì máy tự phát video thật (không tiếng). Hai lần không phát được (mạng chặn YouTube) thì chỉ lướt ảnh bìa.
-- Bấm vào máy để bật tiếng ngay trên máy (trình duyệt không cho tự phát có tiếng khi khách chưa bấm). Trên iPhone, nếu trang không bật tiếng hộ được thì mở khung xem lớn để khách bấm phát.
+- Ảnh bìa hiện ngay; video thật bắt đầu phát ngay khi trang dựng xong (mạng không ở chế độ tiết kiệm dữ liệu). Hai lần không phát được (mạng chặn YouTube) thì chỉ lướt ảnh bìa.
+- **Có tiếng ngay khi vào trang (trong giới hạn trình duyệt)**: trang thử bật tiếng một lần; trình duyệt nào cho phép (thường là khách đã hay xem video trên trang) thì có tiếng ngay. Trình duyệt chặn thì video trả về không tiếng và chạy tiếp, không bị dừng.
+- **Màn chào lần đầu vào trang trong phiên** (`sessionStorage` khóa `bp-chao`): nút lớn “Bấm để xem có tiếng” và “Xem không tiếng” (phím Esc). Video không tiếng đã chạy sẵn phía sau, nên bấm là có tiếng ngay. Không hiện khi khách bật tiết kiệm dữ liệu, khi trình duyệt đã tự cho có tiếng, hoặc khi khách mở thẳng phiếu.
+- Video đang chạy không tiếng thì máy hiện lời mời “Chạm để nghe tiếng”; bấm vào máy hoặc khoảng trống của màn hình đầu là bật tiếng (trừ khi khách đã tự tắt). Đang có tiếng thì hết video mới chuyển mẫu kế, có sóng âm nhỏ trên đầu máy và vòng sáng quanh viền máy chạy nhanh hơn.
+- Trên iPhone, nếu trang không bật tiếng hộ được thì mở khung xem lớn để khách bấm phát. Đặt tệp video gốc vào `web/video-mau/` thì iPhone cũng phát có tiếng ngay sau một lần bấm.
 - Nút tim (hiệu ứng tim bay), nút bình luận (mở form báo giá với mẫu đang xem), nút chia sẻ (chia sẻ hoặc chép liên kết trang).
 
 ## Render + Neon (cách khác)

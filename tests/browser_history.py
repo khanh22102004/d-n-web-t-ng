@@ -22,6 +22,8 @@ groups = config['nhom']
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True, executable_path=args.chromium)
     context = browser.new_context(viewport={'width':390,'height':844}, reduced_motion='reduce')
+    # Bài thử này kiểm tra phiếu và lịch sử, không kiểm tra màn chào: đánh dấu đã xem màn chào trong phiên.
+    context.add_init_script("try{sessionStorage.setItem('bp-chao','1')}catch(e){}")
     page = context.new_page()
     page.route('https://**/*', lambda r:r.abort())
     errors, created = [], []

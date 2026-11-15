@@ -240,10 +240,10 @@
   // ---------- Điện thoại ở màn hình đầu: lướt các video mẫu như đang xem TikTok ----------
   // Ảnh bìa hiện ngay cho nhanh; trang rảnh rồi thì phát video thật (không tiếng). Bấm vào máy là bật tiếng ngay trên máy.
   const DT_LUOT = 4000, DT_VIDEO = 9000;
-  const dt = { ds: [], i: 0, hen: 0, re: false, trongTam: true, canh: new Map(), video: false, tieng: false, yt: null, henTieng: 0 };
+  const dt = { ds: [], i: 0, hen: 0, re: false, trongTam: true, canh: new Map(), video: false, tieng: false, yt: null, henTieng: 0, cho: false, tatTay: false };
   const coModal = () => $("xem").open || $("bat-dau-hop").open || !!$("menu-dt")?.open;
   const dtDuocPhat = () => !tamDung && dt.trongTam && !document.hidden && !coModal();
-  const dtTuLuot = () => dtDuocPhat() && !itChuyenDong && !dt.re && !dt.tieng;
+  const dtTuLuot = () => dtDuocPhat() && !itChuyenDong && !dt.re && !dt.tieng && !dt.cho;
   const dtChay = dtTuLuot;
   const laIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const rutGon = so => new Intl.NumberFormat("vi-VN", { notation: "compact", maximumFractionDigits: 1 }).format(so);
@@ -293,7 +293,9 @@
   }
   function dtDangPhat(yt) {
     if (dt.yt !== yt || yt.dangPhat) return;
-    yt.dangPhat = true; dt.loi = 0; $("dt-video").classList.add("hien"); $("dt-man").classList.add("co-video");
+    yt.dangPhat = true; dt.loi = 0; $("dt-video").classList.add("hien"); dtVeTieng();
+    $("dt-man").classList.add("co-video");
+    if (!yt.tieng && dtDuocPhat()) dtThuTieng();
     if (!dtDuocPhat() && !yt.tieng) { if (yt.v) yt.v.pause(); else dtLenh("pauseVideo"); }
     dtCapNhat();
   }
@@ -303,11 +305,42 @@
     let tin; try { tin = JSON.parse(e.data); } catch { return; }
     const info = tin?.info; if (!info) return;
     if (info.playerState === 1) dtDangPhat(dt.yt);
+    if (dt.thu && dt.thu.yt === dt.yt) {
+      if (info.muted === false) dt.thu.moTieng = true;
+      // Trình duyệt chặn tiếng (dừng video lại): trả về không tiếng và phát tiếp ngay.
+      if (info.playerState === 2 && !dt.tieng) { dt.thu = null; dtLenh("mute"); dtLenh("playVideo"); }
+    }
     if (info.playerState === 0 && dt.tieng) dtHien(dt.i + 1, 1);
+    // Đang nghe có tiếng: video gần hết thì chuyển sang mẫu kế (video không tiếng thì tự lặp, nên phải tự canh).
+    if (dt.tieng && dt.yt && !dt.yt.daHet && typeof info.currentTime === "number" && typeof info.duration === "number" && info.duration > 3 && info.duration - info.currentTime < 0.7) {
+      dt.yt.daHet = true; dtHien(dt.i + 1, 1);
+    }
     if (info.muted === false && dt.tieng) clearTimeout(dt.henTieng);
   });
+  // Thử bật tiếng tự động một lần: trình duyệt nào cho phép (khách hay nghe video trên trang) thì có tiếng ngay khi vào trang.
+  function dtThuTieng() {
+    if (dt.tieng || dt.tatTay || laIOS || dt.daThu || !dt.yt) return;
+    dt.daThu = true; const yt = dt.yt;
+    if (yt.v) {
+      yt.v.muted = false;
+      yt.v.play().then(() => { if (!yt.v.muted && !yt.v.paused && dt.yt === yt && !dt.tieng) { yt.v.loop = false; dtTiengDuoc(); } }).catch(() => { if (dt.tieng) return; yt.v.muted = true; yt.v.play().catch(() => {}); });
+      return;
+    }
+    dt.thu = { yt, moTieng: false };
+    dtLenh("unMute"); dtLenh("setVolume", [100]);
+    setTimeout(() => {
+      const t = dt.thu; dt.thu = null;
+      if (!t || dt.yt !== t.yt) return;
+      if (dt.tieng) return;                                      // khách đã tự bấm bật tiếng trong lúc thử
+      if (t.moTieng) dtTiengDuoc(); else { dtLenh("mute"); dtLenh("playVideo"); }
+    }, 1300);
+  }
+  function dtTiengDuoc() {
+    dt.tieng = true; if (dt.yt) dt.yt.tieng = true;
+    dtVeTieng(); dtCapNhat(); dt.dongChao?.();
+  }
   function dtVeTieng() {
-    $("dt-nghe-chu").textContent = dt.tieng ? "Đang phát có tiếng · bấm để tắt" : "Bấm để bật tiếng";
+    $("dt-nghe-chu").textContent = dt.tieng ? "Đang phát có tiếng · bấm để tắt" : dt.yt?.dangPhat ? "Đang phát không tiếng · chạm để nghe" : "Bấm để bật tiếng";
     $("dt-man").classList.toggle("co-tieng", dt.tieng);
     $("dt-mo").setAttribute("aria-label", `${dt.tieng ? "Tắt tiếng" : "Bật tiếng"} video mẫu ${dt.ds[dt.i].ma}: ${dt.ds[dt.i].ten}`);
     $("dt-mo").setAttribute("aria-pressed", String(dt.tieng));
@@ -315,14 +348,14 @@
   function dtBatTatTieng() {
     const m = dt.ds[dt.i];
     if (dt.tieng) {
-      dt.tieng = false;
+      dt.tieng = false; dt.tatTay = true;
       if (dt.yt?.dangPhat && dt.video) { if (dt.yt.v) dt.yt.v.muted = true; else dtLenh("mute"); dt.yt.tieng = false; } else dtGoVideo();
     } else {
       // iPhone không cho trang tự phát video YouTube có tiếng: mở khung xem lớn để anh chị bấm phát.
       if (laIOS && !m.doan && !(dt.yt && dt.yt.ma === m.ma && dt.yt.dangPhat)) { dtGoVideo(); moXem(dt.ds, m.ma); return; }
-      dt.tieng = true; dungTatCa();
+      dt.tieng = true; dt.thu = null; dungTatCa();
       if (dt.yt && dt.yt.ma === m.ma && dt.yt.dangPhat) {
-        if (dt.yt.v) { dt.yt.v.muted = false; dt.yt.v.play().catch(() => {}); }
+        if (dt.yt.v) { dt.yt.v.muted = false; dt.yt.v.loop = false; dt.yt.v.play().catch(() => {}); }
         else {
           dtLenh("unMute"); dtLenh("setVolume", [100]); dtLenh("playVideo");
           // iPhone có thể không cho bật tiếng hộ: nếu 1,5 giây sau YouTube vẫn báo đang tắt tiếng thì mở khung xem lớn.
@@ -413,6 +446,7 @@
       await navigator.clipboard.writeText(url); bao("Đã chép liên kết trang");
     } catch (err) { if (err?.name !== "AbortError") bao("Chưa chia sẻ được. Anh chị thử lại giúp."); }
   }
+  let dtBatDauVideo = () => {};
   function veDienThoai() {
     const uuTien = maNoiBat.map(ma => mau[ma]).filter(Boolean);
     dt.ds = [...uuTien, ...cauHinh.mau.filter(m => !maNoiBat.includes(m.ma))];
@@ -423,6 +457,11 @@
     $("dt-truoc").addEventListener("click", () => dtHien(dt.i - 1, -1));
     $("dt-sau").addEventListener("click", () => dtHien(dt.i + 1, 1));
     $("dt-tim").addEventListener("click", dtThaTim);
+    // Chạm vào khoảng trống bất kỳ trên màn hình đầu (không phải nút hay liên kết) cũng bật tiếng — trừ iPhone, và trừ khi khách đã tự tắt.
+    $("mo-dau").addEventListener("click", e => {
+      if (dt.tieng || dt.tatTay || laIOS || !dt.yt?.dangPhat || e.target.closest("a, button, input, textarea, select, label, summary, #dien-thoai")) return;
+      dtBatTatTieng();
+    });
     $("dt-hoi").addEventListener("click", () => chonTuVan(dt.ds[dt.i]));
     $("dt-chia-se").addEventListener("click", dtChiaSe);
     const may = $("dien-thoai");
@@ -443,10 +482,49 @@
     // Trang đã rảnh và mạng không tiết kiệm dữ liệu: bắt đầu phát video thật (không tiếng) trên máy.
     const mang = navigator.connection;
     if (!itChuyenDong && !tietKiem && !/(^|-)2g$/.test(mang?.effectiveType || "")) {
-      const batDau = () => { if (dt.video) return; dt.video = true; if (!dt.yt) dtNapVideo(dt.ds[dt.i], dt.tieng); };
-      window.addEventListener("load", () => setTimeout(() => ("requestIdleCallback" in window ? requestIdleCallback(batDau, { timeout: 2500 }) : batDau()), 1200), { once: true });
-      if (document.readyState === "complete") setTimeout(batDau, 1500);
+      // Phát ngay khi trang dựng xong, để khách vừa vào đã thấy video chạy (và sẵn sàng bật tiếng khi khách chạm).
+      dtBatDauVideo = () => { if (dt.video) return; dt.video = true; if (!dt.yt) dtNapVideo(dt.ds[dt.i], dt.tieng); };
+      setTimeout(dtBatDauVideo, 300);
     }
+  }
+
+  // ---------- Màn chào: lần đầu vào trang trong phiên, mời khách bấm một lần để xem video có tiếng ----------
+  // Trình duyệt không cho trang tự phát có tiếng khi khách chưa bấm gì, nên một cú bấm ở đây là cách chắc nhất để có tiếng ngay.
+  function moManChao() {
+    try { if (sessionStorage.getItem("bp-chao")) return; sessionStorage.setItem("bp-chao", "1"); } catch { return; }
+    if ($("mo-dau").hidden || tietKiem || !dt.ds.length || dt.tieng) return;
+    const lop = tao("div", "man-chao"); lop.setAttribute("role", "dialog"); lop.setAttribute("aria-modal", "true"); lop.setAttribute("aria-labelledby", "chao-tieu-de");
+    const song = tao("div", "chao-song"); song.setAttribute("aria-hidden", "true");
+    for (let k = 0; k < 32; k += 1) { const v = tao("i"); v.style.setProperty("--k", k); song.append(v); }
+    const logo = tao("p", "chao-logo"); logo.append(cauHinh.studio || "B Productions", tao("span", "", "."));
+    const td = tao("h2", "chao-tieu-de"); td.id = "chao-tieu-de"; td.append(tao("span", "", "Video AI chân thật,"), " ", tao("span", "", "chất lượng cao"));
+    const coTieng = tao("button", "chao-nut"); coTieng.type = "button"; coTieng.append(tao("span", "chao-loa"), tao("span", "", "Bấm để xem có tiếng"));
+    const khong = tao("button", "chao-phu", "Xem không tiếng"); khong.type = "button";
+    const ghi = tao("p", "chao-ghi", "Video mẫu có tiếng. Anh chị chạm vào điện thoại để tắt tiếng bất cứ lúc nào.");
+    lop.append(song, logo, td, coTieng, khong, ghi);
+    const nen = [...document.body.children].filter(e => e.tagName !== "SCRIPT" && !e.inert);
+    nen.forEach(e => { e.inert = true; });
+    document.body.append(lop); document.documentElement.classList.add("chao-mo");
+    dt.cho = true; dtBatDauVideo(); dtCapNhat();                      // video không tiếng tải sẵn phía sau
+    coTieng.focus({ preventScroll: true });
+    // muonTieng: true = khách bấm "có tiếng", false = "không tiếng", undefined = trình duyệt đã tự cho có tiếng nên chỉ cần đóng.
+    const dong = muonTieng => {
+      if (lop.classList.contains("ra")) return;
+      lop.classList.add("ra"); document.documentElement.classList.remove("chao-mo");
+      nen.forEach(e => { e.inert = false; }); dt.cho = false; dt.dongChao = null;
+      if (muonTieng === true) { dt.video = true; if (!dt.tieng) dtBatTatTieng(); else dtCapNhat(); }
+      else if (muonTieng === false && dt.tieng) dtBatTatTieng();
+      else dtCapNhat();
+      if (lop.contains(document.activeElement)) $("dt-mo").focus({ preventScroll: true });
+      setTimeout(() => lop.remove(), itChuyenDong ? 0 : 800);
+    };
+    dt.dongChao = () => dong();
+    coTieng.addEventListener("click", () => dong(true));
+    khong.addEventListener("click", () => dong(false));
+    lop.addEventListener("keydown", e => {
+      if (e.key === "Escape") { e.preventDefault(); dong(false); }
+      if (e.key === "Tab") { e.preventDefault(); (document.activeElement === coTieng ? khong : coTieng).focus(); }
+    });
   }
 
   // ---------- Menu đầu trang: "Kiểu video" mở bảng ngành hàng (máy tính), nút Menu mở trang menu (điện thoại) ----------
@@ -1417,7 +1495,7 @@
     }
     if (cauHinh.zalo) { ["link-zalo", "zalo-cam-on"].forEach(id => { $(id).href = cauHinh.zalo; $(id).hidden = false; }); }
     veMau(); veGoiY(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); veMenu(); ganXemTruoc(); veDanhGia(); veCamKet(); veSoNoi(); ganChuVideo(); ganHieuUng(); ganNghieng(); ganConTro();
-    await khoiPhuc(); khoiTaoLichSu();
+    await khoiPhuc(); khoiTaoLichSu(); moManChao();
     document.querySelectorAll("[data-bat-dau]").forEach(b => b.addEventListener("click", batDau));
     $("tiep-tuc").addEventListener("click", async () => {
       if (!kiemTraNhom()) return;
