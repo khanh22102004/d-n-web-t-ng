@@ -22,11 +22,43 @@
 <header class="dau-trang">
   <a class="ten-studio" href="/" aria-label="B Productions — trang chủ">B Productions<span class="logo-cham" aria-hidden="true">.</span></a>
   <nav aria-label="Điều hướng chính">
-    <a href="#mau" data-chi-trang-chu>Xem mẫu</a>
-    <a href="#cach-lam" data-chi-trang-chu>Cách làm</a>
+    <ul class="menu">
+      <li class="menu-co-con" id="menu-co-con">
+        <button type="button" class="menu-nut" id="menu-kieu-nut" aria-expanded="false" aria-controls="menu-kieu">Kiểu video</button>
+        <div class="menu-kieu" id="menu-kieu" hidden>
+          <div><p class="menu-nho">Theo ngành hàng</p><div class="menu-kieu-luoi" id="menu-kieu-luoi"></div></div>
+          <div class="menu-kieu-ben">
+            <p class="menu-kieu-hoi">Chưa biết chọn kiểu nào?</p>
+            <p>Anh chị trả lời 3 câu, chúng tôi gợi ý 3 mẫu hợp với sản phẩm.</p>
+            <a class="nut" href="#goi-y">Gợi ý cho tôi</a>
+            <a class="menu-tat-ca" href="#mau">Xem tất cả <span data-so-mau>13</span> video mẫu</a>
+          </div>
+        </div>
+      </li>
+      <li><a href="#mau">Video mẫu</a></li>
+      <li><a href="#so-sanh">So với tự làm</a></li>
+      <li><a href="#cach-lam">Cách làm</a></li>
+      <li><a href="#hoi-dap">Hỏi đáp</a></li>
+    </ul>
     <a class="nut nho" href="#tu-van">Nhận báo giá</a>
+    <button type="button" class="menu-mo" id="menu-mo" aria-label="Mở menu" aria-haspopup="dialog" aria-controls="menu-dt"><span class="menu-mo-icon" aria-hidden="true"></span><span class="menu-mo-chu">Menu</span></button>
   </nav>
 </header>
+<dialog class="menu-dt" id="menu-dt" aria-labelledby="menu-dt-tieu-de">
+  <div class="menu-dt-dau"><p id="menu-dt-tieu-de">Menu</p><button type="button" class="menu-dong" id="menu-dong" aria-label="Đóng menu">×</button></div>
+  <nav aria-label="Menu trên điện thoại">
+    <p class="menu-nho">Kiểu video theo ngành hàng</p>
+    <div class="menu-kieu-luoi" id="menu-dt-kieu"></div>
+    <ul class="menu-dt-ds">
+      <li><a href="#goi-y">Gợi ý kiểu video cho tôi</a></li>
+      <li><a href="#mau">Xem tất cả video mẫu</a></li>
+      <li><a href="#so-sanh">So với tự làm video</a></li>
+      <li><a href="#cach-lam">Cách làm</a></li>
+      <li><a href="#hoi-dap">Hỏi đáp</a></li>
+    </ul>
+    <a class="nut menu-dt-nut" href="#tu-van">Nhận báo giá</a>
+  </nav>
+</dialog>
 <main id="noi-dung">
   <section class="mo-dau san-khau" id="mo-dau" aria-labelledby="tieu-de-chinh">
     <div class="mo-dau-chu">
@@ -73,7 +105,7 @@
     </div>
   </section>
 
-  <div class="dai-chu" aria-hidden="true"><div class="dai-chu-chay" id="dai-chu"></div></div>
+  <div class="dai-chu" id="dai-chu-hop" aria-hidden="true"><div class="dai-chu-chay" id="dai-chu"></div></div>
 
   <section class="goi-y-muc" id="goi-y" aria-labelledby="goi-y-tieu-de">
     <div class="goi-y-dau">
@@ -98,6 +130,24 @@
     <button type="button" class="nut-phu xem-them-mau" id="xem-them-mau" hidden></button>
     <div class="mau-duoi"><p class="dan dem-mau" id="dem-mau" aria-live="polite"></p><a href="#tu-van" class="nut-chu">Chưa biết chọn? Nhờ chúng tôi gợi ý →</a></div>
     <p class="ghi-chu-mau">Các video mẫu được làm bằng AI; một số mẫu có nội dung tiếng Nhật. Khi tư vấn, chúng tôi sẽ trao đổi về ngôn ngữ và nội dung phù hợp với thương hiệu của anh chị.</p>
+  </section>
+
+  <section class="so-sanh" id="so-sanh" aria-labelledby="so-sanh-tieu-de">
+    <div class="muc-dau"><h2 id="so-sanh-tieu-de">Tự làm video bằng ứng dụng, hay để chúng tôi làm?</h2>
+      <p class="dan">Ứng dụng chỉnh video có bản miễn phí và rất tiện khi anh chị có thời gian, đã quen tay. Bảng dưới đây giúp anh chị chọn cách hợp với mình.</p></div>
+    <table class="so-sanh-bang">
+      <caption class="an-di">So sánh tự làm video bằng ứng dụng và nhờ B Productions làm</caption>
+      <thead><tr><td data-nhan="Tự làm"></td><th scope="col">Tự làm bằng ứng dụng</th><th scope="col" class="cot-studio">B Productions làm cho anh chị</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Ai làm</th><td data-nhan="Tự làm">Anh chị tự quay, cắt ghép, thêm chữ và nhạc.</td><td class="cot-studio" data-nhan="B Productions">Chúng tôi làm từ ý tưởng đến video hoàn chỉnh.</td></tr>
+        <tr><th scope="row">Ý tưởng, kịch bản</th><td data-nhan="Tự làm">Anh chị tự nghĩ hoặc theo mẫu có sẵn.</td><td class="cot-studio" data-nhan="B Productions">Chưa cần kịch bản. Chúng tôi đề xuất phương án để anh chị duyệt trước.</td></tr>
+        <tr><th scope="row">Người trong video</th><td data-nhan="Tự làm">Anh chị hoặc người quen đứng trước máy quay.</td><td class="cot-studio" data-nhan="B Productions">Người mẫu, nhân vật hoặc hoạt hình làm bằng AI, như các video mẫu.</td></tr>
+        <tr><th scope="row">Mức độ riêng</th><td data-nhan="Tự làm">Mẫu có sẵn, người khác cũng dùng được.</td><td class="cot-studio" data-nhan="B Productions">Làm riêng cho sản phẩm của anh chị.</td></tr>
+        <tr><th scope="row">Việc của anh chị</th><td data-nhan="Tự làm">Học cách dùng và tự làm từng video.</td><td class="cot-studio" data-nhan="B Productions">Kể về sản phẩm, rồi duyệt phương án.</td></tr>
+        <tr><th scope="row">Chi phí</th><td data-nhan="Tự làm">Có bản miễn phí; anh chị bỏ công sức.</td><td class="cot-studio" data-nhan="B Productions">Có chi phí, báo giá rõ trước khi làm.</td></tr>
+      </tbody>
+    </table>
+    <div class="so-sanh-chan"><p>Muốn biết làm video cho sản phẩm của anh chị thì tốn bao nhiêu?</p><a class="nut" href="#tu-van">Nhận báo giá</a></div>
   </section>
 
   <section class="cach-lam" id="cach-lam" aria-labelledby="cach-lam-tieu-de">
