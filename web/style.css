@@ -1511,3 +1511,26 @@ body.dung-chuyen-dong .bay-len { animation-play-state: paused; }
 /* Lời mời nghe tiếng lệch trái một chút để không đè lên các nút tim, bình luận, chia sẻ */
 .dt-moi-nghe { left: calc(50% - 26px); top: 30%; }
 @media (max-width: 760px) { .dt-moi-nghe { left: calc(50% - 24px); top: 27%; font-size: .74rem; padding: 7px 11px 7px 9px; gap: 7px; } }
+
+/* ===== Bản 11: ánh màu video loang sau máy, chữ "chất lượng cao" lóe sáng, màn chào chạm đâu cũng vào ===== */
+.dt-hao { position: absolute; z-index: -1; left: 50%; top: 0; width: calc(clamp(250px, 20.5vw, 284px) * 1.22); aspect-ratio: 9 / 17;
+  translate: -50% -4%; pointer-events: none; }
+.dt-hao span { position: absolute; inset: 0; border-radius: 34%; background: center / cover no-repeat; opacity: 0;
+  filter: blur(38px) saturate(1.6); transition: opacity 1.4s ease; animation: hao-tho 5s ease-in-out infinite; }
+.dt-hao span.hien { opacity: .55; }
+@keyframes hao-tho { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+.mo-dau:has(.co-tieng) .dt-hao span.hien { opacity: .75; animation: hao-nhip .9s ease-in-out infinite alternate; }
+@keyframes hao-nhip { from { transform: scale(1.01); } to { transform: scale(1.08); } }
+/* "chất lượng cao" lóe sáng chạy qua mỗi vài giây */
+.san-khau .h1-nen { background: linear-gradient(100deg, var(--ho-phach) 0 40%, #fff6d6 50%, var(--ho-phach) 60% 100%) 100% 0 / 250% 100% no-repeat;
+  -webkit-background-clip: text; background-clip: text; color: transparent; animation: loe-chu 6s ease-in-out 1.5s infinite; }
+@keyframes loe-chu { 0%, 70% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+.man-chao { cursor: pointer; }
+@media (max-width: 760px) {
+  .dt-hao { width: calc(min(228px, 58vw) * 1.25); aspect-ratio: 9 / 15.5; }
+  .dt-hao span { filter: blur(30px) saturate(1.6); }
+  .dt-hao span.hien { opacity: .45; }
+}
+body.dung-chuyen-dong .dt-hao span, body.dung-chuyen-dong .san-khau .h1-nen { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .dt-hao span, .san-khau .h1-nen { animation: none !important; } }
+@media (forced-colors: active) { .san-khau .h1-nen { color: CanvasText; background: none; } }
