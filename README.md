@@ -120,6 +120,34 @@ Repo có sẵn `app.py` (Vercel tìm biến `app` ở đây) và `.python-versio
 
 Máy chủ từ chối chạy trên Vercel nếu thiếu `DATABASE_URL` PostgreSQL, vì ổ đĩa ở đó không giữ dữ liệu.
 
+## Đánh giá của khách và số liệu thật (chỉ dữ liệu thật)
+
+Trang **không tự tạo** đánh giá, số sao hay số lượt tim/bình luận/chia sẻ. Hai chỗ dưới đây trống thì phần tương ứng tự ẩn.
+
+**Đánh giá 5 sao** — ghi vào `danh_gia.json` (danh sách). Chỉ đánh giá có `"da_dong_y": true` (khách đã đồng ý cho đăng), đủ tên, nội dung và số sao 1–5 mới hiện:
+
+```json
+[
+  {"ten": "Chị Lan", "doanh_nghiep": "Tiệm bánh ...", "sao": 5, "noi_dung": "Lời khách viết ...",
+   "ma_mau": "ST029", "ngay": "11/2026", "nguon": "https://... (đường dẫn tới đánh giá gốc, nếu có)", "da_dong_y": true}
+]
+```
+
+**Số liệu bài đăng của từng mẫu** — thêm `so_lieu` vào mẫu trong `mau.json`, lấy từ bài đăng thật:
+
+```json
+{"ma": "ST029", "...": "...", "so_lieu": {"nen_tang": "TikTok", "xem": 125000, "tim": 5400, "binh_luan": 82, "chia_se": 130,
+  "ngay": "11/2026", "nguon": "https://www.tiktok.com/@.../video/..."}}
+```
+
+Khi có, điện thoại ở màn hình đầu hiện số dưới các nút tim/bình luận/chia sẻ, nhãn nền tảng ghi số lượt xem, và có dòng ghi nguồn bên dưới.
+
+## Điện thoại ở màn hình đầu
+
+- Ảnh bìa hiện ngay; trang tải xong và mạng không ở chế độ tiết kiệm dữ liệu thì máy tự phát video thật (không tiếng). Hai lần không phát được (mạng chặn YouTube) thì chỉ lướt ảnh bìa.
+- Bấm vào máy để bật tiếng ngay trên máy (trình duyệt không cho tự phát có tiếng khi khách chưa bấm). Trên iPhone, nếu trang không bật tiếng hộ được thì mở khung xem lớn để khách bấm phát.
+- Nút tim (hiệu ứng tim bay), nút bình luận (mở form báo giá với mẫu đang xem), nút chia sẻ (chia sẻ hoặc chép liên kết trang).
+
 ## Render + Neon (cách khác)
 
 1. Đưa mã nguồn lên repo GitHub riêng và tạo cơ sở dữ liệu PostgreSQL trên Neon.

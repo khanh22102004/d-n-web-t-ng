@@ -62,6 +62,25 @@ class RegressionTests(unittest.TestCase):
         r = self.client.post('/api/nhan-vien/dang-nhap', json={'mat_khau': 'test-password'})
         self.assertEqual(r.status_code, 200)
 
+    def test_reviews_only_show_complete_consented_entries(self):
+        data = [
+            {'ten': 'Chị A', 'noi_dung': 'Video rõ ràng.', 'sao': 5, 'da_dong_y': True, 'nguon': 'javascript:alert(1)'},
+            {'ten': 'Anh B', 'noi_dung': 'Ổn.', 'sao': 4},                      # chưa đồng ý cho đăng
+            {'ten': 'Chị C', 'noi_dung': 'Tốt.', 'sao': 6, 'da_dong_y': True},  # số sao sai
+            {'ten': '', 'noi_dung': 'Thiếu tên', 'sao': 5, 'da_dong_y': True},
+            {'ten': 'Anh D', 'noi_dung': 'Được', 'sao': True, 'da_dong_y': True},
+            'không phải đánh giá',
+        ]
+        with tempfile.TemporaryDirectory() as d:
+            tep = Path(d) / 'danh_gia.json'
+            tep.write_text(json.dumps(data, ensure_ascii=False), encoding='utf-8')
+            ds = m.doc_danh_gia(tep)
+            self.assertEqual([x['ten'] for x in ds], ['Chị A'])
+            self.assertEqual(ds[0]['nguon'], '')
+            tep.write_text('{hỏng', encoding='utf-8')
+            self.assertEqual(m.doc_danh_gia(tep), [])
+        self.assertIn('danh_gia', self.client.get('/api/cau-hinh').json())
+
     def test_consent_required_before_creating_draft(self):
         self.assertEqual(self.client.post('/api/phieu', json={}).status_code, 400)
         path = self.new()

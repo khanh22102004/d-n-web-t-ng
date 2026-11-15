@@ -47,6 +47,33 @@ for _kieu, _duoi in (("image/webp", ".webp"), ("font/woff2", ".woff2"), ("font/w
     mimetypes.add_type(_kieu, _duoi)
 BO_CAU_HOI = json.loads((GOC / "cau_hoi.json").read_text(encoding="utf-8"))
 MAU = json.loads((GOC / "mau.json").read_text(encoding="utf-8"))
+
+
+def doc_danh_gia(tep=None):
+    """Đánh giá thật của khách, do studio ghi vào danh_gia.json. Chỉ hiện đánh giá đủ tên, nội dung,
+    số sao 1–5 và có "da_dong_y": true (khách đã đồng ý cho đăng). Tệp trống hoặc thiếu thì phần đánh giá ẩn."""
+    tep = tep or GOC / "danh_gia.json"
+    try:
+        ds = json.loads(tep.read_text(encoding="utf-8")) if tep.is_file() else []
+    except (OSError, ValueError):
+        return []
+    ket_qua = []
+    for d in ds if isinstance(ds, list) else []:
+        if not isinstance(d, dict) or d.get("da_dong_y") is not True:
+            continue
+        ten, noi_dung = str(d.get("ten") or "").strip(), str(d.get("noi_dung") or "").strip()
+        sao = d.get("sao")
+        if not ten or not noi_dung or isinstance(sao, bool) or not isinstance(sao, int) or not 1 <= sao <= 5:
+            continue
+        nguon = str(d.get("nguon") or "").strip()
+        ket_qua.append({"ten": ten[:80], "noi_dung": noi_dung[:600], "sao": sao,
+                        "doanh_nghiep": str(d.get("doanh_nghiep") or "").strip()[:120],
+                        "ma_mau": str(d.get("ma_mau") or "").strip()[:12], "ngay": str(d.get("ngay") or "").strip()[:20],
+                        "nguon": nguon[:300] if nguon.startswith("https://") else ""})
+    return ket_qua
+
+
+DANH_GIA = doc_danh_gia()
 CAU = BO_CAU_HOI["cau_hoi"]
 THU_TU_NHOM = [n["id"] for n in BO_CAU_HOI["nhom"]]
 
@@ -325,7 +352,7 @@ def mau_kem_doan_ngan():
 
 def du_lieu_cau_hinh():
     return {"studio": TEN_STUDIO, "hen_phan_hoi": HEN_PHAN_HOI, "zalo": LINK_ZALO, "lien_he": LIEN_HE_HIEN_THI, "lien_he_url": LINK_LIEN_HE,
-            "bo_cau_hoi": BO_CAU_HOI, "mau": mau_kem_doan_ngan(),
+            "bo_cau_hoi": BO_CAU_HOI, "mau": mau_kem_doan_ngan(), "danh_gia": DANH_GIA,
             "anh": {"toi_da": ANH_TOI_DA, "nang_nhat": ANH_NANG_NHAT}}
 
 
