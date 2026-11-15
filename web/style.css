@@ -1,9 +1,11 @@
 /* B Productions: giấy trắng, mực xanh đậm, hổ phách cho mã mẫu và tiến độ.
    Hình khung dọc 9:16 là họa tiết chính, vì đó là thứ studio làm ra. */
-/* Phông đã được cắt gọn, chỉ giữ chữ Latin và tiếng Việt (228 KB thay cho 1,5 MB). */
-@font-face { font-family: "Lora"; src: url("/fonts/Lora-Variable.woff") format("woff"); font-weight: 400 700; font-display: swap; }
-@font-face { font-family: "Carlito"; src: url("/fonts/Carlito-Regular.woff") format("woff"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Carlito"; src: url("/fonts/Carlito-Bold.woff") format("woff"); font-weight: 700; font-display: swap; }
+/* Một họ chữ: Inter cho nội dung, Inter Display rất đậm cho tiêu đề — gọn, rõ dấu tiếng Việt, hợp chất video mạng xã hội.
+   Phông đã cắt gọn, chỉ giữ chữ Latin và tiếng Việt (khoảng 130 KB cho 4 kiểu). */
+@font-face { font-family: "Inter"; src: url("/fonts/Inter-Regular.woff") format("woff"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("/fonts/Inter-SemiBold.woff") format("woff"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("/fonts/Inter-Bold.woff") format("woff"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Inter Display"; src: url("/fonts/InterDisplay-ExtraBold.woff") format("woff"); font-weight: 800; font-display: swap; }
 
 :root {
   --giay: #ffffff;
@@ -15,8 +17,8 @@
   --nhat: #55645f;
   --vien: #cfdad5;
   --do: #b3261e;
-  --tieu-de: "Lora", Georgia, "Times New Roman", serif;
-  --than: "Carlito", "Segoe UI", Roboto, Arial, sans-serif;
+  --tieu-de: "Inter Display", "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  --than: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
   --rong: 1120px;
 }
 
@@ -925,4 +927,119 @@ body.dung-chuyen-dong .dt-nghe-tam-giac, body.dung-chuyen-dong .san-khau .hang-n
 @media (prefers-reduced-motion: reduce) {
   .menu-kieu, .menu-dt[open] { animation: none; }
   .menu-kieu-o img { transition: none; }
+}
+
+/* ===== Bản 5: thang chữ và nhịp bố cục =====
+   Thang chữ: 15 · 17 (nội dung) · 19 (dẫn) · 22 (tiêu đề nhỏ) · 32–50 (tiêu đề mục) · 40–70 (tiêu đề chính).
+   Tiêu đề dùng Inter Display 800, khoảng chữ khít; dòng cao 1,08–1,1 để dấu tiếng Việt không chạm nhau. */
+body { font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+h1, h2 { font-family: var(--tieu-de); font-weight: 800; letter-spacing: -.035em; line-height: 1.1; text-wrap: balance; }
+h3 { font-family: var(--than); font-weight: 700; letter-spacing: -.01em; line-height: 1.3; }
+p, li, summary { text-wrap: pretty; }
+.dan { font-size: 1.1rem; line-height: 1.6; max-width: 56ch; }
+.muc-dau h2, .cach-lam h2, .tu-van h2, .cau-hoi-thuong-gap h2, .goi-y-muc h2, .so-sanh h2 {
+  font-size: clamp(2rem, 3.7vw, 3.15rem); font-weight: 800; line-height: 1.08; letter-spacing: -.038em; }
+.muc-dau { align-items: flex-end; }
+.muc-dau .dan { max-width: 40ch; }
+.nut { letter-spacing: -.005em; }
+
+/* Đầu trang */
+.ten-studio { font-weight: 800; font-size: 1.4rem; letter-spacing: -.04em; }
+.menu > li > a, .menu-nut { font-weight: 600; font-size: .95rem; }
+.dau-trang .nut.nho { font-size: .95rem; }
+
+/* Màn hình đầu */
+.san-khau h1 { font-size: clamp(2.6rem, 4.9vw, 4.5rem); line-height: 1.06; letter-spacing: -.045em; }
+.san-khau .dan { font-size: 1.15rem; max-width: 44ch; margin-top: 22px; }
+.san-khau .hang-nut .nut, .san-khau .hang-nut .nut-phu { font-size: 1.02rem; }
+.dt-ten { letter-spacing: -.01em; }
+
+/* Dải chữ chạy */
+.dai-chu-muc { font-weight: 800; letter-spacing: -.03em; font-size: clamp(1.3rem, 2.5vw, 2rem); }
+
+/* Gợi ý 3 câu */
+.goi-y-muc { padding: 88px 20px; gap: 56px; }
+.goi-y-muc .dan { font-size: 1.1rem; }
+.goi-y-hop { padding: 28px; }
+.goi-y-hop h3 { font-size: 1.4rem; letter-spacing: -.015em; }
+.goi-y-hop .chon button { font-weight: 600; }
+
+/* Thư viện mẫu */
+.mau { padding-top: 88px; padding-bottom: 72px; }
+.ray .ten-mau { font-family: var(--than); font-weight: 700; font-size: 1.1rem; line-height: 1.3; letter-spacing: -.012em; }
+.ray .ma-mau { font-size: .8rem; font-weight: 700; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.phong-cach-mau { font-size: .92rem; line-height: 1.45; }
+.tu-van-mau { font-weight: 700; font-size: .92rem; }
+.loc button { font-weight: 600; font-size: .95rem; }
+
+/* So với tự làm */
+.so-sanh { padding: 96px 20px 40px; }
+.so-sanh-bang thead th { font-family: var(--than); font-weight: 700; font-size: 1.1rem; letter-spacing: -.01em; }
+.so-sanh-bang tbody th { font-size: .92rem; }
+.so-sanh-chan p { font-family: var(--tieu-de); font-weight: 800; font-size: 1.4rem; letter-spacing: -.025em; }
+
+/* Ba bước: số lớn vì đây đúng là một trình tự */
+.cach-lam { padding: 72px 20px 96px; }
+.cach-lam .buoc { margin-top: 44px; gap: 40px; }
+.buoc li { position: relative; border-top: 0; padding-top: 0; }
+.buoc li::before { display: block; width: auto; height: auto; border-radius: 0; background: none; font-family: var(--tieu-de); font-weight: 800;
+  font-size: 4.5rem; line-height: 1; letter-spacing: -.05em; color: var(--xanh); }
+.buoc li:not(:last-child)::after { content: ""; position: absolute; top: 2.3rem; left: 4.4rem; right: -24px; height: 2px; background: linear-gradient(90deg, var(--ho-phach), rgba(242, 176, 30, 0)); }
+.buoc h3 { font-family: var(--than); font-size: 1.35rem; font-weight: 700; margin-top: 18px; }
+.buoc p { font-size: 1.05rem; margin-top: 8px; max-width: 30ch; }
+
+/* Phần để lại thông tin */
+.tu-van { padding-top: 96px; padding-bottom: 96px; }
+.tu-van .dan { font-size: 1.12rem; }
+.tu-van-hop h3 { font-family: var(--tieu-de); font-weight: 800; font-size: 1.65rem; letter-spacing: -.03em; line-height: 1.15; }
+.tu-van-hop .nhan { font-weight: 600; font-size: .95rem; }
+
+/* Hỏi đáp: dấu cộng/trừ thay cho tam giác mặc định */
+.cau-hoi-thuong-gap { padding-top: 96px; padding-bottom: 96px; }
+.hoi-dap-ds details { padding: 0; }
+.hoi-dap-ds summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 0; min-height: 44px;
+  font-size: 1.12rem; font-weight: 700; letter-spacing: -.01em; }
+.hoi-dap-ds summary::-webkit-details-marker { display: none; }
+.hoi-dap-ds summary::after { content: "+"; flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--vien);
+  font-size: 1.3rem; font-weight: 400; line-height: 1; color: var(--xanh); transition: transform .2s ease, background .2s ease; }
+.hoi-dap-ds details[open] summary::after { content: "−"; background: var(--xanh); border-color: var(--xanh); color: #fff; }
+.hoi-dap-ds details p { margin: 0 0 22px; font-size: 1.05rem; max-width: 60ch; }
+
+/* Chân trang và các chữ nhỏ dùng chung */
+.chan-trang > span:first-child { font-weight: 800; letter-spacing: -.03em; }
+.cau legend, .cau .cau-chu { font-family: var(--than); font-weight: 700; letter-spacing: -.01em; }
+.menu-kieu-hoi { font-family: var(--than); font-weight: 700; }
+.menu-dt-dau p { font-weight: 800; letter-spacing: -.03em; }
+
+@media (max-width: 760px) {
+  body { font-size: 16.5px; }
+  .muc-dau h2, .cach-lam h2, .tu-van h2, .cau-hoi-thuong-gap h2, .goi-y-muc h2, .so-sanh h2 { font-size: clamp(1.85rem, 8.2vw, 2.35rem); }
+  .dan, .goi-y-muc .dan, .tu-van .dan { font-size: 1.02rem; }
+  .san-khau h1 { font-size: clamp(2.3rem, 10.6vw, 2.9rem); line-height: 1.07; }
+  .san-khau .dan { font-size: 1rem; }
+  .goi-y-muc, .so-sanh, .cach-lam, .cau-hoi-thuong-gap { padding-top: 56px; padding-bottom: 56px; }
+  .mau { padding-top: 56px; padding-bottom: 48px; }
+  .tu-van { padding-top: 56px; padding-bottom: 56px; }
+  .goi-y-hop h3 { font-size: 1.2rem; }
+  .cach-lam .buoc { margin-top: 28px; gap: 30px; }
+  .buoc li { display: grid; grid-template-columns: 3.4rem 1fr; column-gap: 14px; }
+  .buoc li::before { grid-row: 1 / 3; font-size: 3.2rem; }
+  .buoc li::after { display: none; }
+  .buoc h3 { margin-top: 2px; font-size: 1.2rem; }
+  .buoc p { max-width: none; }
+  .hoi-dap-ds summary { font-size: 1.02rem; padding: 18px 0; }
+  .ten-studio { font-size: 1.25rem; }
+  .so-sanh-chan p { font-size: 1.2rem; }
+  .tu-van-hop h3 { font-size: 1.4rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hoi-dap-ds summary::after { transition: none; }
+}
+@media (max-width: 760px) {
+  .buoc li::before { grid-column: 1; grid-row: 1 / span 2; }
+  .buoc li > h3, .buoc li > p { grid-column: 2; }
+}
+@media (max-width: 760px) {
+  .buoc li { padding-left: 0; }
+  .buoc li::before { position: static; }
 }
