@@ -149,6 +149,8 @@ Khi có, điện thoại ở màn hình đầu hiện số dưới các nút tim
 - **Màn chào lần đầu vào trang trong phiên** (`sessionStorage` khóa `bp-chao`): nút lớn “Bấm để xem có tiếng” và “Xem không tiếng” (phím Esc). Video không tiếng đã chạy sẵn phía sau, nên bấm là có tiếng ngay. Không hiện khi khách bật tiết kiệm dữ liệu, khi trình duyệt đã tự cho có tiếng, hoặc khi khách mở thẳng phiếu.
 - Video đang chạy không tiếng thì máy hiện lời mời “Chạm để nghe tiếng”; bấm vào máy hoặc khoảng trống của màn hình đầu là bật tiếng (trừ khi khách đã tự tắt). Đang có tiếng thì hết video mới chuyển mẫu kế, có sóng âm nhỏ trên đầu máy và vòng sáng quanh viền máy chạy nhanh hơn.
 - Trên iPhone, nếu trang không bật tiếng hộ được thì mở khung xem lớn để khách bấm phát. Đặt tệp video gốc vào `web/video-mau/` thì iPhone cũng phát có tiếng ngay sau một lần bấm.
+- **Số trên các nút tim, bình luận, chia sẻ**: mẫu chưa có `so_lieu` thật thì ba số đếm từ 1 lên 10.000 trong khoảng 7–9 giây mỗi lần đổi mẫu, có nhãn “Số minh họa” ngay dưới để khách không hiểu nhầm là số liệu bài đăng. Điền `so_lieu` thật cho mẫu nào thì mẫu đó hiện số thật và bỏ nhãn. Tim, bong bóng bình luận và mũi tên chia sẻ bay lên từ các nút khi video đang chạy (tắt khi khách bật giảm chuyển động hoặc tiết kiệm dữ liệu).
+- Video YouTube trên máy chỉ hiện sau khoảng 3 giây chạy, khi các nút của YouTube (ⓘ, lùi, dừng, tới) đã tự ẩn; trước đó hiện ảnh bìa.
 - Nút tim (hiệu ứng tim bay), nút bình luận (mở form báo giá với mẫu đang xem), nút chia sẻ (chia sẻ hoặc chép liên kết trang).
 
 ## Render + Neon (cách khác)

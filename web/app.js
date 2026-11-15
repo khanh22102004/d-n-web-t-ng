@@ -239,7 +239,7 @@
 
   // ---------- Điện thoại ở màn hình đầu: lướt các video mẫu như đang xem TikTok ----------
   // Ảnh bìa hiện ngay cho nhanh; trang rảnh rồi thì phát video thật (không tiếng). Bấm vào máy là bật tiếng ngay trên máy.
-  const DT_LUOT = 4000, DT_VIDEO = 9000;
+  const DT_LUOT = 4000, DT_VIDEO = 11000;
   const dt = { ds: [], i: 0, hen: 0, re: false, trongTam: true, canh: new Map(), video: false, tieng: false, yt: null, henTieng: 0, cho: false, tatTay: false };
   const coModal = () => $("xem").open || $("bat-dau-hop").open || !!$("menu-dt")?.open;
   const dtDuocPhat = () => !tamDung && dt.trongTam && !document.hidden && !coModal();
@@ -293,7 +293,10 @@
   }
   function dtDangPhat(yt) {
     if (dt.yt !== yt || yt.dangPhat) return;
-    yt.dangPhat = true; dt.loi = 0; $("dt-video").classList.add("hien"); dtVeTieng();
+    yt.dangPhat = true; dt.loi = 0; dtVeTieng();
+    // YouTube hiện nút (ⓘ, lùi, dừng, tới) vài giây đầu khi video bắt đầu chạy: giữ ảnh bìa đến khi các nút đó tự ẩn rồi mới hiện video.
+    if (yt.v) $("dt-video").classList.add("hien");
+    else setTimeout(() => { if (dt.yt === yt) $("dt-video").classList.add("hien"); }, 3300);
     $("dt-man").classList.add("co-video");
     if (!yt.tieng && dtDuocPhat()) dtThuTieng();
     if (!dtDuocPhat() && !yt.tieng) { if (yt.v) yt.v.pause(); else dtLenh("pauseVideo"); }
@@ -367,9 +370,58 @@
     }
     dtVeTieng(); dtCapNhat();
   }
+  // ---------- Số minh họa trên điện thoại: mẫu chưa có số liệu thật thì tim, bình luận, chia sẻ đếm từ 1 lên 10.000 ----------
+  // Có nhãn "Số minh họa" ngay dưới các nút để khách không hiểu nhầm đây là số liệu bài đăng thật.
+  const DEM_DICH = 10000, DEM_LAU = 7000, soDu = new Intl.NumberFormat("vi-VN");
+  const dem = { chay: 0, batDau: 0, ma: "", gia: 0, bay: 0 };
+  // Chậm lúc đầu (thấy rõ 1, 2, 3…), nhanh ở giữa, chậm lại khi gần 10.000.
+  const demCong = (k, t) => { t = Math.min(1, Math.max(0, t)); const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, k) / 2; return Math.round(1 + (DEM_DICH - 1) * e); };
+  function demVe() {
+    const m = dt.ds[dt.i]; if (!m || m.ma !== dem.ma) return;
+    const t = itChuyenDong ? 2 : (performance.now() - dem.batDau) / DEM_LAU;
+    $("dt-so-tim").textContent = soDu.format(demCong(3, t) + (timCuaKhach[m.ma] || 0));
+    $("dt-so-bl").textContent = soDu.format(demCong(3, t * 0.9));
+    $("dt-so-cs").textContent = soDu.format(demCong(3, t * 0.8));
+    const nghin = Math.floor(demCong(3, t) / 1000);
+    if (nghin !== dem.gia) { dem.gia = nghin; const so = $("dt-so-tim"); so.classList.remove("nay"); void so.offsetWidth; so.classList.add("nay"); }
+    return t;
+  }
+  function demBatDau(m) {
+    cancelAnimationFrame(dem.chay); dem.ma = m.ma; dem.gia = 0; dem.batDau = performance.now();
+    const buoc = () => { const t = demVe(); if (t !== undefined && t < 1.3 && dem.ma === m.ma) dem.chay = requestAnimationFrame(buoc); };
+    buoc();
+  }
+  // Tim, bong bóng bình luận, mũi tên chia sẻ bay lên từ các nút bên phải màn hình máy.
+  const BAY_HINH = [["tim", 0.55], ["binh-luan", 0.17], ["chia-se", 0.12]];
+  function bayLen(loai) {
+    const hop = $("dt-bay-len"); if (hop.childElementCount > 26) return;
+    const nut = { tim: "dt-tim", "binh-luan": "dt-hoi", "chia-se": "dt-chia-se" }[loai], b = $(nut), ray = b.parentElement;
+    const x = ray.offsetLeft + b.offsetLeft + b.offsetWidth / 2, y = ray.offsetTop + b.offsetTop + 14;
+    const e = tao("span", `bay-len bay-${loai}`);
+    e.style.left = `${x - 11}px`; e.style.top = `${y - 11}px`;
+    e.style.setProperty("--x", `${Math.round(-70 + Math.random() * 60)}px`);
+    e.style.setProperty("--y", `${Math.round(-150 - Math.random() * 110)}px`);
+    e.style.setProperty("--r", `${Math.round((Math.random() - 0.5) * 60)}deg`);
+    e.style.setProperty("--t", `${(1.5 + Math.random() * 0.9).toFixed(2)}s`);
+    e.style.setProperty("--s", (0.7 + Math.random() * 0.6).toFixed(2));
+    if (loai === "tim") e.style.setProperty("--c", ["#ff4d6d", "#ff8fa3", "#f2b01e", "#ff4d6d"][Math.floor(Math.random() * 4)]);
+    hop.append(e); e.addEventListener("animationend", () => e.remove(), { once: true });
+  }
+  function batBay() {
+    clearInterval(dem.bay);
+    if (itChuyenDong || tietKiem) return;
+    dem.bay = setInterval(() => {
+      const m = dt.ds[dt.i]; if (!m || soThat(m.so_lieu?.tim) || !dtDuocPhat() || dt.cho) return;
+      const dangDem = performance.now() - dem.batDau < DEM_LAU, nhan = dangDem ? 1 : 0.45;
+      BAY_HINH.forEach(([loai, kha]) => { if (Math.random() < kha * nhan) bayLen(loai); });
+    }, 260);
+  }
   function dtSoLieu(m) {
     const s = m.so_lieu || {}, dat = (id, v) => { $(id).textContent = soThat(v) ? rutGon(soThat(v)) : ""; };
     dat("dt-so-tim", s.tim); dat("dt-so-bl", s.binh_luan); dat("dt-so-cs", s.chia_se);
+    const minhHoa = !soThat(s.tim) && !soThat(s.binh_luan) && !soThat(s.chia_se);
+    $("dt-minh-hoa").hidden = !minhHoa;
+    if (minhHoa) demBatDau(m); else { cancelAnimationFrame(dem.chay); dem.ma = ""; }
     const nguon = $("dt-nguon"), coSo = soThat(s.xem) || soThat(s.tim);
     nguon.hidden = !coSo;
     if (coSo) {
@@ -399,7 +451,7 @@
     $("dt-ma").textContent = m.ma; $("dt-dem").textContent = `${viTri + 1}/${n}`;
     $("dt-nganh").textContent = m.nhom; $("dt-ten").textContent = m.ten; $("dt-kieu").textContent = m.kieu || "";
     $("dt-tim").classList.toggle("da-thich", !!timCuaKhach[m.ma]); $("dt-tim").setAttribute("aria-label", "Thả tim cho mẫu này");
-    dtSoLieu(m); if (!soThat(m.so_lieu?.tim) && timCuaKhach[m.ma]) $("dt-so-tim").textContent = timCuaKhach[m.ma];
+    dtSoLieu(m);
     dtVeTieng();
     [$("dt-duoi"), $("dt-man")].forEach(e => { e.classList.remove("doi"); void e.offsetWidth; e.classList.add("doi"); });
     if (dt.video || dt.tieng) dtNapVideo(m, dt.tieng); else dtGoVideo();
@@ -421,13 +473,13 @@
       dt.hen = setTimeout(() => dtHien(dt.i + 1, 1), tg);
     }
   }
-  // Mỗi lần bấm tim là một tim của chính khách (như thả tim khi xem live): số dưới nút đếm tim khách đã thả, không phải số giả.
+  // Mỗi lần bấm tim là một tim của chính khách (như thả tim khi xem live): được cộng vào số tim đang hiện dưới nút.
   const timCuaKhach = {};
   function dtThaTim() {
     const nut = $("dt-tim"), m = dt.ds[dt.i];
     timCuaKhach[m.ma] = (timCuaKhach[m.ma] || 0) + 1;
     nut.classList.add("da-thich"); nut.setAttribute("aria-label", `Thả tim cho mẫu này, anh chị đã thả ${timCuaKhach[m.ma]} tim`);
-    if (!soThat(m.so_lieu?.tim)) { const so = $("dt-so-tim"); so.textContent = timCuaKhach[m.ma]; so.classList.remove("nay"); void so.offsetWidth; so.classList.add("nay"); }
+    if (!soThat(m.so_lieu?.tim)) { demVe(); const so = $("dt-so-tim"); so.classList.remove("nay"); void so.offsetWidth; so.classList.add("nay"); }
     const cong = tao("span", "tim-cong", "+1"); $("dt-tim-bay").append(cong); setTimeout(() => cong.remove(), 900);
     if (itChuyenDong) return;
     const bay = $("dt-tim-bay");
@@ -451,7 +503,7 @@
     const uuTien = maNoiBat.map(ma => mau[ma]).filter(Boolean);
     dt.ds = [...uuTien, ...cauHinh.mau.filter(m => !maNoiBat.includes(m.ma))];
     if (!dt.ds.length) return;
-    dtHien(0);
+    dtHien(0); batBay();
     $("dt-mo").addEventListener("click", () => { if (dt.vuot) { dt.vuot = false; return; } dtBatTatTieng(); });
     $("dt-xem-lon").addEventListener("click", () => { if (dt.tieng) { dt.tieng = false; dtVeTieng(); } dtGoVideo(); moXem(dt.ds, dt.ds[dt.i].ma); });
     $("dt-truoc").addEventListener("click", () => dtHien(dt.i - 1, -1));
