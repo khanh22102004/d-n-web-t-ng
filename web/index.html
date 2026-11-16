@@ -61,7 +61,6 @@
     <div class="mo-dau-chu">
       <h1 id="tieu-de-chinh"><span class="h1-dong">Tạo video bằng AI</span> <span class="h1-dong">chân thật,</span> <span class="h1-dong h1-nen">chất lượng cao</span></h1>
       <p class="h1-phu">Video giới thiệu sản phẩm cho <span class="xoay" id="xoay" aria-hidden="true"><span>TikTok</span><span>Facebook</span><span>Instagram</span></span><span class="xoay-chu">TikTok, Facebook và Instagram</span></p>
-      <p class="dan">Mời anh chị xem các video mẫu chúng tôi đã làm bằng AI. Thích kiểu nào, anh chị bấm vào để xem có tiếng và nhờ chúng tôi tư vấn cho sản phẩm của mình.</p>
     </div>
     <div class="tuong" id="tuong">
       <div class="tuong-nen" aria-hidden="true">
@@ -76,6 +75,7 @@
             <div class="dt-video" id="dt-video"></div>
             <div class="dt-phat" id="dt-phat"><div class="khung"></div></div>
             <div class="dt-tim-bay" id="dt-tim-bay" aria-hidden="true"></div>
+            <div class="dt-bay-len" id="dt-bay-len" aria-hidden="true"></div>
             <p class="dt-bao" id="dt-bao" role="status"></p>
             <div class="dt-tren" aria-hidden="true"><span class="dt-ma" id="dt-ma"></span><span class="dt-dem" id="dt-dem"></span></div>
             <div class="dt-ray">
@@ -91,16 +91,12 @@
         <div class="dt-dieu-khien"><button type="button" class="dt-nut" id="dt-truoc" aria-label="Video mẫu trước">‹</button><button type="button" class="dt-nut tuong-dung" id="tuong-dung" aria-pressed="false" aria-label="Dừng chuyển động"><span class="dt-dung" aria-hidden="true"></span></button><button type="button" class="dt-nut dt-lon" id="dt-xem-lon" aria-label="Xem video mẫu này cỡ lớn"><span aria-hidden="true">⤢</span></button><button type="button" class="dt-nut" id="dt-sau" aria-label="Video mẫu tiếp theo">›</button></div>
         <p class="dt-nguon" id="dt-nguon" hidden></p>
       </div>
-      <div class="tuong-chan">
-        <p><span data-so-mau>13</span> video mẫu trong <span data-so-nganh>6</span> ngành hàng. Một số mẫu có chữ tiếng Nhật; video của anh chị dùng ngôn ngữ anh chị chọn.</p>
-      </div>
     </div>
     <div class="hero-footer">
       <div class="hang-nut">
         <a class="nut" href="#tu-van">Nhận báo giá</a>
         <a class="nut-phu" href="#mau">Xem video mẫu</a>
       </div>
-      <ul class="hero-diem"><li>Chưa cần kịch bản</li><li>Khung dọc 9:16</li><li>Duyệt phương án trước khi làm</li></ul>
       <button type="button" class="nut-chu lien-chi-tiet" data-bat-dau>Tôi đã có yêu cầu cụ thể →</button>
       <p class="dang-do" id="dang-do" hidden></p>
       <p class="bao-loi" id="loi-mo-dau" role="alert" hidden></p>
@@ -109,7 +105,7 @@
 
 
   <section class="mau mau-toi" id="mau" aria-labelledby="mau-tieu-de">
-    <div class="muc-dau"><div><h2 id="mau-tieu-de">Anh chị muốn sản phẩm<br>xuất hiện như thế nào?</h2></div><p class="dan">Bắt đầu từ một mẫu anh chị thích. Chọn ngành hàng để tìm thêm ý tưởng, bấm vào ảnh để xem video có tiếng.</p></div>
+    <div class="muc-dau"><div><h2 id="mau-tieu-de">Anh chị muốn sản phẩm<br>xuất hiện như thế nào?</h2></div><p class="dan">Bấm vào ảnh để xem video có tiếng.</p></div>
     <div class="loc" id="loc" role="group" aria-label="Lọc mẫu video"></div>
     <div class="loc loc-nganh" id="loc-nganh" role="group" aria-label="Chọn ngành hàng" hidden></div>
     <p class="loc-dang-chon" id="loc-dang-chon" hidden></p>
@@ -131,34 +127,33 @@
   </section>
 
   <section class="so-sanh" id="so-sanh" aria-labelledby="so-sanh-tieu-de">
-    <div class="muc-dau"><h2 id="so-sanh-tieu-de">Tự làm video bằng ứng dụng, hay để chúng tôi làm?</h2>
-      <p class="dan">Ứng dụng chỉnh video có bản miễn phí và rất tiện khi anh chị có thời gian, đã quen tay. Bảng dưới đây giúp anh chị chọn cách hợp với mình.</p></div>
+    <div class="muc-dau"><h2 id="so-sanh-tieu-de">Tự làm, hay để chúng tôi làm?</h2></div>
     <table class="so-sanh-bang">
       <caption class="an-di">So sánh tự làm video bằng ứng dụng và nhờ B Productions làm</caption>
-      <thead><tr><td data-nhan="Tự làm"></td><th scope="col">Tự làm bằng ứng dụng</th><th scope="col" class="cot-studio">B Productions làm cho anh chị</th></tr></thead>
+      <thead><tr><td data-nhan="Tự làm"></td><th scope="col">Tự làm bằng ứng dụng</th><th scope="col" class="cot-studio">B Productions làm</th></tr></thead>
       <tbody>
-        <tr><th scope="row">Ai làm</th><td data-nhan="Tự làm">Anh chị tự quay, cắt ghép, thêm chữ và nhạc.</td><td class="cot-studio" data-nhan="B Productions">Chúng tôi làm từ ý tưởng đến video hoàn chỉnh.</td></tr>
-        <tr><th scope="row">Ý tưởng, kịch bản</th><td data-nhan="Tự làm">Anh chị tự nghĩ hoặc theo mẫu có sẵn.</td><td class="cot-studio" data-nhan="B Productions">Chưa cần kịch bản. Chúng tôi đề xuất phương án để anh chị duyệt trước.</td></tr>
-        <tr><th scope="row">Người trong video</th><td data-nhan="Tự làm">Anh chị hoặc người quen đứng trước máy quay.</td><td class="cot-studio" data-nhan="B Productions">Người mẫu, nhân vật hoặc hoạt hình làm bằng AI, như các video mẫu.</td></tr>
-        <tr><th scope="row">Mức độ riêng</th><td data-nhan="Tự làm">Mẫu có sẵn, người khác cũng dùng được.</td><td class="cot-studio" data-nhan="B Productions">Làm riêng cho sản phẩm của anh chị.</td></tr>
-        <tr><th scope="row">Việc của anh chị</th><td data-nhan="Tự làm">Học cách dùng và tự làm từng video.</td><td class="cot-studio" data-nhan="B Productions">Kể về sản phẩm, rồi duyệt phương án.</td></tr>
-        <tr><th scope="row">Chi phí</th><td data-nhan="Tự làm">Có bản miễn phí; anh chị bỏ công sức.</td><td class="cot-studio" data-nhan="B Productions">Có chi phí, báo giá rõ trước khi làm.</td></tr>
+        <tr><th scope="row">Ai làm</th><td data-nhan="Tự làm">Anh chị tự quay, tự dựng</td><td class="cot-studio" data-nhan="B Productions">Chúng tôi làm trọn gói</td></tr>
+        <tr><th scope="row">Ý tưởng, kịch bản</th><td data-nhan="Tự làm">Tự nghĩ hoặc theo mẫu</td><td class="cot-studio" data-nhan="B Productions">Chúng tôi đề xuất, anh chị duyệt</td></tr>
+        <tr><th scope="row">Người trong video</th><td data-nhan="Tự làm">Anh chị hoặc người quen</td><td class="cot-studio" data-nhan="B Productions">Người mẫu, nhân vật AI</td></tr>
+        <tr><th scope="row">Mức độ riêng</th><td data-nhan="Tự làm">Mẫu dùng chung</td><td class="cot-studio" data-nhan="B Productions">Làm riêng cho sản phẩm</td></tr>
+        <tr><th scope="row">Việc của anh chị</th><td data-nhan="Tự làm">Học và tự làm từng video</td><td class="cot-studio" data-nhan="B Productions">Kể về sản phẩm, duyệt phương án</td></tr>
+        <tr><th scope="row">Chi phí</th><td data-nhan="Tự làm">Có bản miễn phí, tốn công</td><td class="cot-studio" data-nhan="B Productions">Có phí, báo giá trước</td></tr>
       </tbody>
     </table>
-    <div class="so-sanh-chan"><p>Muốn biết làm video cho sản phẩm của anh chị thì tốn bao nhiêu?</p><a class="nut" href="#tu-van">Nhận báo giá</a></div>
+    <div class="so-sanh-chan"><p>Video cho sản phẩm của anh chị giá bao nhiêu?</p><a class="nut" href="#tu-van">Nhận báo giá</a></div>
   </section>
 
   <section class="cam-ket" id="cam-ket" aria-labelledby="cam-ket-tieu-de">
-    <div class="muc-dau"><h2 id="cam-ket-tieu-de">Làm video với chúng tôi, anh chị yên tâm</h2><p class="dan">Bốn điều chúng tôi giữ với mọi khách hàng, từ lần tư vấn đầu tiên.</p></div>
+    <div class="muc-dau"><h2 id="cam-ket-tieu-de">Anh chị yên tâm</h2></div>
     <ul class="cam-ket-ds">
       <li><svg viewBox="0 0 48 48" aria-hidden="true"><path pathLength="100" d="M12 6h24v36l-6-4-6 4-6-4-6 4z"/><path pathLength="100" d="M18 17h12M18 24h12M18 31h7"/></svg>
-        <h3>Báo giá trước khi làm</h3><p>Chi phí tùy số lượng, độ dài và phong cách video. Anh chị nhận báo giá và đồng ý trước khi chúng tôi sản xuất.</p></li>
+        <h3>Báo giá trước khi làm</h3><p>Đồng ý giá rồi mới sản xuất.</p></li>
       <li><svg viewBox="0 0 48 48" aria-hidden="true"><rect pathLength="100" x="8" y="8" width="32" height="32" rx="7"/><path pathLength="100" d="M16 24.5l6 6 11-13"/></svg>
-        <h3>Duyệt phương án trước</h3><p>Chúng tôi đề xuất hướng nội dung cho sản phẩm. Anh chị duyệt xong, chúng tôi mới làm video.</p></li>
+        <h3>Duyệt phương án trước</h3><p>Duyệt xong mới làm video.</p></li>
       <li><svg viewBox="0 0 48 48" aria-hidden="true"><circle pathLength="100" cx="24" cy="24" r="17"/><path pathLength="100" d="M24 14v11l7 5"/></svg>
-        <h3>Phản hồi trong <span data-hen>một ngày làm việc</span></h3><p>Sau khi anh chị để lại thông tin, chúng tôi liên hệ qua Zalo hoặc gọi điện, theo cách anh chị chọn.</p></li>
+        <h3>Phản hồi trong <span data-hen>một ngày làm việc</span></h3><p>Qua Zalo hoặc điện thoại.</p></li>
       <li><svg viewBox="0 0 48 48" aria-hidden="true"><path pathLength="100" d="M24 5l15 6v11c0 10-6.5 17-15 21-8.5-4-15-11-15-21V11z"/><path pathLength="100" d="M18 24l4.5 4.5L31 20"/></svg>
-        <h3>Thông tin chỉ dùng để tư vấn</h3><p>Số điện thoại và nội dung anh chị gửi chỉ dùng cho yêu cầu này. <a href="/chinh-sach">Xem cách dùng thông tin</a>.</p></li>
+        <h3>Thông tin chỉ dùng để tư vấn</h3><p><a href="/chinh-sach">Xem cách dùng thông tin</a></p></li>
     </ul>
     <p class="cam-ket-lien-he" id="cam-ket-lien-he" hidden></p>
   </section>

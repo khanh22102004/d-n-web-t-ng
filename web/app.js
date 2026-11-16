@@ -370,8 +370,35 @@
     }
     dtVeTieng(); dtCapNhat();
   }
+  // ---------- Tim, bong bóng bình luận, mũi tên chia sẻ bay lên từ các nút bên phải điện thoại ----------
+  // Chỉ là hiệu ứng trang trí, không kèm số lượt.
+  function bayLen(loai) {
+    const hop = $("dt-bay-len"); if (!hop || hop.childElementCount > 26) return;
+    const nut = { tim: "dt-tim", "binh-luan": "dt-hoi", "chia-se": "dt-chia-se" }[loai], b = $(nut), ray = b.parentElement;
+    const x = ray.offsetLeft + b.offsetLeft + b.offsetWidth / 2, y = ray.offsetTop + b.offsetTop + 14;
+    const e = tao("span", `bay-len bay-${loai}`);
+    e.style.left = `${x - 11}px`; e.style.top = `${y - 11}px`;
+    e.style.setProperty("--x", `${Math.round(-70 + Math.random() * 60)}px`);
+    e.style.setProperty("--y", `${Math.round(-150 - Math.random() * 110)}px`);
+    e.style.setProperty("--r", `${Math.round((Math.random() - 0.5) * 60)}deg`);
+    e.style.setProperty("--t", `${(1.5 + Math.random() * 0.9).toFixed(2)}s`);
+    e.style.setProperty("--s", (0.7 + Math.random() * 0.6).toFixed(2));
+    if (loai === "tim") e.style.setProperty("--c", ["#ff4d6d", "#ff8fa3", "#f2b01e", "#ff4d6d"][Math.floor(Math.random() * 4)]);
+    hop.append(e); e.addEventListener("animationend", () => e.remove(), { once: true });
+  }
+  function batBay() {
+    if (itChuyenDong || tietKiem) return;
+    setInterval(() => {
+      if (!dtDuocPhat()) return;                                   // dừng khi khách cuộn đi, mở khung xem hay bấm "Dừng chuyển động"
+      if (Math.random() < 0.7) bayLen("tim");
+      if (Math.random() < 0.4) bayLen("binh-luan");
+      if (Math.random() < 0.4) bayLen("chia-se");
+    }, 220);
+  }
+  // Số dưới nút: từ 10.000 trở lên ghi gọn kiểu 10.1K, nhỏ hơn thì ghi đủ (2.123).
+  const soNut = so => (so >= 10000 ? `${(Math.floor(so / 100) / 10).toFixed(1).replace(/\.0$/, "")}K` : new Intl.NumberFormat("vi-VN").format(so));
   function dtSoLieu(m) {
-    const s = m.so_lieu || {}, dat = (id, v) => { $(id).textContent = soThat(v) ? rutGon(soThat(v)) : ""; };
+    const s = m.so_lieu || {}, dat = (id, v) => { $(id).textContent = soThat(v) ? soNut(soThat(v)) : ""; };
     dat("dt-so-tim", s.tim); dat("dt-so-bl", s.binh_luan); dat("dt-so-cs", s.chia_se);
     const nguon = $("dt-nguon"), coSo = soThat(s.xem) || soThat(s.tim);
     nguon.hidden = !coSo;
@@ -454,7 +481,7 @@
     const uuTien = maNoiBat.map(ma => mau[ma]).filter(Boolean);
     dt.ds = [...uuTien, ...cauHinh.mau.filter(m => !maNoiBat.includes(m.ma))];
     if (!dt.ds.length) return;
-    dtHien(0);
+    dtHien(0); batBay();
     $("dt-mo").addEventListener("click", () => { if (dt.vuot) { dt.vuot = false; return; } dtBatTatTieng(); });
     $("dt-xem-lon").addEventListener("click", () => { if (dt.tieng) { dt.tieng = false; dtVeTieng(); } dtGoVideo(); moXem(dt.ds, dt.ds[dt.i].ma); });
     $("dt-truoc").addEventListener("click", () => dtHien(dt.i - 1, -1));
@@ -465,8 +492,9 @@
       if (dt.tieng || dt.tatTay || laIOS || !dt.yt?.dangPhat || e.target.closest("a, button, input, textarea, select, label, summary, #dien-thoai")) return;
       dtBatTatTieng();
     });
-    $("dt-hoi").addEventListener("click", () => chonTuVan(dt.ds[dt.i]));
-    $("dt-chia-se").addEventListener("click", dtChiaSe);
+    const chum = (loai, n) => { if (!itChuyenDong) for (let k = 0; k < n; k += 1) setTimeout(() => bayLen(loai), k * 70); };
+    $("dt-hoi").addEventListener("click", () => { chum("binh-luan", 4); chonTuVan(dt.ds[dt.i]); });
+    $("dt-chia-se").addEventListener("click", () => { chum("chia-se", 5); dtChiaSe(); });
     const may = $("dien-thoai");
     // Máy tính: rê chuột vào máy thì dừng lướt để xem kỹ mẫu đang hiện.
     may.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") { dt.re = true; dtCapNhat(); } });
@@ -611,6 +639,12 @@
   function ganHieuUng() {
     if (itChuyenDong || !("IntersectionObserver" in window)) return;
     document.documentElement.classList.add("hieu-ung");
+    // Tiêu đề lớn: từng chữ trồi lên từ dưới, rồi dòng "chất lượng cao" được tô nền vàng như bút dạ quang.
+    let thuTu = 0;
+    document.querySelectorAll("#tieu-de-chinh .h1-dong").forEach(dong => {
+      const tu = dong.textContent.trim().split(/\s+/);
+      dong.replaceChildren(...tu.flatMap((t, k) => { const ngoai = tao("span", "h1-tu"), trong = tao("span", "", t); trong.style.setProperty("--i", thuTu); thuTu += 1; ngoai.append(trong); return k ? [" ", ngoai] : [ngoai]; }));
+    });
     ["mau", "danh-gia", "so-sanh", "cam-ket", "tu-van", "hoi-dap"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
     document.querySelectorAll("#luoi-mau, .so-sanh-bang, .so-sanh-chan, .tu-van-hop, .tv-xem-truoc, .hoi-dap-ds, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
     const qs = new IntersectionObserver(ds => ds.forEach(e => { if (e.isIntersecting) { e.target.classList.add("lo"); qs.unobserve(e.target); } }),

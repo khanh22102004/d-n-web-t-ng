@@ -149,6 +149,8 @@ Khi có, điện thoại ở màn hình đầu hiện số dưới các nút tim
 - Trên iPhone, nếu trang không bật tiếng hộ được thì mở khung xem lớn để khách bấm phát. Đặt tệp video gốc vào `web/video-mau/` thì iPhone cũng phát có tiếng ngay sau một lần bấm.
 - Số dưới các nút tim, bình luận, chia sẻ chỉ hiện khi mẫu có `so_lieu` thật; số dưới nút tim còn đếm số tim khách tự thả.
 - Video YouTube trên máy chỉ hiện sau khoảng 3 giây chạy, khi các nút của YouTube (ⓘ, lùi, dừng, tới) đã tự ẩn; trước đó hiện ảnh bìa.
+- Tim, bong bóng bình luận và mũi tên chia sẻ bay lên từ ba nút bên phải điện thoại khi video đang chạy (trang trí; tắt khi khách bật giảm chuyển động hoặc tiết kiệm dữ liệu).
+- Mẫu ST029 đang có `so_lieu` trong `mau.json` (10.100 tim, 2.123 bình luận, 534 chia sẻ) do chủ studio cung cấp là số thật của bài đăng; cần bổ sung `nen_tang`, `ngay`, `nguon` (link bài đăng). Số từ 10.000 hiện gọn kiểu 10.1K.
 - Nút tim (hiệu ứng tim bay), nút bình luận (mở form báo giá với mẫu đang xem), nút chia sẻ (chia sẻ hoặc chép liên kết trang).
 
 ## Render + Neon (cách khác)
