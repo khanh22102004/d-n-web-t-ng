@@ -47,7 +47,7 @@ Tệp hiện có chỉ chứa ảnh bìa 360×640 và các video mẫu sẵn có
 - Form tư vấn nhanh chỉ cần tên sản phẩm và số điện thoại/Zalo. Không lưu lúc gõ. Chỉ gửi khi khách đồng ý và bấm gửi; gửi lại cùng yêu cầu sau khi mất phản hồi không tạo bản trùng.
 - Yêu cầu nhanh xuất hiện ngay trong danh sách chờ liên hệ của nhân viên, có nhãn riêng, mẫu tham khảo và nguồn khách. Excel có thêm hai cột cuối: “Loại yêu cầu” và “Mẫu tham khảo”.
 - Phiếu chi tiết 20 câu vẫn được giữ. Chỉ khi khách chủ động mở phiếu mới hiện giải thích và ô đồng ý lưu bản nháp.
-- Có nội dung giải thích cách làm và hỏi đáp về kịch bản, chi phí, AI và phiếu chi tiết. Không thêm lời chứng thực, số liệu hiệu quả, khách hàng hoặc bảng giá chưa được studio cung cấp.
+- Có hỏi đáp về kịch bản, chi phí, AI và phiếu chi tiết. Không thêm lời chứng thực, số liệu hiệu quả, khách hàng hoặc bảng giá chưa được studio cung cấp.
 - Khung nhìn đã kiểm tra: 320, 360, 390, 768 và 1440 px. Video không tự chạy khi vừa vào trang; xem thử khi rê chuột và mở đầy đủ khi bấm. Tôn trọng chế độ giảm chuyển động và tiết kiệm dữ liệu.
 
 Bố cục mới cần được đo bằng dữ liệu khách thật để đánh giá tỷ lệ liên hệ; chưa có thử nghiệm A/B hay khẳng định tăng doanh số.
@@ -149,7 +149,6 @@ Khi có, điện thoại ở màn hình đầu hiện số dưới các nút tim
 - Trên iPhone, nếu trang không bật tiếng hộ được thì mở khung xem lớn để khách bấm phát. Đặt tệp video gốc vào `web/video-mau/` thì iPhone cũng phát có tiếng ngay sau một lần bấm.
 - Số dưới các nút tim, bình luận, chia sẻ chỉ hiện khi mẫu có `so_lieu` thật; số dưới nút tim còn đếm số tim khách tự thả.
 - Video YouTube trên máy chỉ hiện sau khoảng 3 giây chạy, khi các nút của YouTube (ⓘ, lùi, dừng, tới) đã tự ẩn; trước đó hiện ảnh bìa.
-- Tim, bong bóng bình luận và mũi tên chia sẻ bay lên liên tục từ các nút bên phải điện thoại khi video đang chạy (chỉ là hiệu ứng, không kèm số; tắt khi khách bật giảm chuyển động hoặc tiết kiệm dữ liệu).
 - Nút tim (hiệu ứng tim bay), nút bình luận (mở form báo giá với mẫu đang xem), nút chia sẻ (chia sẻ hoặc chép liên kết trang).
 
 ## Render + Neon (cách khác)

@@ -370,31 +370,6 @@
     }
     dtVeTieng(); dtCapNhat();
   }
-  // ---------- Tim, bong bóng bình luận, mũi tên chia sẻ bay lên từ các nút bên phải điện thoại ----------
-  // Chỉ là hiệu ứng trang trí, không kèm số lượt.
-  function bayLen(loai) {
-    const hop = $("dt-bay-len"); if (!hop || hop.childElementCount > 26) return;
-    const nut = { tim: "dt-tim", "binh-luan": "dt-hoi", "chia-se": "dt-chia-se" }[loai], b = $(nut), ray = b.parentElement;
-    const x = ray.offsetLeft + b.offsetLeft + b.offsetWidth / 2, y = ray.offsetTop + b.offsetTop + 14;
-    const e = tao("span", `bay-len bay-${loai}`);
-    e.style.left = `${x - 11}px`; e.style.top = `${y - 11}px`;
-    e.style.setProperty("--x", `${Math.round(-70 + Math.random() * 60)}px`);
-    e.style.setProperty("--y", `${Math.round(-150 - Math.random() * 110)}px`);
-    e.style.setProperty("--r", `${Math.round((Math.random() - 0.5) * 60)}deg`);
-    e.style.setProperty("--t", `${(1.5 + Math.random() * 0.9).toFixed(2)}s`);
-    e.style.setProperty("--s", (0.7 + Math.random() * 0.6).toFixed(2));
-    if (loai === "tim") e.style.setProperty("--c", ["#ff4d6d", "#ff8fa3", "#f2b01e", "#ff4d6d"][Math.floor(Math.random() * 4)]);
-    hop.append(e); e.addEventListener("animationend", () => e.remove(), { once: true });
-  }
-  function batBay() {
-    if (itChuyenDong || tietKiem) return;
-    setInterval(() => {
-      if (!dtDuocPhat()) return;                                   // dừng khi khách cuộn đi, mở khung xem hay bấm "Dừng chuyển động"
-      if (Math.random() < 0.8) bayLen("tim");
-      if (Math.random() < 0.22) bayLen("binh-luan");
-      if (Math.random() < 0.18) bayLen("chia-se");
-    }, 220);
-  }
   function dtSoLieu(m) {
     const s = m.so_lieu || {}, dat = (id, v) => { $(id).textContent = soThat(v) ? rutGon(soThat(v)) : ""; };
     dat("dt-so-tim", s.tim); dat("dt-so-bl", s.binh_luan); dat("dt-so-cs", s.chia_se);
@@ -479,7 +454,7 @@
     const uuTien = maNoiBat.map(ma => mau[ma]).filter(Boolean);
     dt.ds = [...uuTien, ...cauHinh.mau.filter(m => !maNoiBat.includes(m.ma))];
     if (!dt.ds.length) return;
-    dtHien(0); batBay();
+    dtHien(0);
     $("dt-mo").addEventListener("click", () => { if (dt.vuot) { dt.vuot = false; return; } dtBatTatTieng(); });
     $("dt-xem-lon").addEventListener("click", () => { if (dt.tieng) { dt.tieng = false; dtVeTieng(); } dtGoVideo(); moXem(dt.ds, dt.ds[dt.i].ma); });
     $("dt-truoc").addEventListener("click", () => dtHien(dt.i - 1, -1));
@@ -490,9 +465,8 @@
       if (dt.tieng || dt.tatTay || laIOS || !dt.yt?.dangPhat || e.target.closest("a, button, input, textarea, select, label, summary, #dien-thoai")) return;
       dtBatTatTieng();
     });
-    const chum = (loai, n) => { if (!itChuyenDong) for (let k = 0; k < n; k += 1) setTimeout(() => bayLen(loai), k * 70); };
-    $("dt-hoi").addEventListener("click", () => { chum("binh-luan", 4); chonTuVan(dt.ds[dt.i]); });
-    $("dt-chia-se").addEventListener("click", () => { chum("chia-se", 5); dtChiaSe(); });
+    $("dt-hoi").addEventListener("click", () => chonTuVan(dt.ds[dt.i]));
+    $("dt-chia-se").addEventListener("click", dtChiaSe);
     const may = $("dien-thoai");
     // Máy tính: rê chuột vào máy thì dừng lướt để xem kỹ mẫu đang hiện.
     may.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") { dt.re = true; dtCapNhat(); } });
@@ -584,24 +558,6 @@
     setInterval(() => { if (!tamDung && !document.hidden) dat((dang + 1) % chu.length); }, 2600);
   }
 
-  // ---------- Số nhảy ở màn hình đầu: chỉ số thật của thư viện (số mẫu, số ngành, số nền tảng) ----------
-  function veSoNoi() {
-    const gia = { mau: cauHinh.mau.length, nganh: new Set(cauHinh.mau.map(m => m.nhom)).size };
-    document.querySelectorAll(".so-chay").forEach((el, i) => {
-      const so = String(gia[el.dataset.so] ?? el.dataset.so);
-      const doc = tao("span", "an-di", `${so} `); el.before(doc);              // trình đọc màn hình đọc số cuối cùng
-      if (itChuyenDong) { el.textContent = so; return; }
-      el.replaceChildren(...[...so].map((chu, k) => {
-        const cot = tao("span", "so-cot"), dai = tao("span", "so-dai");
-        for (let d = 0; d <= 9; d += 1) dai.append(tao("span", "", String(d)));
-        dai.dataset.den = chu; dai.style.transitionDelay = `${0.45 + i * 0.15 + k * 0.08}s`; cot.append(dai); return cot;
-      }));
-    });
-    if (itChuyenDong) return;
-    // Màn hình đầu thấy ngay khi mở trang: cho số lăn sau một nhịp để mắt kịp nhìn.
-    requestAnimationFrame(() => setTimeout(() => document.querySelectorAll(".so-dai").forEach(d => { d.style.transform = `translateY(-${Number(d.dataset.den) * 10}%)`; }), 250));
-  }
-
   // ---------- Đánh giá của khách: chỉ đánh giá thật trong danh_gia.json (máy chủ đã lọc); không có thì phần này ẩn ----------
   function veSao(so) {
     const w = tao("span", "sao"); w.setAttribute("role", "img"); w.setAttribute("aria-label", `${so} trên 5 sao`);
@@ -655,8 +611,8 @@
   function ganHieuUng() {
     if (itChuyenDong || !("IntersectionObserver" in window)) return;
     document.documentElement.classList.add("hieu-ung");
-    ["mau", "danh-gia", "so-sanh", "cach-lam", "cam-ket", "tu-van", "hoi-dap"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
-    document.querySelectorAll("#luoi-mau, .so-sanh-bang, .so-sanh-chan, .buoc, .tu-van-hop, .tv-xem-truoc, .hoi-dap-ds, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
+    ["mau", "danh-gia", "so-sanh", "cam-ket", "tu-van", "hoi-dap"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
+    document.querySelectorAll("#luoi-mau, .so-sanh-bang, .so-sanh-chan, .tu-van-hop, .tv-xem-truoc, .hoi-dap-ds, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
     const qs = new IntersectionObserver(ds => ds.forEach(e => { if (e.isIntersecting) { e.target.classList.add("lo"); qs.unobserve(e.target); } }),
       { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
     document.querySelectorAll("[data-lo]").forEach(e => qs.observe(e));
@@ -1050,7 +1006,7 @@
 
   // ---------- Chuyển màn ----------
   function hien(man) {
-    ["mo-dau", "mau", "danh-gia", "so-sanh", "cach-lam", "cam-ket", "tu-van", "hoi-dap", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
+    ["mo-dau", "mau", "danh-gia", "so-sanh", "cam-ket", "tu-van", "hoi-dap", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
     $("danh-gia").hidden = man !== "dau" || !(cauHinh.danh_gia || []).length;
     if (man !== "dau") dongMenu();
     document.querySelectorAll(".dau-trang nav").forEach(n => { n.hidden = man !== "dau"; });
@@ -1389,7 +1345,7 @@
       }
     }
     if (cauHinh.zalo) { ["link-zalo", "zalo-cam-on"].forEach(id => { $(id).href = cauHinh.zalo; $(id).hidden = false; }); }
-    veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); veMenu(); ganXemTruoc(); veDanhGia(); veCamKet(); veSoNoi(); ganHieuUng(); ganNghieng();
+    veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); veMenu(); ganXemTruoc(); veDanhGia(); veCamKet(); ganHieuUng(); ganNghieng();
     await khoiPhuc(); khoiTaoLichSu(); ganChamDauTien();
     document.querySelectorAll("[data-bat-dau]").forEach(b => b.addEventListener("click", batDau));
     $("tiep-tuc").addEventListener("click", async () => {
