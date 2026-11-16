@@ -370,6 +370,31 @@
     }
     dtVeTieng(); dtCapNhat();
   }
+  // ---------- Tim, bong bóng bình luận, mũi tên chia sẻ bay lên từ các nút bên phải điện thoại ----------
+  // Chỉ là hiệu ứng trang trí, không kèm số lượt.
+  function bayLen(loai) {
+    const hop = $("dt-bay-len"); if (!hop || hop.childElementCount > 26) return;
+    const nut = { tim: "dt-tim", "binh-luan": "dt-hoi", "chia-se": "dt-chia-se" }[loai], b = $(nut), ray = b.parentElement;
+    const x = ray.offsetLeft + b.offsetLeft + b.offsetWidth / 2, y = ray.offsetTop + b.offsetTop + 14;
+    const e = tao("span", `bay-len bay-${loai}`);
+    e.style.left = `${x - 11}px`; e.style.top = `${y - 11}px`;
+    e.style.setProperty("--x", `${Math.round(-70 + Math.random() * 60)}px`);
+    e.style.setProperty("--y", `${Math.round(-150 - Math.random() * 110)}px`);
+    e.style.setProperty("--r", `${Math.round((Math.random() - 0.5) * 60)}deg`);
+    e.style.setProperty("--t", `${(1.5 + Math.random() * 0.9).toFixed(2)}s`);
+    e.style.setProperty("--s", (0.7 + Math.random() * 0.6).toFixed(2));
+    if (loai === "tim") e.style.setProperty("--c", ["#ff4d6d", "#ff8fa3", "#f2b01e", "#ff4d6d"][Math.floor(Math.random() * 4)]);
+    hop.append(e); e.addEventListener("animationend", () => e.remove(), { once: true });
+  }
+  function batBay() {
+    if (itChuyenDong || tietKiem) return;
+    setInterval(() => {
+      if (!dtDuocPhat()) return;                                   // dừng khi khách cuộn đi, mở khung xem hay bấm "Dừng chuyển động"
+      if (Math.random() < 0.8) bayLen("tim");
+      if (Math.random() < 0.22) bayLen("binh-luan");
+      if (Math.random() < 0.18) bayLen("chia-se");
+    }, 220);
+  }
   function dtSoLieu(m) {
     const s = m.so_lieu || {}, dat = (id, v) => { $(id).textContent = soThat(v) ? rutGon(soThat(v)) : ""; };
     dat("dt-so-tim", s.tim); dat("dt-so-bl", s.binh_luan); dat("dt-so-cs", s.chia_se);
@@ -454,7 +479,7 @@
     const uuTien = maNoiBat.map(ma => mau[ma]).filter(Boolean);
     dt.ds = [...uuTien, ...cauHinh.mau.filter(m => !maNoiBat.includes(m.ma))];
     if (!dt.ds.length) return;
-    dtHien(0);
+    dtHien(0); batBay();
     $("dt-mo").addEventListener("click", () => { if (dt.vuot) { dt.vuot = false; return; } dtBatTatTieng(); });
     $("dt-xem-lon").addEventListener("click", () => { if (dt.tieng) { dt.tieng = false; dtVeTieng(); } dtGoVideo(); moXem(dt.ds, dt.ds[dt.i].ma); });
     $("dt-truoc").addEventListener("click", () => dtHien(dt.i - 1, -1));
@@ -465,8 +490,9 @@
       if (dt.tieng || dt.tatTay || laIOS || !dt.yt?.dangPhat || e.target.closest("a, button, input, textarea, select, label, summary, #dien-thoai")) return;
       dtBatTatTieng();
     });
-    $("dt-hoi").addEventListener("click", () => chonTuVan(dt.ds[dt.i]));
-    $("dt-chia-se").addEventListener("click", dtChiaSe);
+    const chum = (loai, n) => { if (!itChuyenDong) for (let k = 0; k < n; k += 1) setTimeout(() => bayLen(loai), k * 70); };
+    $("dt-hoi").addEventListener("click", () => { chum("binh-luan", 4); chonTuVan(dt.ds[dt.i]); });
+    $("dt-chia-se").addEventListener("click", () => { chum("chia-se", 5); dtChiaSe(); });
     const may = $("dien-thoai");
     // Máy tính: rê chuột vào máy thì dừng lướt để xem kỹ mẫu đang hiện.
     may.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") { dt.re = true; dtCapNhat(); } });
@@ -629,8 +655,8 @@
   function ganHieuUng() {
     if (itChuyenDong || !("IntersectionObserver" in window)) return;
     document.documentElement.classList.add("hieu-ung");
-    ["mau", "goi-y", "danh-gia", "so-sanh", "cach-lam", "cam-ket", "tu-van", "hoi-dap"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
-    document.querySelectorAll("#luoi-mau, .goi-y-hop, .so-sanh-bang, .so-sanh-chan, .buoc, .tu-van-hop, .tv-xem-truoc, .hoi-dap-ds, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
+    ["mau", "danh-gia", "so-sanh", "cach-lam", "cam-ket", "tu-van", "hoi-dap"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
+    document.querySelectorAll("#luoi-mau, .so-sanh-bang, .so-sanh-chan, .buoc, .tu-van-hop, .tv-xem-truoc, .hoi-dap-ds, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
     const qs = new IntersectionObserver(ds => ds.forEach(e => { if (e.isIntersecting) { e.target.classList.add("lo"); qs.unobserve(e.target); } }),
       { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
     document.querySelectorAll("[data-lo]").forEach(e => qs.observe(e));
@@ -735,77 +761,18 @@
     veRay();
   }
 
-  // ---------- Gợi ý kiểu video: 3 câu bấm một lần, rồi gợi ý mẫu ----------
-  // Câu hỏi và lựa chọn lấy từ cau_hoi.json (câu 2, 7, 4) để câu trả lời ghép thẳng vào yêu cầu tư vấn.
-  // Bảng dưới đây quyết định mẫu nào được gợi ý; sửa khi có thêm mẫu mới.
-  const CAU_GOI_Y = [[2, "nhom"], [7, "noi_dang"], [4, "muc_dich"]];
-  const NGANH_CUA_MAU = { "Mỹ phẩm, làm đẹp": "Làm đẹp", "Đồ ăn, thức uống": "Đồ ăn, thức uống", "Ứng dụng, phần mềm": "Ứng dụng", "Cửa hàng, dịch vụ": "Trường học, dịch vụ" };
-  const KIEU_THEO_NGANH = { "Thời trang": ["Người mẫu giới thiệu sản phẩm", "Người thật, đời thường"] };
-  const KIEU_THEO_MUC_DICH = {
-    "Bán hàng": ["Người mẫu giới thiệu sản phẩm", "Video vui, gây chú ý"],
-    "Giới thiệu thương hiệu": ["Chỉ có sản phẩm, sang trọng", "Người thật, đời thường"],
-    "Ra mắt sản phẩm mới": ["Chỉ có sản phẩm, sang trọng", "Video vui, gây chú ý"],
-    "Thông báo khuyến mãi": ["Video vui, gây chú ý", "Hoạt hình"],
-  };
-  let goiY = { buoc: 0, tra_loi: {} }, goiYChon = null;
-  function mauGoiY(tl) {
-    const nganh = tl["2.nhom"], mucDich = tl["4.muc_dich"];
-    const diem = m => (NGANH_CUA_MAU[nganh] === m.nhom ? 3 : 0) + ((KIEU_THEO_NGANH[nganh] || []).includes(m.kieu) ? 2 : 0)
-      + ((KIEU_THEO_MUC_DICH[mucDich] || []).includes(m.kieu) ? 2 : 0) + (m.nhom === "Tuyển dụng" ? -3 : 0) + (m.hien === "video" || m.doan ? 0.5 : 0);
-    return cauHinh.mau.map((m, i) => ({ m, d: diem(m), i })).sort((a, b) => b.d - a.d || a.i - b.i).slice(0, 3).map(x => x.m);
-  }
-  const chuGoiY = tl => [tl["2.nhom"], ...(tl["7.noi_dang"] || []), tl["4.muc_dich"]].filter(Boolean).join(", ");
-  function veGoiY() {
-    const than = $("goi-y-than");
-    if (goiY.buoc < CAU_GOI_Y.length) {
-      const [so, id] = CAU_GOI_Y[goiY.buoc], c = cau.find(x => x.so === so), t = c.truong.find(x => x.id === id);
-      const tieuDe = tao("h3", "", c.cau); tieuDe.tabIndex = -1;
-      const day = tao("div", "chon"); day.setAttribute("role", "group"); day.setAttribute("aria-label", c.cau);
-      t.lua_chon.map(tenLuaChon).forEach(lc => {
-        const b = tao("button", "", lc); b.type = "button";
-        b.addEventListener("click", () => {
-          goiY.tra_loi[`${so}.${id}`] = t.kieu === "nhieu" ? [lc] : lc; goiY.buoc += 1; veGoiY();
-          than.querySelector("h3")?.focus({ preventScroll: true });
-        });
-        day.append(b);
-      });
-      const hang = tao("div", "goi-y-buoc"); hang.append(tao("span", "", `Câu ${goiY.buoc + 1} trên ${CAU_GOI_Y.length}`));
-      if (goiY.buoc > 0) { const lui = tao("button", "nut-chu", "Quay lại câu trước"); lui.type = "button"; lui.addEventListener("click", () => { goiY.buoc -= 1; veGoiY(); }); hang.append(lui); }
-      const thanh = tao("div", "goi-y-thanh"), day2 = tao("div"); day2.style.width = `${goiY.buoc / CAU_GOI_Y.length * 100}%`; thanh.append(day2);
-      than.replaceChildren(hang, thanh, tieuDe, day);
-      return;
-    }
-    const ds = mauGoiY(goiY.tra_loi); let chon = ds[0];
-    const tieuDe = tao("h3", "", "Những mẫu hợp với sản phẩm của anh chị"); tieuDe.tabIndex = -1;
-    const tomTat = tao("p", "goi-y-tom-tat", `Anh chị đã chọn: ${chuGoiY(goiY.tra_loi)}. Bấm vào ảnh để xem video có tiếng.`);
-    const luoi = tao("ul", "goi-y-ket-qua"), nutChon = [];
-    ds.forEach(m => {
-      const li = tao("li"), the = nutMau(m, () => ds, true, false, "nho"), b = tao("button", "nut-chu chon-mau", "Chọn mẫu này"); b.type = "button";
-      the.querySelector(".khung").append(tao("span", "nhan-nganh", m.nhom)); ganDoan(the);
-      b.addEventListener("click", () => { chon = m; nutChon.forEach(([x, mx]) => { x.setAttribute("aria-pressed", String(mx === m)); x.textContent = mx === m ? "Đã chọn" : "Chọn mẫu này"; x.closest("li").classList.toggle("da-chon", mx === m); }); });
-      nutChon.push([b, m]); li.append(the, b); luoi.append(li);
-    });
-    nutChon.forEach(([x, mx]) => { x.setAttribute("aria-pressed", String(mx === chon)); x.textContent = mx === chon ? "Đã chọn" : "Chọn mẫu này"; x.closest("li").classList.toggle("da-chon", mx === chon); });
-    const form = formNhanh({ tieuDe: "Nhận phương án và báo giá theo mẫu anh chị chọn", nutGui: "Gửi cho tôi phương án và báo giá",
-      layMau: () => chon, layThem: () => ({ ...goiY.tra_loi }) });
-    const lai = tao("button", "nut-chu", "Trả lời lại 3 câu"); lai.type = "button";
-    lai.addEventListener("click", () => { goiY = { buoc: 0, tra_loi: {} }; veGoiY(); than.querySelector("h3")?.focus({ preventScroll: true }); });
-    than.replaceChildren(tieuDe, tomTat, luoi, form, lai);
-  }
-
   // ---------- Thanh nút dưới đáy màn hình điện thoại ----------
   let capNhatThanhDuoi = () => {};
   function ganThanhDuoi() {
     const thanh = $("thanh-duoi"), nutDau = document.querySelector(".hero-footer .hang-nut");
     if (!("IntersectionObserver" in window) || !nutDau) return;
-    let quaNutDau = false, thayForm = false, thayGoiY = false;
+    let quaNutDau = false, thayForm = false;
     capNhatThanhDuoi = () => {
-      thanh.hidden = !(quaNutDau && !thayForm && !thayGoiY && !$("mo-dau").hidden);
+      thanh.hidden = !(quaNutDau && !thayForm && !$("mo-dau").hidden);
       document.body.classList.toggle("co-thanh-duoi", !thanh.hidden);
     };
     new IntersectionObserver(([e]) => { quaNutDau = !e.isIntersecting && e.boundingClientRect.top < 0; capNhatThanhDuoi(); }).observe(nutDau);
     new IntersectionObserver(([e]) => { thayForm = e.isIntersecting; capNhatThanhDuoi(); }).observe($("tu-van"));
-    new IntersectionObserver(([e]) => { thayGoiY = e.isIntersecting; capNhatThanhDuoi(); }, { rootMargin: "-25% 0px -25% 0px" }).observe($("goi-y-than"));
   }
 
   // ---------- Trình xem video ----------
@@ -1083,7 +1050,7 @@
 
   // ---------- Chuyển màn ----------
   function hien(man) {
-    ["mo-dau", "goi-y", "mau", "danh-gia", "so-sanh", "cach-lam", "cam-ket", "tu-van", "hoi-dap", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
+    ["mo-dau", "mau", "danh-gia", "so-sanh", "cach-lam", "cam-ket", "tu-van", "hoi-dap", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
     $("danh-gia").hidden = man !== "dau" || !(cauHinh.danh_gia || []).length;
     if (man !== "dau") dongMenu();
     document.querySelectorAll(".dau-trang nav").forEach(n => { n.hidden = man !== "dau"; });
@@ -1296,9 +1263,8 @@
       finally { $("bs-gui").disabled = false; $("bs-gui").textContent = "Gửi thêm thông tin"; }
     });
   }
-  function chonTuVan(m, traLoiGoiY) {
+  function chonTuVan(m) {
     maGuiNhanh = "";
-    if (traLoiGoiY) { goiYChon = traLoiGoiY; $("tv-goi-y").textContent = `Anh chị đã chọn: ${chuGoiY(traLoiGoiY)}.`; $("tv-goi-y").hidden = false; }
     if (m) { mauTuVan = m.ma; $("tv-mau-ten").textContent = `${m.ma} · ${m.ten}`; $("tv-mau").hidden = false; xemTruocMau(m); }
     $("tv-thanh-cong").hidden = true; $("form-tu-van").hidden = false;
     $("tu-van").scrollIntoView({ block: "start", behavior: itChuyenDong ? "instant" : "smooth" });
@@ -1321,7 +1287,7 @@
     nho.ghi(KHOA_TU_VAN, JSON.stringify({ ma_gui: du.ma_gui, san_pham: du.san_pham, lien_he: du.lien_he, kenh: du.kenh,
       kieu: mau[du.ma_mau]?.kieu || "", them: du.them || {}, luc: Date.now() }));
     $("tv-san-pham-da-gui").textContent = du.san_pham; $("tv-kenh-da-gui").textContent = du.kenh === "Zalo" ? "Zalo" : "điện thoại";
-    goiYChon = null; mauTuVan = ""; maGuiNhanh = ""; $("tv-goi-y").hidden = true; $("tv-mau").hidden = true;
+    mauTuVan = ""; maGuiNhanh = ""; $("tv-mau").hidden = true;
     $("form-tu-van").reset(); $("form-tu-van").hidden = true; veBoSung(); $("tv-thanh-cong").hidden = false;
   }
 
@@ -1389,7 +1355,7 @@
       if (sai) { loi.textContent = sai[1]; loi.hidden = false; ({ "san-pham": $("tv-san-pham"), "lien-he": $("tv-lien-he"), "dong-y": $("tv-dong-y") })[sai[0]].focus(); return; }
       if (!maGuiNhanh) maGuiNhanh = taoMaGui();
       const kenh = form.querySelector('input[name="kenh"]:checked')?.value || "Zalo";
-      const du = { san_pham: sanPham, lien_he: lienHe, kenh, ma_mau: mauTuVan, them: goiYChon || {}, ma_gui: maGuiNhanh, trang_web: $("tv-trang-web").value };
+      const du = { san_pham: sanPham, lien_he: lienHe, kenh, ma_mau: mauTuVan, them: {}, ma_gui: maGuiNhanh, trang_web: $("tv-trang-web").value };
       const truong = [...form.querySelectorAll("input, button")]; truong.forEach(o => { o.disabled = true; }); $("tv-gui").textContent = "Đang gửi yêu cầu…";
       try { await guiNhanh(du); sauKhiGuiNhanh(du); $("tv-cam-on").focus(); }
       catch (err) { loi.textContent = loiMang(err); loi.hidden = false; }
@@ -1423,7 +1389,7 @@
       }
     }
     if (cauHinh.zalo) { ["link-zalo", "zalo-cam-on"].forEach(id => { $(id).href = cauHinh.zalo; $(id).hidden = false; }); }
-    veMau(); veGoiY(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); veMenu(); ganXemTruoc(); veDanhGia(); veCamKet(); veSoNoi(); ganHieuUng(); ganNghieng();
+    veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); veMenu(); ganXemTruoc(); veDanhGia(); veCamKet(); veSoNoi(); ganHieuUng(); ganNghieng();
     await khoiPhuc(); khoiTaoLichSu(); ganChamDauTien();
     document.querySelectorAll("[data-bat-dau]").forEach(b => b.addEventListener("click", batDau));
     $("tiep-tuc").addEventListener("click", async () => {

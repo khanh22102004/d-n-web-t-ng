@@ -14,11 +14,9 @@ Trang giới thiệu dịch vụ, thư viện video mẫu, form tư vấn nhanh 
 
 ### Kéo khách từ “xem cho vui” sang “để lại số”
 
-- **Phần “Chưa biết chọn kiểu video nào?”** ngay dưới màn hình đầu: khách bấm 3 câu (ngành hàng, nơi đăng, mục đích; lấy từ câu 2, 7, 4 của `cau_hoi.json`), trang gợi ý 3 mẫu hợp nhất và hiện **form ngắn ngay dưới 3 mẫu đó** (sản phẩm, số điện thoại, Zalo hay gọi điện). Yêu cầu gửi về có sẵn ngành hàng, nơi đăng, mục đích và mẫu khách đang chọn. Cách chọn mẫu nằm ở `NGANH_CUA_MAU`, `KIEU_THEO_NGANH`, `KIEU_THEO_MUC_DICH` trong `web/app.js`.
-- Câu nào khách đã trả lời ở phần gợi ý thì phần hỏi thêm sau khi gửi không hỏi lại.
 - **Form ngắn ngay trong khung xem video**: nút “Nhận báo giá làm video kiểu này” mở form ngay dưới video, khách không phải đóng video và cuộn đi tìm form. Nếu khách đã gửi một lần trên máy đó, sản phẩm và số điện thoại được điền sẵn. Gửi xong, khách được mời trả lời thêm 2 câu (thời hạn, ngân sách).
 - Nút kêu gọi dùng chữ nói rõ khách nhận được gì: “Nhận báo giá”, “Gửi cho tôi phương án và báo giá”. Trang không hứa “miễn phí” hay đưa số liệu khách hàng khi studio chưa xác nhận.
-- **Thanh nút dưới đáy màn hình điện thoại** (“Nhận báo giá”, “Gợi ý kiểu video”) hiện khi khách đã cuộn qua nút ở màn hình đầu; tự ẩn khi đang ở form tư vấn hoặc phần gợi ý.
+- **Thanh nút dưới đáy màn hình điện thoại** (“Nhận báo giá”, “Xem video mẫu”) hiện khi khách đã cuộn qua nút ở màn hình đầu; tự ẩn khi đang ở form tư vấn.
 - **Đoạn video riêng của studio**: đặt tệp vào `web/video-mau/` (xem `DOC-TOI.txt` trong thư mục đó). Mẫu có tệp sẽ tự phát không tiếng ở màn hình đầu và trong thư viện, nhiều mẫu cùng lúc; tệp chỉ tải khi mẫu hiện ra, tạm dừng khi ra khỏi màn hình, khi mở khung xem, khi bấm “Dừng chuyển động”, và không tự phát khi khách bật giảm chuyển động hoặc tiết kiệm dữ liệu.
 
 ## Bản sửa Back/Forward và số liên hệ
@@ -151,6 +149,7 @@ Khi có, điện thoại ở màn hình đầu hiện số dưới các nút tim
 - Trên iPhone, nếu trang không bật tiếng hộ được thì mở khung xem lớn để khách bấm phát. Đặt tệp video gốc vào `web/video-mau/` thì iPhone cũng phát có tiếng ngay sau một lần bấm.
 - Số dưới các nút tim, bình luận, chia sẻ chỉ hiện khi mẫu có `so_lieu` thật; số dưới nút tim còn đếm số tim khách tự thả.
 - Video YouTube trên máy chỉ hiện sau khoảng 3 giây chạy, khi các nút của YouTube (ⓘ, lùi, dừng, tới) đã tự ẩn; trước đó hiện ảnh bìa.
+- Tim, bong bóng bình luận và mũi tên chia sẻ bay lên liên tục từ các nút bên phải điện thoại khi video đang chạy (chỉ là hiệu ứng, không kèm số; tắt khi khách bật giảm chuyển động hoặc tiết kiệm dữ liệu).
 - Nút tim (hiệu ứng tim bay), nút bình luận (mở form báo giá với mẫu đang xem), nút chia sẻ (chia sẻ hoặc chép liên kết trang).
 
 ## Render + Neon (cách khác)
