@@ -1325,3 +1325,33 @@ body.dung-chuyen-dong .san-khau .h1-nen::before, body.dung-chuyen-dong .san-khau
 @media (max-width: 760px) { .san-khau .h1-nen { --n: 2px; margin-top: .22em; } }
 @media (prefers-reduced-motion: reduce) { .san-khau .h1-nen::before, .san-khau .h1-nen::after { animation: none !important; } }
 @media (forced-colors: active) { .san-khau .h1-nen::before, .san-khau .h1-nen::after { display: none; } }
+
+/* ===== Bản 19: ba chiếc máy xòe quạt, tiêu đề không gãy dòng, khung YouTube dựng to rồi thu nhỏ ===== */
+/* Khung YouTube dựng to gấp 3 rồi thu lại: YouTube dùng giao diện máy tính (không có nút lùi / dừng / tới giữa màn hình) */
+.dt-video iframe { width: 300%; height: 372%; transform: translate(-50%, -50%) scale(.3334); }
+/* Tiêu đề: mỗi dòng nằm trọn một hàng */
+@media (min-width: 761px) {
+  .san-khau h1 { font-size: clamp(2.3rem, 4.3vw, 4.5rem); }
+  .san-khau .h1-dong { white-space: nowrap; }
+}
+/* Hai máy hai bên: mẫu trước và mẫu kế, nghiêng ra sau máy chính; bấm vào để chuyển mẫu */
+.dt-ben { --x: -60%; --r: -9deg; position: absolute; z-index: 0; top: 0; left: 50%; width: clamp(250px, 20.5vw, 284px); padding: 9px; border: 0; border-radius: 46px; cursor: pointer;
+  background: linear-gradient(145deg, #333a37, #0b0e0d 42%); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .12), 0 40px 70px -30px rgba(0, 0, 0, .8);
+  transform-origin: 50% 85%; transform: translateX(calc(-50% + var(--x))) rotate(var(--r)) scale(.84); filter: brightness(.5) saturate(.85);
+  transition: filter .3s ease, transform .5s cubic-bezier(.2, .8, .2, 1); animation: ben-ra 1s cubic-bezier(.2, .8, .2, 1) .55s both; }
+.dt-ben.phai { --x: 60%; --r: 8deg; animation-delay: .7s; }
+.dt-ben img { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 37px; background: #0b1512; }
+.dt-ben img.doi { animation: hien .6s ease both; }
+.dt-ben:hover, .dt-ben:focus-visible { filter: brightness(.9) saturate(1); transform: translateX(calc(-50% + var(--x) * 1.06)) rotate(var(--r)) scale(.87); }
+.dt-ben:focus-visible { outline: 3px solid var(--ho-phach); outline-offset: 3px; }
+@keyframes ben-ra { from { opacity: 0; transform: translateX(-50%) rotate(0deg) scale(.8); } }
+.dt-hop .dien-thoai { z-index: 1; }
+.tuong-nen { opacity: .2; }
+@media (max-width: 1180px) and (min-width: 761px) { .dt-ben { --x: -48%; } .dt-ben.phai { --x: 48%; } }
+@media (max-width: 760px) {
+  .dt-ben { width: min(228px, 58vw); padding: 7px; border-radius: 36px; --x: -50%; }
+  .dt-ben.phai { --x: 50%; }
+  .dt-ben img { border-radius: 30px; }
+}
+@media (prefers-reduced-motion: reduce) { .dt-ben, .dt-ben img.doi { animation: none !important; transition: none; } }
+@media (max-width: 760px) { .dt-nen-tang { display: none; } }

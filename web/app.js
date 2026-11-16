@@ -239,7 +239,7 @@
 
   // ---------- Điện thoại ở màn hình đầu: lướt các video mẫu như đang xem TikTok ----------
   // Ảnh bìa hiện ngay cho nhanh; trang rảnh rồi thì phát video thật (không tiếng). Bấm vào máy là bật tiếng ngay trên máy.
-  const DT_LUOT = 4000, DT_VIDEO = 11000;
+  const DT_LUOT = 4000, DT_VIDEO = 13000;
   const dt = { ds: [], i: 0, hen: 0, re: false, trongTam: true, canh: new Map(), video: false, tieng: false, yt: null, henTieng: 0, tatTay: false };
   const coModal = () => $("xem").open || $("bat-dau-hop").open || !!$("menu-dt")?.open;
   const dtDuocPhat = () => !tamDung && dt.trongTam && !document.hidden && !coModal();
@@ -266,7 +266,7 @@
   // Nạp video thật của mẫu vào màn hình máy: tệp riêng trong web/video-mau nếu có, không thì YouTube.
   function dtNapVideo(m, coTieng) {
     dtGoVideo();
-    const yt = { ma: m.ma, tieng: coTieng, dangPhat: false, f: null, v: null };
+    const yt = { ma: m.ma, tieng: coTieng, dangPhat: false, f: null, v: null, lenh: "playVideo" };
     if (m.doan) {
       const v = tao("video"); v.src = m.doan; v.playsInline = true; v.loop = !coTieng; v.muted = !coTieng; v.autoplay = true; v.preload = "auto";
       v.setAttribute("aria-hidden", "true"); v.tabIndex = -1; yt.v = v;
@@ -296,10 +296,10 @@
     yt.dangPhat = true; dt.loi = 0; dtVeTieng();
     // YouTube hiện nút (ⓘ, lùi, dừng, tới) vài giây đầu khi video bắt đầu chạy: giữ ảnh bìa đến khi các nút đó tự ẩn rồi mới hiện video.
     if (yt.v) $("dt-video").classList.add("hien");
-    else setTimeout(() => { if (dt.yt === yt) $("dt-video").classList.add("hien"); }, 3300);
+    else setTimeout(() => { if (dt.yt === yt) $("dt-video").classList.add("hien"); }, 4500);
     $("dt-man").classList.add("co-video");
     if (!yt.tieng && dtDuocPhat()) dtThuTieng();
-    if (!dtDuocPhat() && !yt.tieng) { if (yt.v) yt.v.pause(); else dtLenh("pauseVideo"); }
+    if (!dtDuocPhat() && !yt.tieng) { if (yt.v) yt.v.pause(); else { yt.lenh = "pauseVideo"; dtLenh("pauseVideo"); } }
     dtCapNhat();
   }
   // Nghe trạng thái từ khung YouTube của điện thoại: đang phát, đã hết, đã bật tiếng hay chưa.
@@ -427,6 +427,11 @@
     dt.i = viTri;
     dtCanh(dt.ds[(viTri + 1) % n]);                            // tải sẵn ảnh mẫu kế tiếp
     $("dt-ma").textContent = m.ma; $("dt-dem").textContent = `${viTri + 1}/${n}`;
+    // Hai máy hai bên: ảnh bìa của mẫu trước và mẫu kế.
+    [["dt-ben-trai", dt.ds[(viTri - 1 + n) % n]], ["dt-ben-phai", dt.ds[(viTri + 1) % n]]].forEach(([id, mb]) => {
+      const anh = $(id).querySelector("img"), src = `/anh-mau/nho/${encodeURIComponent(mb.ma)}.webp`;
+      if (anh.getAttribute("src") !== src) { anh.classList.remove("doi"); void anh.offsetWidth; anh.src = src; anh.classList.add("doi"); }
+    });
     $("dt-nganh").textContent = m.nhom; $("dt-ten").textContent = m.ten; $("dt-kieu").textContent = m.kieu || "";
     $("dt-tim").classList.toggle("da-thich", !!timCuaKhach[m.ma]); $("dt-tim").setAttribute("aria-label", "Thả tim cho mẫu này");
     dtSoLieu(m); if (!soThat(m.so_lieu?.tim) && timCuaKhach[m.ma]) $("dt-so-tim").textContent = timCuaKhach[m.ma];
@@ -442,7 +447,7 @@
     // Đang mở khung xem lớn, menu, hay cuộn khỏi màn hình đầu: tạm dừng video trên máy.
     if (dt.yt?.dangPhat) {
       if (dt.yt.v) { if (duoc) dt.yt.v.play().catch(() => {}); else dt.yt.v.pause(); }
-      else dtLenh(duoc ? "playVideo" : "pauseVideo");
+      else { const lenh = duoc ? "playVideo" : "pauseVideo"; if (dt.yt.lenh !== lenh) { dt.yt.lenh = lenh; dtLenh(lenh); } }   // chỉ gửi khi đổi trạng thái, để YouTube không hiện lại nút của nó
     }
     tien.classList.remove("chay"); void tien.offsetWidth;
     if (luot && !choVideo) {
@@ -485,6 +490,8 @@
     $("dt-mo").addEventListener("click", () => { if (dt.vuot) { dt.vuot = false; return; } dtBatTatTieng(); });
     $("dt-xem-lon").addEventListener("click", () => { if (dt.tieng) { dt.tieng = false; dtVeTieng(); } dtGoVideo(); moXem(dt.ds, dt.ds[dt.i].ma); });
     $("dt-truoc").addEventListener("click", () => dtHien(dt.i - 1, -1));
+    $("dt-ben-trai").addEventListener("click", () => dtHien(dt.i - 1, -1));
+    $("dt-ben-phai").addEventListener("click", () => dtHien(dt.i + 1, 1));
     $("dt-sau").addEventListener("click", () => dtHien(dt.i + 1, 1));
     $("dt-tim").addEventListener("click", dtThaTim);
     // Chạm vào khoảng trống bất kỳ trên màn hình đầu (không phải nút hay liên kết) cũng bật tiếng — trừ iPhone, và trừ khi khách đã tự tắt.
