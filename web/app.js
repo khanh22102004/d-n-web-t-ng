@@ -240,10 +240,10 @@
   // ---------- Điện thoại ở màn hình đầu: lướt các video mẫu như đang xem TikTok ----------
   // Ảnh bìa hiện ngay cho nhanh; trang rảnh rồi thì phát video thật (không tiếng). Bấm vào máy là bật tiếng ngay trên máy.
   const DT_LUOT = 4000, DT_VIDEO = 11000;
-  const dt = { ds: [], i: 0, hen: 0, re: false, trongTam: true, canh: new Map(), video: false, tieng: false, yt: null, henTieng: 0, cho: false, tatTay: false };
+  const dt = { ds: [], i: 0, hen: 0, re: false, trongTam: true, canh: new Map(), video: false, tieng: false, yt: null, henTieng: 0, tatTay: false };
   const coModal = () => $("xem").open || $("bat-dau-hop").open || !!$("menu-dt")?.open;
   const dtDuocPhat = () => !tamDung && dt.trongTam && !document.hidden && !coModal();
-  const dtTuLuot = () => dtDuocPhat() && !itChuyenDong && !dt.re && !dt.tieng && !dt.cho;
+  const dtTuLuot = () => dtDuocPhat() && !itChuyenDong && !dt.re && !dt.tieng;
   const dtChay = dtTuLuot;
   const laIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const rutGon = so => new Intl.NumberFormat("vi-VN", { notation: "compact", maximumFractionDigits: 1 }).format(so);
@@ -340,7 +340,7 @@
   }
   function dtTiengDuoc() {
     dt.tieng = true; if (dt.yt) dt.yt.tieng = true;
-    dtVeTieng(); dtCapNhat(); dt.dongChao?.();
+    dtVeTieng(); dtCapNhat();
   }
   function dtVeTieng() {
     $("dt-nghe-chu").textContent = dt.tieng ? "Đang phát có tiếng · bấm để tắt" : dt.yt?.dangPhat ? "Đang phát không tiếng · chạm để nghe" : "Bấm để bật tiếng";
@@ -370,58 +370,9 @@
     }
     dtVeTieng(); dtCapNhat();
   }
-  // ---------- Số minh họa trên điện thoại: mẫu chưa có số liệu thật thì tim, bình luận, chia sẻ đếm từ 1 lên 10.000 ----------
-  // Có nhãn "Số minh họa" ngay dưới các nút để khách không hiểu nhầm đây là số liệu bài đăng thật.
-  const DEM_DICH = 10000, DEM_LAU = 7000, soDu = new Intl.NumberFormat("vi-VN");
-  const dem = { chay: 0, batDau: 0, ma: "", gia: 0, bay: 0 };
-  // Chậm lúc đầu (thấy rõ 1, 2, 3…), nhanh ở giữa, chậm lại khi gần 10.000.
-  const demCong = (k, t) => { t = Math.min(1, Math.max(0, t)); const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, k) / 2; return Math.round(1 + (DEM_DICH - 1) * e); };
-  function demVe() {
-    const m = dt.ds[dt.i]; if (!m || m.ma !== dem.ma) return;
-    const t = itChuyenDong ? 2 : (performance.now() - dem.batDau) / DEM_LAU;
-    $("dt-so-tim").textContent = soDu.format(demCong(3, t) + (timCuaKhach[m.ma] || 0));
-    $("dt-so-bl").textContent = soDu.format(demCong(3, t * 0.9));
-    $("dt-so-cs").textContent = soDu.format(demCong(3, t * 0.8));
-    const nghin = Math.floor(demCong(3, t) / 1000);
-    if (nghin !== dem.gia) { dem.gia = nghin; const so = $("dt-so-tim"); so.classList.remove("nay"); void so.offsetWidth; so.classList.add("nay"); }
-    return t;
-  }
-  function demBatDau(m) {
-    cancelAnimationFrame(dem.chay); dem.ma = m.ma; dem.gia = 0; dem.batDau = performance.now();
-    const buoc = () => { const t = demVe(); if (t !== undefined && t < 1.3 && dem.ma === m.ma) dem.chay = requestAnimationFrame(buoc); };
-    buoc();
-  }
-  // Tim, bong bóng bình luận, mũi tên chia sẻ bay lên từ các nút bên phải màn hình máy.
-  const BAY_HINH = [["tim", 0.55], ["binh-luan", 0.17], ["chia-se", 0.12]];
-  function bayLen(loai) {
-    const hop = $("dt-bay-len"); if (hop.childElementCount > 26) return;
-    const nut = { tim: "dt-tim", "binh-luan": "dt-hoi", "chia-se": "dt-chia-se" }[loai], b = $(nut), ray = b.parentElement;
-    const x = ray.offsetLeft + b.offsetLeft + b.offsetWidth / 2, y = ray.offsetTop + b.offsetTop + 14;
-    const e = tao("span", `bay-len bay-${loai}`);
-    e.style.left = `${x - 11}px`; e.style.top = `${y - 11}px`;
-    e.style.setProperty("--x", `${Math.round(-70 + Math.random() * 60)}px`);
-    e.style.setProperty("--y", `${Math.round(-150 - Math.random() * 110)}px`);
-    e.style.setProperty("--r", `${Math.round((Math.random() - 0.5) * 60)}deg`);
-    e.style.setProperty("--t", `${(1.5 + Math.random() * 0.9).toFixed(2)}s`);
-    e.style.setProperty("--s", (0.7 + Math.random() * 0.6).toFixed(2));
-    if (loai === "tim") e.style.setProperty("--c", ["#ff4d6d", "#ff8fa3", "#f2b01e", "#ff4d6d"][Math.floor(Math.random() * 4)]);
-    hop.append(e); e.addEventListener("animationend", () => e.remove(), { once: true });
-  }
-  function batBay() {
-    clearInterval(dem.bay);
-    if (itChuyenDong || tietKiem) return;
-    dem.bay = setInterval(() => {
-      const m = dt.ds[dt.i]; if (!m || soThat(m.so_lieu?.tim) || !dtDuocPhat() || dt.cho) return;
-      const dangDem = performance.now() - dem.batDau < DEM_LAU, nhan = dangDem ? 1 : 0.45;
-      BAY_HINH.forEach(([loai, kha]) => { if (Math.random() < kha * nhan) bayLen(loai); });
-    }, 260);
-  }
   function dtSoLieu(m) {
     const s = m.so_lieu || {}, dat = (id, v) => { $(id).textContent = soThat(v) ? rutGon(soThat(v)) : ""; };
     dat("dt-so-tim", s.tim); dat("dt-so-bl", s.binh_luan); dat("dt-so-cs", s.chia_se);
-    const minhHoa = !soThat(s.tim) && !soThat(s.binh_luan) && !soThat(s.chia_se);
-    $("dt-minh-hoa").hidden = !minhHoa;
-    if (minhHoa) demBatDau(m); else { cancelAnimationFrame(dem.chay); dem.ma = ""; }
     const nguon = $("dt-nguon"), coSo = soThat(s.xem) || soThat(s.tim);
     nguon.hidden = !coSo;
     if (coSo) {
@@ -451,7 +402,7 @@
     $("dt-ma").textContent = m.ma; $("dt-dem").textContent = `${viTri + 1}/${n}`;
     $("dt-nganh").textContent = m.nhom; $("dt-ten").textContent = m.ten; $("dt-kieu").textContent = m.kieu || "";
     $("dt-tim").classList.toggle("da-thich", !!timCuaKhach[m.ma]); $("dt-tim").setAttribute("aria-label", "Thả tim cho mẫu này");
-    dtSoLieu(m);
+    dtSoLieu(m); if (!soThat(m.so_lieu?.tim) && timCuaKhach[m.ma]) $("dt-so-tim").textContent = timCuaKhach[m.ma];
     dtVeTieng();
     [$("dt-duoi"), $("dt-man")].forEach(e => { e.classList.remove("doi"); void e.offsetWidth; e.classList.add("doi"); });
     if (dt.video || dt.tieng) dtNapVideo(m, dt.tieng); else dtGoVideo();
@@ -473,13 +424,13 @@
       dt.hen = setTimeout(() => dtHien(dt.i + 1, 1), tg);
     }
   }
-  // Mỗi lần bấm tim là một tim của chính khách (như thả tim khi xem live): được cộng vào số tim đang hiện dưới nút.
+  // Mỗi lần bấm tim là một tim của chính khách (như thả tim khi xem live): số dưới nút đếm tim khách đã thả, không phải số giả.
   const timCuaKhach = {};
   function dtThaTim() {
     const nut = $("dt-tim"), m = dt.ds[dt.i];
     timCuaKhach[m.ma] = (timCuaKhach[m.ma] || 0) + 1;
     nut.classList.add("da-thich"); nut.setAttribute("aria-label", `Thả tim cho mẫu này, anh chị đã thả ${timCuaKhach[m.ma]} tim`);
-    if (!soThat(m.so_lieu?.tim)) { demVe(); const so = $("dt-so-tim"); so.classList.remove("nay"); void so.offsetWidth; so.classList.add("nay"); }
+    if (!soThat(m.so_lieu?.tim)) { const so = $("dt-so-tim"); so.textContent = timCuaKhach[m.ma]; so.classList.remove("nay"); void so.offsetWidth; so.classList.add("nay"); }
     const cong = tao("span", "tim-cong", "+1"); $("dt-tim-bay").append(cong); setTimeout(() => cong.remove(), 900);
     if (itChuyenDong) return;
     const bay = $("dt-tim-bay");
@@ -503,7 +454,7 @@
     const uuTien = maNoiBat.map(ma => mau[ma]).filter(Boolean);
     dt.ds = [...uuTien, ...cauHinh.mau.filter(m => !maNoiBat.includes(m.ma))];
     if (!dt.ds.length) return;
-    dtHien(0); batBay();
+    dtHien(0);
     $("dt-mo").addEventListener("click", () => { if (dt.vuot) { dt.vuot = false; return; } dtBatTatTieng(); });
     $("dt-xem-lon").addEventListener("click", () => { if (dt.tieng) { dt.tieng = false; dtVeTieng(); } dtGoVideo(); moXem(dt.ds, dt.ds[dt.i].ma); });
     $("dt-truoc").addEventListener("click", () => dtHien(dt.i - 1, -1));
@@ -547,50 +498,12 @@
     const thu = e => {
       if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
       if (dt.tieng || dt.tatTay) { thoi(); return; }               // đã có tiếng, hoặc khách đã tự tắt: thôi
-      // Chưa bật được lúc này (video chưa chạy, đang ở màn chào, khách bấm chính nút tiếng): chờ lần chạm sau.
-      if (dt.cho || $("mo-dau").hidden || e.target.closest?.("#dt-mo, .man-chao") || !dt.yt?.dangPhat) return;
+      // Chưa bật được lúc này (video chưa chạy, khách bấm chính nút tiếng): chờ lần chạm sau.
+      if ($("mo-dau").hidden || e.target.closest?.("#dt-mo") || !dt.yt?.dangPhat) return;
       if (laIOS && !dt.ds[dt.i]?.doan) { thoi(); return; }         // iPhone không cho trang bật tiếng video YouTube hộ khách
       thoi(); dtBatTatTieng();
     };
     document.addEventListener("click", thu, true); document.addEventListener("keydown", thu, true);
-  }
-
-  // ---------- Màn chào: lần đầu vào trang trong phiên, mời khách bấm một lần để xem video có tiếng ----------
-  // Trình duyệt không cho trang tự phát có tiếng khi khách chưa bấm gì, nên một cú bấm ở đây là cách chắc nhất để có tiếng ngay.
-  function moManChao() {
-    try { if (sessionStorage.getItem("bp-chao")) return; sessionStorage.setItem("bp-chao", "1"); } catch { return; }
-    if ($("mo-dau").hidden || tietKiem || !dt.ds.length || dt.tieng) return;
-    const lop = tao("div", "man-chao"); lop.setAttribute("role", "dialog"); lop.setAttribute("aria-modal", "true"); lop.setAttribute("aria-labelledby", "chao-tieu-de");
-    const logo = tao("p", "chao-logo"); logo.append(cauHinh.studio || "B Productions", tao("span", "", "."));
-    const td = tao("h2", "chao-tieu-de"); td.id = "chao-tieu-de"; td.append(tao("span", "", "Video AI chân thật,"), " ", tao("span", "", "chất lượng cao"));
-    const coTieng = tao("button", "chao-nut"); coTieng.type = "button"; coTieng.append(tao("span", "chao-loa"), tao("span", "", "Bấm để xem có tiếng"));
-    const khong = tao("button", "chao-phu", "Xem không tiếng"); khong.type = "button";
-    const ghi = tao("p", "chao-ghi", "Chạm vào bất cứ đâu để vào xem có tiếng. Muốn tắt tiếng, anh chị chạm vào điện thoại.");
-    lop.append(logo, td, coTieng, khong, ghi);
-    const nen = [...document.body.children].filter(e => e.tagName !== "SCRIPT" && !e.inert);
-    nen.forEach(e => { e.inert = true; });
-    document.body.append(lop); document.documentElement.classList.add("chao-mo");
-    dt.cho = true; dtBatDauVideo(); dtCapNhat();                      // video không tiếng tải sẵn phía sau
-    coTieng.focus({ preventScroll: true });
-    // muonTieng: true = khách bấm "có tiếng", false = "không tiếng", undefined = trình duyệt đã tự cho có tiếng nên chỉ cần đóng.
-    const dong = muonTieng => {
-      if (lop.classList.contains("ra")) return;
-      lop.classList.add("ra"); document.documentElement.classList.remove("chao-mo");
-      nen.forEach(e => { e.inert = false; }); dt.cho = false; dt.dongChao = null;
-      if (muonTieng === true) { dt.video = true; if (!dt.tieng) dtBatTatTieng(); else dtCapNhat(); }
-      else if (muonTieng === false && dt.tieng) dtBatTatTieng();
-      else dtCapNhat();
-      if (lop.contains(document.activeElement)) $("dt-mo").focus({ preventScroll: true });
-      setTimeout(() => lop.remove(), itChuyenDong ? 0 : 800);
-    };
-    dt.dongChao = () => dong();
-    coTieng.addEventListener("click", e => { e.stopPropagation(); dong(true); });
-    khong.addEventListener("click", e => { e.stopPropagation(); dong(false); });
-    lop.addEventListener("click", () => dong(true));                // chạm chỗ nào trên màn chào cũng vào xem có tiếng
-    lop.addEventListener("keydown", e => {
-      if (e.key === "Escape") { e.preventDefault(); dong(false); }
-      if (e.key === "Tab") { e.preventDefault(); (document.activeElement === coTieng ? khong : coTieng).focus(); }
-    });
   }
 
   // ---------- Menu đầu trang: "Kiểu video" mở bảng ngành hàng (máy tính), nút Menu mở trang menu (điện thoại) ----------
@@ -1511,7 +1424,7 @@
     }
     if (cauHinh.zalo) { ["link-zalo", "zalo-cam-on"].forEach(id => { $(id).href = cauHinh.zalo; $(id).hidden = false; }); }
     veMau(); veGoiY(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); veMenu(); ganXemTruoc(); veDanhGia(); veCamKet(); veSoNoi(); ganHieuUng(); ganNghieng();
-    await khoiPhuc(); khoiTaoLichSu(); moManChao(); ganChamDauTien();
+    await khoiPhuc(); khoiTaoLichSu(); ganChamDauTien();
     document.querySelectorAll("[data-bat-dau]").forEach(b => b.addEventListener("click", batDau));
     $("tiep-tuc").addEventListener("click", async () => {
       if (!kiemTraNhom()) return;

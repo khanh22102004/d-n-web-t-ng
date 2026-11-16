@@ -146,11 +146,10 @@ Khi có, điện thoại ở màn hình đầu hiện số dưới các nút tim
 
 - Ảnh bìa hiện ngay; video thật bắt đầu phát ngay khi trang dựng xong (mạng không ở chế độ tiết kiệm dữ liệu). Hai lần không phát được (mạng chặn YouTube) thì chỉ lướt ảnh bìa.
 - **Có tiếng ngay khi vào trang (trong giới hạn trình duyệt)**: trang thử bật tiếng một lần; trình duyệt nào cho phép (thường là khách đã hay xem video trên trang) thì có tiếng ngay. Trình duyệt chặn thì video trả về không tiếng và chạy tiếp, không bị dừng.
-- **Màn chào lần đầu vào trang trong phiên** (`sessionStorage` khóa `bp-chao`): chạm vào bất cứ đâu trên màn chào (hoặc nút lớn “Bấm để xem có tiếng”) là vào xem có tiếng; “Xem không tiếng” (phím Esc) thì vào không tiếng. Video không tiếng đã chạy sẵn phía sau, nên chạm là có tiếng ngay. Không hiện khi khách bật tiết kiệm dữ liệu, khi trình duyệt đã tự cho có tiếng, hoặc khi khách mở thẳng phiếu.
 - **Cú chạm đầu tiên ở bất kỳ đâu trên trang** (bấm chữ, nút, liên kết, phím Enter/Space) cũng bật tiếng video trên máy, trừ khi khách đã tự tắt tiếng. Trên iPhone chỉ áp dụng cho video đặt trong `web/video-mau/`.
-- Video đang chạy không tiếng thì máy hiện lời mời “Chạm để nghe tiếng”; bấm vào máy hoặc khoảng trống của màn hình đầu là bật tiếng (trừ khi khách đã tự tắt). Đang có tiếng thì hết video mới chuyển mẫu kế.
+- Bấm vào máy hoặc khoảng trống của màn hình đầu là bật tiếng (trừ khi khách đã tự tắt). Đang có tiếng thì hết video mới chuyển mẫu kế.
 - Trên iPhone, nếu trang không bật tiếng hộ được thì mở khung xem lớn để khách bấm phát. Đặt tệp video gốc vào `web/video-mau/` thì iPhone cũng phát có tiếng ngay sau một lần bấm.
-- **Số trên các nút tim, bình luận, chia sẻ**: mẫu chưa có `so_lieu` thật thì ba số đếm từ 1 lên 10.000 trong khoảng 7–9 giây mỗi lần đổi mẫu, có nhãn “Số minh họa” ngay dưới để khách không hiểu nhầm là số liệu bài đăng. Điền `so_lieu` thật cho mẫu nào thì mẫu đó hiện số thật và bỏ nhãn. Tim, bong bóng bình luận và mũi tên chia sẻ bay lên từ các nút khi video đang chạy (tắt khi khách bật giảm chuyển động hoặc tiết kiệm dữ liệu).
+- Số dưới các nút tim, bình luận, chia sẻ chỉ hiện khi mẫu có `so_lieu` thật; số dưới nút tim còn đếm số tim khách tự thả.
 - Video YouTube trên máy chỉ hiện sau khoảng 3 giây chạy, khi các nút của YouTube (ⓘ, lùi, dừng, tới) đã tự ẩn; trước đó hiện ảnh bìa.
 - Nút tim (hiệu ứng tim bay), nút bình luận (mở form báo giá với mẫu đang xem), nút chia sẻ (chia sẻ hoặc chép liên kết trang).
 
