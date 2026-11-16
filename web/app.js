@@ -649,14 +649,27 @@
     // Tiêu đề lớn: từng chữ trồi lên từ dưới, rồi dòng "chất lượng cao" được tô nền vàng như bút dạ quang.
     let thuTu = 0;
     document.querySelectorAll("#tieu-de-chinh .h1-dong").forEach(dong => {
-      const tu = dong.textContent.trim().split(/\s+/);
-      dong.replaceChildren(...tu.flatMap((t, k) => { const ngoai = tao("span", "h1-tu"), trong = tao("span", "", t); trong.style.setProperty("--i", thuTu); thuTu += 1; ngoai.append(trong); return k ? [" ", ngoai] : [ngoai]; }));
+      // Dòng "chất lượng cao" giữ nguyên một khối để dải màu chạy liền suốt cả dòng.
+      const chu = dong.textContent.trim(), tu = dong.classList.contains("h1-nen") ? [chu] : chu.split(/\s+/);
+      dong.replaceChildren(...tu.flatMap((t, k) => { const ngoai = tao("span", "h1-tu"), trong = tao("span", "", t); trong.dataset.chu = t; trong.style.setProperty("--i", thuTu); thuTu += 1; ngoai.append(trong); return k ? [" ", ngoai] : [ngoai]; }));
     });
     ["mau", "danh-gia", "so-sanh", "cam-ket", "tu-van", "hoi-dap"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
-    document.querySelectorAll("#luoi-mau, .so-sanh-bang, .so-sanh-chan, .tu-van-hop, .tv-xem-truoc, .hoi-dap-ds, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
+    document.querySelectorAll("#luoi-mau, #loc, .so-sanh-bang, .so-sanh-chan, .tu-van-hop, .tv-xem-truoc, .hoi-dap-ds, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
     const qs = new IntersectionObserver(ds => ds.forEach(e => { if (e.isIntersecting) { e.target.classList.add("lo"); qs.unobserve(e.target); } }),
       { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
     document.querySelectorAll("[data-lo]").forEach(e => qs.observe(e));
+  }
+
+  // Máy tính: ở màn hình đầu, tiêu đề và cụm ba máy xoay theo con trỏ chuột (hướng cạnh của chữ nổi cũng đổi theo).
+  function gan3D() {
+    if (itChuyenDong || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    const san = $("mo-dau"); let khung = 0, x = 0, y = 0;
+    san.addEventListener("pointermove", e => {
+      if (e.pointerType !== "mouse") return;
+      const r = san.getBoundingClientRect(); x = (e.clientX - r.left) / r.width * 2 - 1; y = (e.clientY - r.top) / r.height * 2 - 1;
+      if (!khung) khung = requestAnimationFrame(() => { khung = 0; san.classList.add("theo-chuot"); san.style.setProperty("--mx", x.toFixed(3)); san.style.setProperty("--my", y.toFixed(3)); });
+    }, { passive: true });
+    san.addEventListener("pointerleave", () => { san.style.setProperty("--mx", "0"); san.style.setProperty("--my", "0"); });
   }
 
   // Máy tính: thẻ mẫu nghiêng theo chuột, có vệt sáng lướt trên mặt thẻ.
@@ -1386,7 +1399,7 @@
       }
     }
     if (cauHinh.zalo) { ["link-zalo", "zalo-cam-on"].forEach(id => { $(id).href = cauHinh.zalo; $(id).hidden = false; }); }
-    veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); veMenu(); ganXemTruoc(); veDanhGia(); veCamKet(); ganHieuUng(); ganNghieng();
+    veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); veMenu(); ganXemTruoc(); veDanhGia(); veCamKet(); ganHieuUng(); ganNghieng(); gan3D();
     await khoiPhuc(); khoiTaoLichSu(); ganChamDauTien();
     document.querySelectorAll("[data-bat-dau]").forEach(b => b.addEventListener("click", batDau));
     $("tiep-tuc").addEventListener("click", async () => {

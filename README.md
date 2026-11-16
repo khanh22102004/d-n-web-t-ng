@@ -140,6 +140,13 @@ Trang **không tự tạo** đánh giá, số sao hay số lượt tim/bình lu�
 
 Khi có, điện thoại ở màn hình đầu hiện số dưới các nút tim/bình luận/chia sẻ, nhãn nền tảng ghi số lượt xem, và có dòng ghi nguồn bên dưới.
 
+## Hiệu ứng 3D
+
+- **Chữ nổi khối**: tiêu đề lớn và tiêu đề từng phần có mặt chữ, sáu lớp cạnh và bóng đổ (`text-shadow`, biến `--canh`, `--sx`, `--sy` trong `web/style.css`, khối “Bản 20”). Từng chữ lật lên khi hiện ra. Trên máy tính, tiêu đề lớn và cụm ba máy xoay theo con trỏ chuột (`gan3D` trong `web/app.js`); trên điện thoại cụm ba máy tự lắc nhẹ.
+- **Màu chữ tiêu đề**: tiêu đề lớn có mặt chữ đổ dải màu (hai dòng đầu trắng ngả xanh ngọc; “chất lượng cao” vàng → cam → hồng) nhờ một lớp chữ phủ trùng khít (`::after` với `data-chu`), cạnh khối và quầng sáng vẫn là `text-shadow`. Tiêu đề từng phần: nền sáng chữ xanh đậm cạnh vàng, nền tối chữ trắng cạnh vàng cam. Đổi màu ở khối “Bản 21” trong `web/style.css`.
+- **Từng phần**: thẻ video mẫu lật vào như lật bài; dòng bảng so sánh lật xuống, cột studio nhô lên; thẻ cam kết mở như cánh cửa, biểu tượng nằm trên phím nổi và xoay một vòng; thẻ form xoay vào; câu hỏi đáp lật xuống; nút chính có cạnh dưới, bấm thì lún.
+- Khách bật giảm chuyển động thì chỉ còn chữ nổi đứng yên; nút “Dừng chuyển động” dừng phần lắc và xoay theo chuột.
+
 ## Điện thoại ở màn hình đầu
 
 - Ảnh bìa hiện ngay; video thật bắt đầu phát ngay khi trang dựng xong (mạng không ở chế độ tiết kiệm dữ liệu). Hai lần không phát được (mạng chặn YouTube) thì chỉ lướt ảnh bìa.
