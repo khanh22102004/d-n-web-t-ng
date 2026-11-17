@@ -382,7 +382,6 @@ body.parent-brand .khung-goc i:nth-child(4) { bottom: calc(var(--le) * -.55); ri
 body.parent-brand .khung-rec { position: absolute; right: calc(var(--le) * -1); bottom: calc(100% + var(--le) + 6px); display: inline-flex; align-items: center; gap: 6px;
   font-size: clamp(.66rem, .8vw, .78rem); font-weight: 700; letter-spacing: .06em; color: var(--bp-muc-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 body.parent-brand .khung-rec b { width: 7px; height: 7px; border-radius: 50%; background: var(--bp-logo); }
-body.parent-brand .khung-tc { font-weight: 600; letter-spacing: .02em; color: var(--bp-muc-3); }
 /* tia quét: vạch mực mảnh + dải sáng; nằm trên chữ, hòa trộn "screen" nên chỉ làm chữ lóe sáng, nền trắng giữ nguyên */
 body.parent-brand .tia-quet { position: absolute; inset: -6px -10px; pointer-events: none; overflow: hidden; z-index: 2; opacity: 0; }
 body.parent-brand .tia-quet::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 34%; translate: -110% 0;

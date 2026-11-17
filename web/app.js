@@ -258,9 +258,8 @@
       $("tuong-dung").setAttribute("aria-label", tamDung ? "Chạy tiếp tự xoay" : "Dừng tự xoay");
       dtCapNhat();
     });
-    veDienThoai(); ganXoay(); chayDongHoQuay(); quetTieuDe(); ganMenuDangXem();
+    veDienThoai(); ganXoay(); quetTieuDe(); ganMenuDangXem();
   }
-  // Đồng hồ quay trong khung ngắm ở màn hình đầu: giờ:phút:giây:khung (25 khung/giây), chỉ chạy khi trang đang hiện và không tạm dừng.
   // Đầu thư viện: tiêu đề "lấy nét" từng chữ khi cuộn tới; dòng "Ví dụ" tự gõ lần lượt các kiểu video có trong thư viện.
   function quetTieuDe() {
     const h2 = $("mau-tieu-de"), chu = $("kieu-chay-chu");
@@ -310,24 +309,6 @@
       dat(muc.some(m => m.dataset.phan === tot) ? tot : "");
     }, { threshold: [0, .15, .35, .6], rootMargin: "-90px 0px -35% 0px" });
     ["mo-dau", "mau", "ve-b-productions", "tu-van", "goc-chia-se"].forEach(id => { const s = $(id); if (s) io.observe(s); });
-  }
-  function chayDongHoQuay() {
-    const tc = $("khung-tc");
-    if (!tc || itChuyenDong) return;
-    const hai = n => String(n).padStart(2, "0");
-    let goc = performance.now(), dung = 0, truoc = -1;
-    const ve = t => {
-      if (tamDung || document.hidden) { dung = dung || t; return requestAnimationFrame(ve); }
-      if (dung) { goc += t - dung; dung = 0; }
-      const khung = Math.floor((t - goc) / 40);
-      if (khung !== truoc) {
-        truoc = khung;
-        const s = Math.floor(khung / 25);
-        tc.textContent = `${hai(Math.floor(s / 3600))}:${hai(Math.floor(s / 60) % 60)}:${hai(s % 60)}:${hai(khung % 25)}`;
-      }
-      requestAnimationFrame(ve);
-    };
-    requestAnimationFrame(ve);
   }
 
   // ---------- Điện thoại ở màn hình đầu: lướt các video mẫu như đang xem TikTok ----------
