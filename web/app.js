@@ -160,9 +160,11 @@
     });
   }
 
-  const maNoiBat = ["ST029", "ST025", "ST056"];
+  const maNoiBat = ["ST025", "ST029", "ST056"];
   let locNhom = "";
-  const mauDangLoc = () => locNhom === "noi-bat" ? maNoiBat.map(ma => mau[ma]).filter(Boolean) : cauHinh.mau.filter(m => !locNhom || m.nhom === locNhom);
+  // Mẫu đứng đầu danh sách nổi bật cũng đứng đầu thư viện (thứ tự ngành hàng trong menu vẫn theo mau.json).
+  const dauTien = ds => { const k = ds.findIndex(m => m.ma === maNoiBat[0]); return k > 0 ? [ds[k], ...ds.slice(0, k), ...ds.slice(k + 1)] : ds; };
+  const mauDangLoc = () => locNhom === "noi-bat" ? maNoiBat.map(ma => mau[ma]).filter(Boolean) : dauTien(cauHinh.mau.filter(m => !locNhom || m.nhom === locNhom));
 
   function veRay() {
     const ds = mauDangLoc(), ray = $("luoi-mau");
@@ -669,15 +671,15 @@
   function ganHieuUng() {
     if (itChuyenDong || !("IntersectionObserver" in window)) return;
     document.documentElement.classList.add("hieu-ung");
-    // Tiêu đề lớn: từng chữ trồi lên từ dưới, rồi dòng "chất lượng cao" được tô nền vàng như bút dạ quang.
+    // Tiêu đề lớn: tách từng chữ (giữ cho các lớp hiệu ứng cũ); màn mở đầu hiện nay do can-doi.css điều khiển theo từng dòng.
     let thuTu = 0;
     document.querySelectorAll("#tieu-de-chinh .h1-dong").forEach(dong => {
       // Dòng "chất lượng cao" giữ nguyên một khối để dải màu chạy liền suốt cả dòng.
       const chu = dong.textContent.trim(), tu = dong.classList.contains("h1-nen") ? [chu] : chu.split(/\s+/);
       dong.replaceChildren(...tu.flatMap((t, k) => { const ngoai = tao("span", "h1-tu"), trong = tao("span", "", t); trong.dataset.chu = t; trong.style.setProperty("--i", thuTu); thuTu += 1; ngoai.append(trong); return k ? [" ", ngoai] : [ngoai]; }));
     });
-    ["mau", "danh-gia", "so-sanh", "cam-ket", "tu-van", "hoi-dap"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
-    document.querySelectorAll("#luoi-mau, #loc, .so-sanh-bang, .so-sanh-chan, .tu-van-hop, .tv-xem-truoc, .hoi-dap-ds, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
+    ["mau", "ve-b-productions", "danh-gia", "so-sanh", "cam-ket", "tu-van", "goc-chia-se", "hoi-dap"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
+    document.querySelectorAll("#luoi-mau, #loc, .nang-luc-goc, .thuong-hieu-dau, .so-sanh-bang, .so-sanh-chan, .tu-van-hop, .tv-xem-truoc, .bai-viet-luoi, .hoi-dap-ds, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
     const qs = new IntersectionObserver(ds => ds.forEach(e => { if (e.isIntersecting) { e.target.classList.add("lo"); qs.unobserve(e.target); } }),
       { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
     document.querySelectorAll("[data-lo]").forEach(e => qs.observe(e));

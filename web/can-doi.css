@@ -1,0 +1,260 @@
+/* B PRODUCTIONS — lớp cân đối màu và hiệu ứng.
+   Nạp sau style.css, brand.css, desktop.css; chỉ áp dụng cho body.parent-brand.
+
+   Màu chính lấy từ màn hình đầu: giấy trắng, đá ấm, mực than.
+   Màu phụ lấy từ logo: đen tuyền và họa tiết mã vạch, dùng làm điểm nhấn.
+   Màu sắc còn lại chỉ đến từ chính video và ảnh mẫu. */
+
+body.parent-brand {
+  /* Màu chính (màn hình đầu) */
+  --bp-giay: #ffffff;
+  --bp-da-1: #f5f3ef;
+  --bp-da-2: #ebe7e1;
+  --bp-da-3: #dad6cf;
+  --bp-vien: #d9d4cc;
+  --bp-muc: #202224;
+  --bp-muc-2: #505255;
+  --bp-muc-3: #6b6d70;
+  --bp-than-sang: #2c2f32;
+  /* Màu phụ (logo) */
+  --bp-logo: #111111;
+  /* Họa tiết mã vạch của logo: các vạch đen dày mỏng xen kẽ */
+  --bp-ma-vach: linear-gradient(90deg,
+    currentColor 0 6%, transparent 6% 9%, currentColor 9% 12%, transparent 12% 16%,
+    currentColor 16% 24%, transparent 24% 27%, currentColor 27% 29%, transparent 29% 34%,
+    currentColor 34% 40%, transparent 40% 43%, currentColor 43% 45%, transparent 45% 48%,
+    currentColor 48% 57%, transparent 57% 61%, currentColor 61% 63%, transparent 63% 66%,
+    currentColor 66% 72%, transparent 72% 76%, currentColor 76% 78%, transparent 78% 82%,
+    currentColor 82% 90%, transparent 90% 93%, currentColor 93% 95%, transparent 95% 97%,
+    currentColor 97% 100%);
+  --bp-mem: cubic-bezier(.2, .8, .2, 1);
+  --muc: var(--bp-muc);
+  --nhat: var(--bp-muc-3);
+  --vien: var(--bp-vien);
+  --suong: var(--bp-da-1);
+  color: var(--bp-muc);
+}
+body.parent-brand ::selection { background: var(--bp-muc); color: #fff; }
+
+/* ---------- Điểm nhấn 1: vạch mã vạch của logo ---------- */
+.ma-vach { display: block; width: 96px; height: 24px; margin-top: 26px; color: var(--bp-logo); background: var(--bp-ma-vach); }
+body.parent-brand :is(.muc-dau h2, .so-sanh h2, .tu-van h2, .cau-hoi-thuong-gap h2, .thuong-hieu-goc h2)::before {
+  content: "";
+  display: block;
+  width: 46px;
+  height: 16px;
+  margin-bottom: 18px;
+  color: currentColor;
+  background: var(--bp-ma-vach);
+}
+
+/* ---------- Tiêu đề và chữ: một hệ, cùng mực than ---------- */
+body.parent-brand :is(.muc-dau h2, .tu-van h2, .cau-hoi-thuong-gap h2, .so-sanh h2, .thuong-hieu-goc h2, .goc-chia-se h2) { color: var(--bp-muc); }
+body.parent-brand :is(.thuong-hieu-goc p, .bai-viet p, .bai-viet-chuyen-muc, .cam-ket-ds p) { color: var(--bp-muc-2); }
+
+/* ---------- Nút: mực than của màn hình đầu ở mọi nơi ---------- */
+body.parent-brand .nut,
+body.parent-brand .nut.nho,
+body.parent-brand .san-khau .hang-nut .nut { background: var(--bp-muc); border-color: var(--bp-muc); color: #fff; }
+body.parent-brand .nut:hover,
+body.parent-brand .nut.nho:hover,
+body.parent-brand .san-khau .hang-nut .nut:hover { background: var(--bp-logo); border-color: var(--bp-logo); box-shadow: 0 10px 22px -12px rgb(17 17 17 / .55); transform: translateY(-2px); }
+body.parent-brand .nut > span[aria-hidden="true"] { display: inline-block; transition: translate .25s var(--bp-mem); }
+body.parent-brand .nut:hover > span[aria-hidden="true"] { translate: 4px 0; }
+/* Nút phụ: viền mực trên nền sáng; trên các dải tối thì chữ trắng. Không dùng :is() ở đây để độ ưu tiên của hai nhóm rõ ràng. */
+body.parent-brand .nut-phu,
+body.parent-brand .san-khau .hang-nut .nut-phu { color: var(--bp-muc); border-color: #a9a49c; }
+body.parent-brand .nut-phu:hover,
+body.parent-brand .san-khau .hang-nut .nut-phu:hover { background: var(--bp-da-1); border-color: var(--bp-muc); color: var(--bp-muc); }
+body.parent-brand .tu-van .nut-phu,
+body.parent-brand .tu-van .hang-nut .nut-phu,
+body.parent-brand .mau-toi .nut-phu,
+body.parent-brand .chan-trang .nut-phu { color: #fff; border-color: rgb(255 255 255 / .45); background: transparent; }
+body.parent-brand .tu-van .nut-phu:hover,
+body.parent-brand .tu-van .hang-nut .nut-phu:hover,
+body.parent-brand .mau-toi .nut-phu:hover,
+body.parent-brand .chan-trang .nut-phu:hover { color: var(--bp-muc); background: #fff; border-color: #fff; }
+/* Thẻ form trắng nằm trong dải tư vấn: nút phụ bên trong thẻ lại dùng màu nền sáng */
+body.parent-brand .tu-van .tu-van-hop .nut-phu { color: var(--bp-muc); border-color: #a9a49c; }
+body.parent-brand .tu-van .tu-van-hop .nut-phu:hover { color: var(--bp-muc); background: var(--bp-da-1); border-color: var(--bp-muc); }
+
+/* ---------- Đầu trang: thanh tiến độ đọc mảnh, màu logo ---------- */
+body.parent-brand .dau-trang { border-bottom-color: var(--bp-da-2); }
+body.parent-brand .tien-trang { height: 3px; background: var(--bp-logo); }
+body.parent-brand :is(.menu-kieu-ben, .menu-mo) { background: var(--bp-da-1); }
+
+/* ---------- Màn hình đầu: giữ nguyên tông, làm rõ nhịp ---------- */
+body.parent-brand .mo-dau.san-khau { background: linear-gradient(112deg, var(--bp-giay) 0%, var(--bp-da-1) 43%, var(--bp-da-2) 70%, var(--bp-da-3) 100%); }
+body.parent-brand .dien-thoai, body.parent-brand .dien-thoai:hover { background: var(--bp-logo); box-shadow: 0 30px 60px -24px rgb(17 17 17 / .7), 0 0 0 1px rgb(255 255 255 / .06) inset; }
+body.parent-brand .dt-ben { background: var(--bp-logo); }
+body.parent-brand :is(.dt-nut, .dt-nut.tuong-dung) { background: var(--bp-muc); border-color: #5b5e61; }
+body.parent-brand .dt-nut:hover { background: var(--bp-logo); }
+body.parent-brand .dt-nguon { color: var(--bp-muc-2); background: rgb(255 255 255 / .92); }
+
+/* ---------- Thư viện mẫu: dải mực than (cùng màu chữ màn hình đầu) ---------- */
+body.parent-brand .mau.mau-toi { background: radial-gradient(900px 420px at 88% 0%, rgb(218 214 207 / .08), transparent 70%), var(--bp-muc); }
+body.parent-brand .mau-toi .muc-dau h2 { color: #fff; }
+body.parent-brand .mau-toi :is(.dan, .dem-mau, .phong-cach-mau, .ghi-chu-mau) { color: #c4c0b9; }
+body.parent-brand .mau-toi .loc button { border-color: #6c6f72; }
+body.parent-brand .mau-toi .loc button:hover { background: var(--bp-than-sang); border-color: var(--bp-da-3); }
+body.parent-brand .mau-toi .loc button[aria-pressed="true"],
+body.parent-brand .mau-toi .loc .loc-them.co-chon { color: var(--bp-muc); background: var(--bp-da-1); border-color: var(--bp-da-1); }
+body.parent-brand .mau-toi .loc-nganh { background: var(--bp-than-sang); border-color: #55585b; }
+body.parent-brand .mau-toi .ray .ma-mau { color: var(--bp-da-2); background: var(--bp-than-sang); }
+body.parent-brand .mau-toi .ray .mau-nut { transition: translate .35s var(--bp-mem); }
+body.parent-brand .mau-toi .ray .khung { box-shadow: 0 0 0 1px rgb(255 255 255 / .06); transition: box-shadow .35s var(--bp-mem); }
+@media (hover: hover) and (pointer: fine) {
+  body.parent-brand .mau-toi .ray .mau-nut:hover { translate: 0 -6px; }
+  body.parent-brand .mau-toi .ray .mau-nut:hover .khung { box-shadow: 0 0 0 1px rgb(255 255 255 / .5), 0 26px 40px -22px rgb(0 0 0 / .9); }
+}
+body.parent-brand .mau-toi :is(.tu-van-mau, .xem-them-mau) { border-color: #4a4d50; }
+
+/* ---------- Về B Productions: đá ấm của màn hình đầu ---------- */
+body.parent-brand .thuong-hieu-goc { background: linear-gradient(112deg, var(--bp-da-1) 0%, var(--bp-da-2) 100%); border-bottom: 0; }
+body.parent-brand .nang-luc-goc li { border-top-color: var(--bp-vien); color: var(--bp-muc); }
+body.parent-brand .thuong-hieu-dau { border-left-color: var(--bp-vien); }
+body.parent-brand .thuong-hieu-dau::before { content: ""; display: block; width: 100%; max-width: 220px; height: 34px; margin-bottom: 22px; color: var(--bp-logo); background: var(--bp-ma-vach); }
+body.parent-brand .thuong-hieu-dau .thuong-hieu-ten { color: var(--bp-logo); letter-spacing: .02em; }
+
+/* ---------- So sánh: cột studio màu logo ---------- */
+body.parent-brand .so-sanh-bang :is(th, td) { border-bottom-color: var(--bp-da-2); }
+body.parent-brand .so-sanh-bang .cot-studio { background: var(--bp-logo); color: #f4f2ee; border-bottom-color: #2e2e2e; }
+body.parent-brand .so-sanh-chan { background: var(--bp-da-1); border: 1px solid var(--bp-da-2); }
+
+/* ---------- Cam kết: nền đá, mỗi thẻ có vạch mực vẽ ra khi rê chuột ---------- */
+body.parent-brand .cam-ket { background: var(--bp-da-1); }
+body.parent-brand .cam-ket-ds li { position: relative; border-top-color: var(--bp-da-3) !important; }
+body.parent-brand .cam-ket-ds li::before { content: ""; position: absolute; left: 0; top: -1px; width: 100%; height: 2px; background: var(--bp-muc); transform: scaleX(.18); transform-origin: left; transition: transform .5s var(--bp-mem); }
+body.parent-brand .cam-ket-ds li:hover::before { transform: scaleX(1); }
+body.parent-brand .cam-ket-ds svg :is(path, rect, circle) { stroke: var(--bp-muc); }
+body.parent-brand .cam-ket-ds svg { transition: translate .35s var(--bp-mem); }
+body.parent-brand .cam-ket-ds li:hover svg { translate: 0 -4px; }
+
+/* ---------- Tư vấn: dải mực than, thẻ form trắng ---------- */
+body.parent-brand .tu-van { background: radial-gradient(800px 420px at 10% 100%, rgb(218 214 207 / .07), transparent 70%), var(--bp-muc); }
+body.parent-brand .tu-van h2 { color: #fff; }
+body.parent-brand .tu-van :is(.dan, .tu-van-hen, .tu-van-chi-tiet, .tv-xem-truoc figcaption) { color: #c4c0b9; }
+body.parent-brand .tu-van-hop { box-shadow: 0 34px 60px -34px rgb(0 0 0 / .85), 0 0 0 1px rgb(255 255 255 / .06); }
+body.parent-brand .tu-van-hop .nut { background: var(--bp-muc); border-color: var(--bp-muc); }
+body.parent-brand .tu-van-hop .nut:hover { background: var(--bp-logo); }
+body.parent-brand :is(input[type="text"], input[type="tel"], input[type="email"], input[type="url"], textarea) { border-color: #b3aea6; }
+body.parent-brand :is(input, textarea):focus { border-color: var(--bp-muc); }
+body.parent-brand .chon-nho input:checked + span { background: var(--bp-muc); border-color: var(--bp-muc); }
+body.parent-brand :is(.so-cau, .ma-mau) { background: var(--bp-da-2); color: var(--bp-muc-2); }
+
+/* ---------- Góc chia sẻ và hỏi đáp ---------- */
+body.parent-brand .bai-viet { border-top: 2px solid var(--bp-muc); transition: translate .35s var(--bp-mem); }
+body.parent-brand .bai-viet-xem span[aria-hidden="true"] { display: inline-block; transition: translate .25s var(--bp-mem); }
+body.parent-brand .bai-viet:hover .bai-viet-xem span[aria-hidden="true"] { translate: 3px -3px; }
+@media (hover: hover) and (pointer: fine) { body.parent-brand .bai-viet:hover { translate: 0 -4px; } }
+body.parent-brand .cau-hoi-thuong-gap { border-top: 1px solid var(--bp-da-2); }
+body.parent-brand .hoi-dap-ds details { border-color: var(--bp-da-2); }
+body.parent-brand .hoi-dap-ds summary::after { transition: background .2s ease, rotate .3s var(--bp-mem); }
+body.parent-brand .hoi-dap-ds details[open] summary::after { background: var(--bp-muc); border-color: var(--bp-muc); rotate: 180deg; }
+
+/* ---------- Chân trang: màu logo, logo đảo trắng ---------- */
+body.parent-brand .chan-trang { background: var(--bp-logo); color: #a9a59e; border-top: 0; padding-top: 34px; padding-bottom: 34px; }
+body.parent-brand .chan-trang a { color: #f4f2ee; }
+body.parent-brand .chan-trang a:hover { color: #fff; }
+body.parent-brand .chan-trang > span:first-child { color: #fff; }
+/* Logo gốc là chữ đen trên nền trắng: đảo màu rồi hòa nền để còn lại vạch và chữ trắng */
+body.parent-brand .chan-trang .ct-logo { display: block; width: 116px; height: auto; filter: invert(1); mix-blend-mode: screen; }
+body.parent-brand .chan-trang :focus-visible { outline-color: #fff; }
+
+/* ---------- Hộp thoại xem video ---------- */
+body.parent-brand .xem { background: var(--bp-muc); }
+body.parent-brand .xem-media { background: var(--bp-logo); }
+body.parent-brand .xem-ben .nut { background: var(--bp-muc); border-color: var(--bp-muc); }
+
+/* =================================================================
+   HIỆU ỨNG: một nhịp chung cho cả trang.
+   - Màn hình đầu có một màn mở đầu duy nhất khi tải trang.
+   - Các phần bên dưới hiện lên một lần khi cuộn tới (mờ → rõ, trồi lên 22px).
+   - Rê chuột: thẻ nhấc lên, mũi tên nhích, vạch mực vẽ ra.
+   Không chạy khi khách chọn giảm chuyển động.
+   ================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  /* Màn mở đầu: ba dòng tiêu đề trồi lên từ sau một đường cắt, rồi vạch mã vạch vẽ ra */
+  body.parent-brand .san-khau h1 .h1-dong {
+    clip-path: inset(-.2em -.2em -.25em -.2em);
+    animation: bp-dong-len .9s var(--bp-mem) both !important;
+  }
+  body.parent-brand .san-khau h1 .h1-dong:nth-child(2) { animation-delay: .1s !important; }
+  body.parent-brand .san-khau h1 .h1-dong:nth-child(3) { animation-delay: .2s !important; }
+  body.parent-brand .san-khau .ma-vach { animation: bp-ve-ngang .9s var(--bp-mem) .55s both; }
+  body.parent-brand .san-khau :is(.hero-description, .hero-footer) { animation: bp-hien-len .8s var(--bp-mem) .4s both; }
+  body.parent-brand .san-khau .hero-footer { animation-delay: .5s; }
+  body.parent-brand .san-khau .dien-thoai { animation: bp-hien-len .9s var(--bp-mem) .25s both; }
+  body.parent-brand .san-khau .dt-ben { animation: bp-xoe-trai 1s var(--bp-mem) .55s both; }
+  body.parent-brand .san-khau .dt-ben.phai { animation-name: bp-xoe-phai; }
+  body.parent-brand .san-khau :is(.dt-dieu-khien, .dt-nguon) { animation: bp-hien .8s ease .9s both; }
+
+  /* Các phần bên dưới: hiện một lần khi cuộn tới */
+  html.hieu-ung body.parent-brand [data-lo] {
+    transition: opacity .7s ease, translate .8s var(--bp-mem) !important;
+  }
+  html.hieu-ung body.parent-brand [data-lo]:not(.lo) { opacity: 0 !important; translate: 0 22px; }
+  /* Vạch mã vạch trên tiêu đề vẽ ra sau khi tiêu đề hiện */
+  html.hieu-ung body.parent-brand h2[data-lo]::before { clip-path: inset(0 100% 0 0); transition: clip-path .8s var(--bp-mem) .25s; }
+  html.hieu-ung body.parent-brand h2[data-lo].lo::before { clip-path: inset(0 0 0 0); }
+  /* Thẻ và dòng bên trong nối đuôi nhau */
+  html.hieu-ung body.parent-brand :is(#luoi-mau, .cam-ket-ds, .bai-viet-luoi, .hoi-dap-ds, .nang-luc-goc)[data-lo] > * {
+    transition: translate .8s var(--bp-mem) !important;
+  }
+  html.hieu-ung body.parent-brand :is(#luoi-mau, .cam-ket-ds, .bai-viet-luoi, .hoi-dap-ds, .nang-luc-goc)[data-lo]:not(.lo) > * { translate: 0 28px; }
+  html.hieu-ung body.parent-brand :is(#luoi-mau, .cam-ket-ds, .bai-viet-luoi, .hoi-dap-ds, .nang-luc-goc)[data-lo] > :nth-child(2) { transition-delay: .06s !important; }
+  html.hieu-ung body.parent-brand :is(#luoi-mau, .cam-ket-ds, .bai-viet-luoi, .hoi-dap-ds, .nang-luc-goc)[data-lo] > :nth-child(3) { transition-delay: .12s !important; }
+  html.hieu-ung body.parent-brand :is(#luoi-mau, .cam-ket-ds, .bai-viet-luoi, .hoi-dap-ds, .nang-luc-goc)[data-lo] > :nth-child(4) { transition-delay: .18s !important; }
+  html.hieu-ung body.parent-brand :is(#luoi-mau, .cam-ket-ds, .bai-viet-luoi, .hoi-dap-ds, .nang-luc-goc)[data-lo] > :nth-child(5) { transition-delay: .24s !important; }
+  html.hieu-ung body.parent-brand :is(#luoi-mau, .cam-ket-ds, .bai-viet-luoi, .hoi-dap-ds, .nang-luc-goc)[data-lo] > :nth-child(n+6) { transition-delay: .3s !important; }
+  /* Bảng so sánh: cột studio trượt lên sau cùng để thành điểm nhấn */
+  html.hieu-ung body.parent-brand .so-sanh-bang[data-lo] .cot-studio { transition: translate .8s var(--bp-mem) .2s, opacity .6s ease .2s !important; }
+  html.hieu-ung body.parent-brand .so-sanh-bang[data-lo]:not(.lo) .cot-studio { translate: 0 18px; opacity: 0 !important; }
+}
+
+@keyframes bp-dong-len { from { translate: 0 105%; clip-path: inset(-.2em -.2em 100% -.2em); } }
+@keyframes bp-ve-ngang { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes bp-hien-len { from { opacity: 0; translate: 0 22px; } }
+@keyframes bp-hien { from { opacity: 0; } }
+@keyframes bp-xoe-trai { from { opacity: 0; translate: 60% 18px; } }
+@keyframes bp-xoe-phai { from { opacity: 0; translate: -60% 18px; } }
+
+@media (max-width: 760px) {
+  .ma-vach { width: 72px; height: 18px; margin-top: 16px; }
+  body.parent-brand :is(.muc-dau h2, .so-sanh h2, .tu-van h2, .cau-hoi-thuong-gap h2, .thuong-hieu-goc h2)::before { width: 38px; height: 13px; margin-bottom: 12px; }
+  body.parent-brand .thuong-hieu-dau::before { height: 26px; max-width: 160px; margin-bottom: 16px; }
+  body.parent-brand .chan-trang { padding-bottom: 96px; }
+  body.parent-brand .chan-trang .ct-logo { width: 96px; }
+}
+
+@media (forced-colors: active) {
+  .ma-vach, body.parent-brand .thuong-hieu-dau::before, body.parent-brand :is(.muc-dau h2, .so-sanh h2, .tu-van h2, .cau-hoi-thuong-gap h2, .thuong-hieu-goc h2)::before { forced-color-adjust: none; background: var(--bp-ma-vach); color: CanvasText; }
+  body.parent-brand .chan-trang .ct-logo { filter: none; }
+}
+@media print {
+  .ma-vach, body.parent-brand .tien-trang { display: none; }
+  body.parent-brand .chan-trang { background: none; color: #000; }
+}
+body.parent-brand .san-khau .ma-vach + .hero-description { margin-top: 20px; }
+@media (max-width: 760px) { body.parent-brand .san-khau .ma-vach + .hero-description { margin-top: 14px; } }
+/* Chân trang đã có logo: tên chữ chỉ để trình đọc màn hình đọc */
+body.parent-brand .chan-trang .ct-logo + span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Gom các màu xám trung tính còn sót về cùng hệ ---------- */
+body.parent-brand :is(.dt-nganh, .nhan-nganh) { color: var(--bp-muc); }
+body.parent-brand .dt-nganh { background: var(--bp-da-1); }
+body.parent-brand .mau-toi .loc button { color: var(--bp-da-1); }
+body.parent-brand .bai-viet h3 { color: var(--bp-muc); }
+body.parent-brand .nut-chu { color: var(--bp-muc); }
+body.parent-brand :is(.tu-van, .mau-toi, .chan-trang) .nut-chu { color: #f4f2ee; }
+body.parent-brand .tu-van .tu-van-hop .nut-chu { color: var(--bp-muc); }
+body.parent-brand .mau-toi .ghi-chu-mau { border-top-color: #4a4d50; }
+body.parent-brand .menu-mo { border-color: var(--bp-vien); }
+body.parent-brand .thuong-hieu-dau { border-color: var(--bp-vien); }
+@media (max-width: 760px) { body.parent-brand main > :is(.so-sanh, .cam-ket, .cau-hoi-thuong-gap) { border-top-color: var(--bp-da-2); } }
+
+/* ---------- Thư viện trên máy tính rộng: 13 mẫu thành hai hàng 7 + 6, không còn thẻ lẻ ---------- */
+@media (min-width: 1180px) { body.parent-brand .mau-toi .ray { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 26px 18px; } }
+
+/* ---------- Điện thoại: số mẫu và mã mẫu nằm trên các biểu tượng bay lên ---------- */
+body.parent-brand .dt-tren { z-index: 7; }

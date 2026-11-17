@@ -1,230 +1,328 @@
-# B PRODUCTIONS — video sản phẩm bằng AI
+# B PRODUCTIONS — Trang tiếp nhận yêu cầu video AI
 
-## Bản hoàn thiện giao diện máy tính — 16/11/2026
+Trang web công khai giúp chủ shop và doanh nghiệp xem video mẫu làm bằng AI, chọn phong cách, rồi gửi yêu cầu để B PRODUCTIONS tư vấn, lên phương án và báo giá. Khách không cần tạo tài khoản. Nhân viên xem và xử lý yêu cầu tại `/nhan-vien`.
 
-Thống nhất trang chủ, thư viện và trình xem video, tư vấn nhanh, phiếu chi tiết sáu phần, trang xác nhận, chính sách và khu vực nhân viên theo nhận diện trắng–xám–đen của công ty mẹ.
+- Trang đang chạy: https://d-n-web-t-ng.vercel.app
+- Công ty: B PRODUCTIONS — https://www.bprovn.com
+- Mã nguồn: https://github.com/khanh22102004/d-n-web-t-ng
 
-- Trình xem trên máy tính chia hai cột: video bên trái, thông tin/form bên phải. Tiêu đề và nút đóng luôn nằm trong màn hình; có ảnh mẫu, thử lại và liên kết YouTube khi video chưa tải được.
-- Phiếu chi tiết có tiến độ và danh sách các phần trên màn hình rộng; trang xác nhận có bản tóm tắt, in/lưu và liên kết về trang chủ.
-- Trang chính sách có mục lục; khu vực nhân viên ưu tiên danh sách yêu cầu, có tìm/lọc, xóa bộ lọc, trạng thái tải/lỗi và cùng logo gốc.
-- Điện thoại dùng bốn cột poster nhỏ xếp so le như nền máy tính, trôi dọc xuống và mờ từ trên xuống dưới. Đủ 13 mẫu được chia vào các cột, lặp liền mạch. Header/cụm điện thoại gọn; các phần dùng chung mép, không có khoảng hở giữa khối nền khi cuộn.
-- Kiểm tra Chromium ở 1024, 1280, 1440 và 1920 px; kiểm tra bản điện thoại gọn ở 320, 360, 390, 430, 600 và 760 px. 26 kiểm thử máy chủ và bài Back/Forward hiện có đạt trên dữ liệu thử riêng. Xem phạm vi và giới hạn trong [KIEM_TRA_GIAO_DIEN.md](KIEM_TRA_GIAO_DIEN.md).
+## Mục lục
 
-Trong gói bàn giao, mở **XEM_TRUOC/index.html** để xem ảnh các trang và trạng thái. Đây là bộ ảnh xem trước ngoại tuyến; chạy ứng dụng theo hướng dẫn bên dưới để tương tác. Các phiếu trong ảnh nhân viên đều là dữ liệu thử, không có cơ sở dữ liệu hoặc dữ liệu khách trong gói. Ảnh và báo cáo ghi nhận lần kiểm tra cục bộ trước khi đưa mã lên GitHub; trạng thái triển khai cần đối chiếu riêng trên hệ thống đang chạy.
+1. [Tổng quan](#1-tổng-quan)
+2. [Tính năng](#2-tính-năng)
+3. [Nhận diện và giao diện](#3-nhận-diện-và-giao-diện)
+4. [Cấu trúc thư mục](#4-cấu-trúc-thư-mục)
+5. [Kiến trúc kỹ thuật](#5-kiến-trúc-kỹ-thuật)
+6. [Chạy trên máy](#6-chạy-trên-máy)
+7. [Cấu hình](#7-cấu-hình)
+8. [Nội dung: mẫu, câu hỏi, đánh giá, số liệu](#8-nội-dung-mẫu-câu-hỏi-đánh-giá-số-liệu)
+9. [API](#9-api)
+10. [Triển khai](#10-triển-khai)
+11. [Cập nhật một bản đang dùng](#11-cập-nhật-một-bản-đang-dùng)
+12. [Dữ liệu, ảnh và quyền riêng tư](#12-dữ-liệu-ảnh-và-quyền-riêng-tư)
+13. [Kiểm thử](#13-kiểm-thử)
+14. [Giới hạn và việc chờ xác nhận](#14-giới-hạn-và-việc-chờ-xác-nhận)
+15. [Lịch sử thay đổi](#15-lịch-sử-thay-đổi)
 
-## Tiêu đề và logo B PRODUCTIONS
+---
 
-- Tiêu đề: “Video AI chân thật chất lượng cao”, chia ba dòng và căn cỡ chữ theo màn hình.
-- Logo là file gốc của công ty mẹ, gồm biểu tượng thanh đen, tên B PRODUCTIONS viết hoa và tagline trong ảnh tham chiếu. Được phục vụ tại chỗ bằng `web/logo-b-productions.png`; favicon ở `web/bieu-tuong.png`.
-- Áp dụng logo trên trang chủ, trang chính sách và khu vực nhân viên; nhãn thương hiệu ở phần giới thiệu/chân trang viết hoa.
+## 1. Tổng quan
 
-## Bản nhận diện theo B Productions — nền mẫu có chiều sâu
+**Mục tiêu:** biến người xem thành người để lại số điện thoại, bằng cách cho họ thấy ngay video mẫu thật và chỉ hỏi những gì cần để tư vấn.
 
-- Màn hình đầu dùng nền trắng/xám, chữ đen và tường mẫu chuyển động phủ phía sau. Cả nền và ba điện thoại dùng cùng thư viện mẫu, giữ sắc màu của nội dung để hai lớp đồng điệu.
-- Nền trắng sáng; máy tính giữ ảnh và viền rõ ở bên phải, mờ dần sang trái. Trên điện thoại, ảnh và viền nền đậm ở trên và mờ dần xuống dưới. Viền có lớp riêng phía trên lớp phủ sáng và dùng chung hướng mờ với ảnh. Màu ảnh tự nhiên, poster nhỏ và vùng chữ có lớp phủ sáng để dễ đọc.
-- Nút dừng chuyển động điều khiển cả nền; nền dừng khi focus cụm điện thoại, mở hộp thoại, ẩn tab, giảm chuyển động hoặc tiết kiệm dữ liệu. Hover cụm điện thoại cũng dừng nền trên thiết bị có chuột.
-- Trên điện thoại, hai nút xem mẫu và gửi yêu cầu nằm trước khối video. Phần chú thích giữ chỗ khi đổi mẫu để tiêu đề và nút không nhảy.
-- Thêm phần nền tảng B Productions và hai liên kết bài video được tuyển từ blog công ty.
-- Giữ form, consent, mẫu và luồng làm việc hiện tại. Không tự thay thông tin liên hệ hoặc thêm cam kết hiệu quả.
-- Skin ở `web/brand.css`, nạp sau `style.css` trên `body.parent-brand`. `web/desktop.css` bổ sung bố cục các màn hình công khai; `web/nhan-vien.css` dành cho nhân viên.
+**Hành trình của khách:**
 
-Đọc [nguồn và quyết định nhận diện](BRAND_SOURCES.md) và [kết quả kiểm tra](KIEM_TRA_GIAO_DIEN.md). Khi cập nhật hệ thống đang dùng, giữ `.env`, `du-lieu/` và asset riêng theo hướng dẫn bên dưới.
+```
+Màn hình đầu  →  Thư viện 13 video mẫu  →  Tư vấn nhanh (2 ô)  →  Studio liên hệ
+     │                    │                        │
+     │                    └─ Khung xem video ──────┤  (form ngay dưới video)
+     └─ "Tôi đã có yêu cầu cụ thể" → Phiếu chi tiết 20 câu → Xác nhận
+```
 
-Các mục lịch sử phiên bản và hiệu ứng cũ bên dưới được giữ để tra cứu; phần mô tả giao diện hiện tại ở đầu tài liệu và KIEM_TRA_GIAO_DIEN.md được ưu tiên. Ví dụ tường nền trôi ngang, tiêu đề nhiều màu và chữ nổi khối thuộc phiên bản trước.
+**Người dùng:**
 
+| Ai | Làm gì | Ở đâu |
+|---|---|---|
+| Khách | Xem mẫu, gửi tư vấn nhanh hoặc phiếu chi tiết | `/` |
+| Nhân viên studio | Xem, tìm, lọc, đánh dấu đã liên hệ, xuất Excel, xóa phiếu | `/nhan-vien` |
+| Mọi người | Đọc cách dùng thông tin | `/chinh-sach` |
 
-Trang giới thiệu dịch vụ, thư viện video mẫu, form tư vấn nhanh và phiếu yêu cầu chi tiết. Khách không cần đăng nhập; nhân viên làm việc tại `/nhan-vien`.
+**Giọng văn:** tiếng Việt, xưng "chúng tôi", gọi khách là "anh chị", lịch sự, không dùng "ạ". Không đưa lời chứng thực, số liệu, giá hay khách hàng chưa được studio xác nhận.
 
-## Bản 3: khách thấy nhiều mẫu ngay, trang lấy được nhiều thông tin hơn
+## 2. Tính năng
 
-- **Màn hình đầu là tường mẫu đang chạy** thay cho một mẫu duy nhất: máy tính có ba cột trôi dọc, điện thoại có một hàng trôi ngang, hiện cả 13 mẫu kèm nhãn ngành hàng. Bấm mẫu nào cũng mở trình xem có tiếng và lướt được qua cả 13 mẫu. Có nút “Dừng chuyển động”; khách bật chế độ giảm chuyển động thì tường đứng yên và vuốt tay được.
-- **Thư viện mẫu là lưới**: máy tính thấy hết 13 mẫu, điện thoại thấy 6 mẫu hai cột và nút “Xem thêm 7 mẫu”. Mặc định hiện “Tất cả” thay cho 3 mẫu nổi bật. Mẫu loại `"hien": "video"` tự phát thử không tiếng khi nằm trong màn hình, mỗi lúc một video.
-- **Xưng “anh chị”** trên trang khách, 20 câu hỏi, thông báo lỗi và trang chính sách; câu hỏi đủ chủ vị, lịch sự, không dùng “ạ”. Trang nhân viên giữ nguyên.
-- **Bỏ các nhãn viết hoa chữ nhỏ** phía trên tiêu đề; chữ nhỏ nhất trên trang khách là 14 px.
-- **Tư vấn nhanh hỏi thêm cách liên hệ** (Zalo hay gọi điện). Ngay sau khi gửi, khách được mời trả lời thêm, không bắt buộc: tên, khi nào cần video, ngân sách, nơi đăng. Câu chữ và lựa chọn lấy từ câu 7, 17, 18, 19 của `cau_hoi.json`. Chỉ bổ sung được trong 24 giờ sau khi gửi, bằng mã bí mật của chính yêu cầu đó.
-- **Gộp tư vấn nhanh với phiếu chi tiết**: khách gửi tư vấn nhanh rồi mở phiếu chi tiết thì các câu đã biết được điền sẵn. Khi gửi phiếu, nếu số điện thoại trùng, hai yêu cầu thành một: giữ mẫu khách chọn và trạng thái “đã liên hệ”, nhân viên thấy dòng “Gộp từ yêu cầu tư vấn nhanh”. Số khác nhau thì giữ cả hai.
-- Ô gửi ảnh dùng nút “Chọn ảnh từ máy” thay cho chữ tiếng Anh của trình duyệt. Nút trong trình xem video không còn bị gãy dòng trên điện thoại.
+### Phía khách
 
-### Kéo khách từ “xem cho vui” sang “để lại số”
+- **Màn hình đầu:** tiêu đề "Video AI chân thật chất lượng cao", ba điện thoại xòe quạt phát video mẫu, nền là tường poster các mẫu trôi chậm. Mẫu đầu tiên là ST025 (hoạt hình giới thiệu món ăn).
+- **Điện thoại có tiếng:** video chạy không tiếng khi vào trang; lần chạm đầu tiên ở bất kỳ đâu trên trang bật tiếng, trừ khi khách đã tự tắt. Đây là giới hạn của trình duyệt: không trang nào tự phát có tiếng khi khách chưa tương tác.
+- **Thư viện mẫu:** 13 mẫu, lọc "Tất cả / Mẫu nổi bật / Ngành hàng". Bấm ảnh mở khung xem video có tiếng, lướt qua các mẫu, và có nút "Nhận báo giá làm video kiểu này" mở form ngay dưới video.
+- **Tư vấn nhanh:** chỉ cần tên sản phẩm và số điện thoại, chọn Zalo hoặc gọi điện, đánh dấu đồng ý. Gửi xong có thể trả lời thêm (tên, thời hạn, ngân sách, nơi đăng), không bắt buộc, trong 24 giờ.
+- **Phiếu chi tiết:** 20 câu chia 6 phần, lưu nháp sau khi khách đồng ý, Back/Forward của trình duyệt dùng được, khôi phục khi tải lại hoặc mất mạng, gửi kèm tối đa 3 ảnh.
+- **So sánh "Tự làm, hay để chúng tôi làm?"**, cam kết, giới thiệu B PRODUCTIONS, hai bài đọc thêm từ blog công ty, hỏi đáp.
+- **Gộp yêu cầu:** khách gửi tư vấn nhanh rồi gửi phiếu chi tiết với cùng số điện thoại thì hai yêu cầu thành một.
+- **Nguồn khách:** đọc `?nguon=tiktok|facebook|zalo` hoặc `utm_source`.
 
-- **Form ngắn ngay trong khung xem video**: nút “Nhận báo giá làm video kiểu này” mở form ngay dưới video, khách không phải đóng video và cuộn đi tìm form. Nếu khách đã gửi một lần trên máy đó, sản phẩm và số điện thoại được điền sẵn. Gửi xong, khách được mời trả lời thêm 2 câu (thời hạn, ngân sách).
-- Nút kêu gọi dùng chữ nói rõ khách nhận được gì: “Nhận báo giá”, “Gửi cho tôi phương án và báo giá”. Trang không hứa “miễn phí” hay đưa số liệu khách hàng khi studio chưa xác nhận.
-- **Thanh nút dưới đáy màn hình điện thoại** (“Nhận báo giá”, “Xem video mẫu”) hiện khi khách đã cuộn qua nút ở màn hình đầu; tự ẩn khi đang ở form tư vấn.
-- **Đoạn video riêng của studio**: đặt tệp vào `web/video-mau/` (xem `DOC-TOI.txt` trong thư mục đó). Mẫu có tệp sẽ tự phát không tiếng ở màn hình đầu và trong thư viện, nhiều mẫu cùng lúc; tệp chỉ tải khi mẫu hiện ra, tạm dừng khi ra khỏi màn hình, khi mở khung xem, khi bấm “Dừng chuyển động”, và không tự phát khi khách bật giảm chuyển động hoặc tiết kiệm dữ liệu.
+### Phía nhân viên
 
-## Bản sửa Back/Forward và số liên hệ
+- Đăng nhập bằng mật khẩu chung (`ADMIN_PASSWORD`).
+- Danh sách yêu cầu có tìm kiếm, lọc trạng thái, phân trang, xem chi tiết và ảnh, đánh dấu đã liên hệ, xóa phiếu kèm ảnh sau xác nhận.
+- Thống kê lượt mở trang, phiếu bắt đầu/gửi, khách dừng ở phần nào, theo nguồn.
+- Xuất Excel toàn bộ yêu cầu (gồm cột "Loại yêu cầu" và "Mẫu tham khảo").
 
-- Mỗi phần của phiếu chi tiết có mục lịch sử riêng. Back/Forward của trình duyệt và nút quay lại trong trang hoạt động cùng nhau, giữ câu trả lời đã điền.
-- Quay từ phần đầu về trang giới thiệu; tiến tới mở lại đúng phần đã điền mà không tạo phiếu khác. Tham số nguồn khách và vị trí trang đầu (ví dụ `#tu-van`) được giữ.
-- Tải lại giữa phiếu sẽ khôi phục đúng phần và bản nháp trên thiết bị. Lịch sử chỉ ghi màn hình, phần và mã lượt điều hướng; không ghi mã truy cập phiếu hay câu trả lời vào URL.
-- Sau khi gửi, Back về trang đầu, Forward chỉ hiện xác nhận. Các bước chỉnh sửa của phiếu đã gửi được bỏ qua. Tải lại trang xác nhận không lưu hay khôi phục câu trả lời riêng tư trong lịch sử trình duyệt.
-- Có thể mở yêu cầu mới từ trang đầu mà không trộn dữ liệu với phiếu đã gửi.
-- Số studio do chủ studio cung cấp: **0941 761 768**. Hiển thị ở chân trang, phần tư vấn và trang chính sách; nút gọi dùng `tel:+84941761768`. Không tự cấu hình Zalo từ số điện thoại.
+## 3. Nhận diện và giao diện
 
-## Bản sửa mới: gọn hơn và dễ thao tác
+Giao diện theo nhận diện của công ty mẹ B PRODUCTIONS. Nguồn và quyết định chi tiết ở [BRAND_SOURCES.md](BRAND_SOURCES.md).
 
-- Gộp phần lợi ích bị lặp vào quy trình ba bước. Ở khung nhìn Chromium 390×844, với cùng dữ liệu, trang giảm từ 5.203 xuống 4.126 px (khoảng 21%); form tư vấn xuất hiện sớm hơn khoảng 1.047 px. Đây là số đo bố cục, không phải tỷ lệ chuyển đổi của khách.
-- Bộ lọc ban đầu chỉ có “Mẫu nổi bật”, “Tất cả”, “Ngành hàng”. Các ngành mở khi bấm; chọn xong tự thu gọn, hiển thị ngành đang chọn. Có thể đóng bằng Escape và dùng bàn phím.
-- Khi danh sách có thể cuộn ngang, hiện hướng dẫn vuốt, số thứ tự mẫu và nút trước/sau. Khi chỉ có một mẫu hoặc màn hình đã hiện hết danh sách, tự ẩn điều khiển không cần thiết.
-- (Bản 3 đổi lại thành “anh chị”.) Không đổi mã câu hỏi, kiểu dữ liệu hay các giá trị lựa chọn đã lưu.
-- Ảnh tại chỗ hiện ngay; khi tải được ảnh dọc YouTube rộng ít nhất 480 px, trang thay bằng ảnh nét hơn. Không chấp nhận thumbnail nhỏ hoặc ảnh ngang. Nếu ảnh tại chỗ cũng lỗi, vẫn có nút mở video thay cho biểu tượng ảnh hỏng.
-- Studio có thể cung cấp ảnh gốc bằng thuộc tính `anh_bia` trong từng mục `mau.json`, ví dụ `"anh_bia": "/anh-mau/ST029-hd.webp"`. Ảnh riêng được ưu tiên; lỗi sẽ quay về ảnh dự phòng.
+### Màu
 
-Tệp hiện có chỉ chứa ảnh bìa 360×640 và các video mẫu sẵn có. Bản này không tạo ảnh gốc độ phân giải cao hay mẫu tiếng Việt giả; cần studio cung cấp tài nguyên thật để thay thế. Ảnh YouTube độ phân giải cao chưa được xác minh trực tiếp do tài nguyên ngoài bị chặn trong phiên; đã kiểm thử nâng chất lượng và dự phòng bằng dữ liệu giả lập riêng, không đưa vào bản phát hành.
+Một hệ màu cho cả trang. **Màu chính lấy từ màn hình đầu**: giấy trắng, đá ấm, mực than. **Màu phụ lấy từ logo**: đen tuyền và họa tiết mã vạch. Màu sắc còn lại chỉ đến từ chính video và ảnh mẫu.
 
-## Khách khám phá trước khi để lại thông tin
+| Vai trò | Biến CSS | Mã | Dùng cho |
+|---|---|---|---|
+| Giấy | `--bp-giay` | `#ffffff` | Nền chính, thẻ form |
+| Đá 1 | `--bp-da-1` | `#f5f3ef` | Phần "Về B Productions", cam kết, nút phụ khi rê chuột |
+| Đá 2 | `--bp-da-2` | `#ebe7e1` | Đường kẻ, nhãn mã mẫu |
+| Đá 3 | `--bp-da-3` | `#dad6cf` | Cuối dải nền màn hình đầu |
+| Mực than | `--bp-muc` | `#202224` | Chữ, nút chính, dải thư viện mẫu, dải tư vấn |
+| Mực nhạt | `--bp-muc-2` / `--bp-muc-3` | `#505255` / `#6b6d70` | Chữ mô tả, chú thích |
+| Logo | `--bp-logo` | `#111111` | Cột "B Productions làm", chân trang, khung điện thoại, thanh tiến độ |
+| Báo lỗi | `--do` | `#b3261e` | Chỉ dùng cho lỗi |
 
-- Màn hình đầu tập trung vào sản phẩm và ý tưởng video; nút chính dẫn tới mẫu, nút phụ dẫn tới tư vấn nhanh.
-- Ba mẫu nổi bật cho ba hướng: người mẫu giới thiệu, hoạt hình, ứng dụng. Có thể đổi mẫu nổi bật, lọc ngành hàng hoặc xem tất cả 13 mẫu.
-- Khung video mở khi bấm ảnh; có nút “Nhận báo giá làm video kiểu này” mở form ngắn ngay trong khung xem. Giao diện nói rõ một số mẫu hiện tại có nội dung tiếng Nhật.
-- Form tư vấn nhanh chỉ cần tên sản phẩm và số điện thoại/Zalo. Không lưu lúc gõ. Chỉ gửi khi khách đồng ý và bấm gửi; gửi lại cùng yêu cầu sau khi mất phản hồi không tạo bản trùng.
-- Yêu cầu nhanh xuất hiện ngay trong danh sách chờ liên hệ của nhân viên, có nhãn riêng, mẫu tham khảo và nguồn khách. Excel có thêm hai cột cuối: “Loại yêu cầu” và “Mẫu tham khảo”.
-- Phiếu chi tiết 20 câu vẫn được giữ. Chỉ khi khách chủ động mở phiếu mới hiện giải thích và ô đồng ý lưu bản nháp.
-- Có hỏi đáp về kịch bản, chi phí, AI và phiếu chi tiết. Không thêm lời chứng thực, số liệu hiệu quả, khách hàng hoặc bảng giá chưa được studio cung cấp.
-- Khung nhìn đã kiểm tra: 320, 360, 390, 768 và 1440 px. Video không tự chạy khi vừa vào trang; xem thử khi rê chuột và mở đầy đủ khi bấm. Tôn trọng chế độ giảm chuyển động và tiết kiệm dữ liệu.
+Nhịp các phần: màn hình đầu (giấy → đá) · thư viện (mực than) · về B Productions (đá) · so sánh (giấy) · cam kết (đá) · tư vấn (mực than) · đọc thêm, hỏi đáp (giấy) · chân trang (đen logo).
 
-Bố cục mới cần được đo bằng dữ liệu khách thật để đánh giá tỷ lệ liên hệ; chưa có thử nghiệm A/B hay khẳng định tăng doanh số.
+### Logo và điểm nhấn
 
-## Chạy trên Windows
+- Logo gốc của công ty: `web/logo-b-productions.png` (ở đầu trang chính, chính sách, nhân viên); chân trang dùng cùng tệp, đảo sang trắng bằng CSS. Favicon: `web/bieu-tuong.png`.
+- **Họa tiết mã vạch** lấy từ logo (biến `--bp-ma-vach`) là điểm nhấn xuyên suốt: dưới tiêu đề lớn, phía trên tiêu đề mỗi phần, và khối lớn ở phần "Về B Productions".
+- Chữ: Inter và Inter Display (tệp cục bộ trong `web/fonts/`, giấy phép OFL).
 
-1. Cài Python 3.12 rồi bấm đúp `CHAY-WEB.bat`. Lần đầu cần mạng để cài thư viện.
-2. Mở `.env`, đặt `ADMIN_PASSWORD`, `SECRET_KEY` (chuỗi ngẫu nhiên dài), `STUDIO_CONTACT` (đã điền số 0941761768, có thể đổi khi cần). Có thể đặt thêm `ZALO_LINK` và `REPLY_WITHIN`.
-3. Chạy lại `CHAY-WEB.bat`. Trang khách: http://localhost:8000. Trang nhân viên: http://localhost:8000/nhan-vien.
+### Hiệu ứng
 
-Tệp BAT tự cập nhật thư viện khi `requirements.txt` thay đổi. `.env` và dữ liệu khách không nằm trong ZIP này.
+Một nhịp chung, vừa phải:
 
-## Chạy bằng dòng lệnh
+| Ở đâu | Hiệu ứng |
+|---|---|
+| Màn hình đầu (một lần khi tải) | Ba dòng tiêu đề trồi lên lần lượt; vạch mã vạch vẽ ra; mô tả và nút hiện lên; hai điện thoại bên xòe ra từ máy giữa |
+| Mỗi phần khi cuộn tới (một lần) | Phần mờ → rõ, trồi lên 22 px; vạch mã vạch trên tiêu đề vẽ ra; thẻ và dòng bên trong nối đuôi nhau |
+| Bảng so sánh | Cột "B Productions làm" trượt lên sau cùng để thành điểm nhấn |
+| Rê chuột | Thẻ mẫu và bài đọc nhấc lên; mũi tên trong nút nhích; vạch mực trên thẻ cam kết vẽ ra; nút hỏi đáp xoay khi mở |
+| Liên tục | Tường poster ở màn hình đầu trôi chậm; điện thoại tự chuyển mẫu |
+
+Khách bật **giảm chuyển động** thì mọi hiệu ứng tắt, nội dung hiện đầy đủ ngay. Nút "Dừng chuyển động" dưới điện thoại dừng tường poster và việc tự chuyển mẫu. Tường poster cũng dừng khi khách rê chuột lên điện thoại, mở hộp thoại, chuyển tab hoặc bật tiết kiệm dữ liệu.
+
+### Thứ tự lớp CSS
+
+| Trang | Thứ tự nạp |
+|---|---|
+| Trang chủ `/`, chính sách `/chinh-sach` | `style.css` → `brand.css` → `desktop.css` → `can-doi.css` |
+| Nhân viên `/nhan-vien` | `style.css` → `brand.css` → `nhan-vien.css` → `can-doi.css` |
+
+- `style.css`: cấu trúc, bố cục và mọi thành phần (tích lũy qua các bản).
+- `brand.css`: nhận diện công ty mẹ, chỉ áp dụng trên `body.parent-brand`.
+- `desktop.css`: bố cục màn hình rộng cho khung xem video, phiếu, chính sách.
+- `nhan-vien.css`: riêng trang nhân viên.
+- `can-doi.css`: bảng màu thống nhất, họa tiết logo và hiệu ứng; luôn nạp sau cùng.
+
+Muốn đổi màu, chỉ sửa các biến `--bp-*` ở đầu `web/can-doi.css`.
+
+## 4. Cấu trúc thư mục
+
+```
+web-b-productions/
+├── app.py                  # Điểm vào cho Vercel (import app từ may_chu)
+├── may_chu.py              # Máy chủ Starlette: trang, API, lưu trữ, Excel
+├── cau_hoi.json            # 20 câu hỏi của phiếu chi tiết
+├── mau.json                # 13 video mẫu (mã, tên, ngành, kiểu, YouTube, số liệu)
+├── danh_gia.json           # Đánh giá thật của khách (đang trống → phần đánh giá ẩn)
+├── requirements.txt        # Thư viện chạy
+├── requirements-test.txt   # Thư viện kiểm thử
+├── render.yaml             # Cấu hình Render (cách triển khai thay thế)
+├── CHAY-WEB.bat            # Chạy nhanh trên Windows
+├── .env.example            # Mẫu cấu hình; CHAY-WEB.bat tự chép thành .env
+├── BRAND_SOURCES.md        # Nguồn và quyết định nhận diện
+├── KIEM_TRA_GIAO_DIEN.md   # Kết quả kiểm tra giao diện
+├── tests/
+│   ├── test_regressions.py # 26 kiểm thử máy chủ
+│   └── browser_history.py  # Kiểm thử Back/Forward bằng Chromium
+└── web/
+    ├── index.html          # Trang khách
+    ├── chinh-sach.html     # Cách dùng thông tin
+    ├── nhan-vien.html/.js  # Trang nhân viên
+    ├── app.js              # Toàn bộ tương tác phía khách
+    ├── style.css, brand.css, desktop.css, can-doi.css, nhan-vien.css
+    ├── logo-b-productions.png, bieu-tuong.png
+    ├── fonts/              # Inter, Inter Display (OFL)
+    ├── anh-mau/            # Ảnh bìa mẫu (và nho/ bản nhỏ .webp)
+    └── video-mau/          # Đặt video gốc .mp4/.webm của studio vào đây
+```
+
+## 5. Kiến trúc kỹ thuật
+
+- **Máy chủ:** Python 3.12, Starlette, Uvicorn. Một tiến trình phục vụ cả trang tĩnh lẫn API.
+- **Lưu trữ:** SQLite trong `du-lieu/` khi chạy trên máy; PostgreSQL (Neon) khi có `DATABASE_URL`. Bảng và chỉ mục tự tạo khi khởi động; mã nâng cấp không xóa dữ liệu cũ.
+- **Phía khách:** HTML, CSS, JavaScript thuần, không thư viện, không bước build.
+- **Video:** YouTube nhúng (`youtube-nocookie.com`); đặt tệp vào `web/video-mau/` để phát tại chỗ.
+- **Bảo mật:** Content-Security-Policy, cookie phiên ký bằng `SECRET_KEY`, giới hạn tần suất gửi, chống gửi trùng, ô bẫy chống bot, ảnh tải lên được giải mã và tạo lại.
+- **Bộ nhớ đệm:** trang công khai và tệp tĩnh có `s-maxage` cho CDN của Vercel.
+
+## 6. Chạy trên máy
+
+### Windows
+
+1. Cài Python 3.12, bấm đúp `CHAY-WEB.bat`. Lần đầu cần mạng để cài thư viện.
+2. Mở `.env`, đặt `ADMIN_PASSWORD` và `SECRET_KEY` (chuỗi ngẫu nhiên dài). `STUDIO_CONTACT` đã có sẵn 0941761768.
+3. Chạy lại `CHAY-WEB.bat`. Trang khách: http://localhost:8000 · Nhân viên: http://localhost:8000/nhan-vien
+
+### Dòng lệnh
 
 ```bash
 python -m venv .venv
-# Kích hoạt môi trường theo hệ điều hành, sau đó:
+# Kích hoạt môi trường theo hệ điều hành, rồi:
 python -m pip install -r requirements.txt
 python -m uvicorn may_chu:app --host 127.0.0.1 --port 8000
 ```
 
-## Cập nhật một bản đang dùng
+## 7. Cấu hình
 
-1. Dừng máy chủ và sao lưu dữ liệu. Với SQLite, sao lưu toàn bộ thư mục `du-lieu/` khi máy chủ đã dừng; với Neon, dùng chức năng sao lưu của nhà cung cấp.
-2. Thay mã nguồn bằng bản này, giữ `.env`, `du-lieu/`, ảnh và video riêng của studio.
-3. Cài lại `requirements.txt`, bổ sung thông tin liên hệ thật rồi khởi động lại. Các cột và chỉ mục bổ sung tự được tạo; mã nâng cấp không xóa phiếu cũ.
-4. Tải lại trang để nhận JavaScript/CSS mới. Thử cả form tư vấn nhanh, chọn mẫu và phiếu chi tiết; kiểm tra trang nhân viên và Excel.
+| Biến | Bắt buộc | Mục đích |
+|---|---|---|
+| `ADMIN_PASSWORD` | Có | Mật khẩu trang nhân viên |
+| `SECRET_KEY` | Có (khi triển khai) | Ký phiên đăng nhập; dùng giá trị cố định, ngẫu nhiên, dài |
+| `DATABASE_URL` | Có trên Vercel/Render | Chuỗi kết nối PostgreSQL. Để trống khi chạy trên máy (SQLite) |
+| `STUDIO_CONTACT` | Không | Số điện thoại/email hiển thị; mặc định `0941761768`, số điện thoại có nút bấm gọi |
+| `ZALO_LINK` | Không | Liên kết Zalo thật của studio |
+| `REPLY_WITHIN` | Không | Thời gian phản hồi hiển thị; mặc định "một ngày làm việc" |
+| `STUDIO_NAME` | Không | Tên studio trong nội dung; mặc định "B Productions" |
+| `DATA_DIR` | Không | Thư mục dữ liệu SQLite và ảnh; mặc định `du-lieu/` |
+| `COOKIE_SECURE`, `TRUST_PROXY` | Khi chạy HTTPS sau proxy | Đặt `true` trên Vercel/Render |
 
-## Cấu hình và nội dung
+Máy chủ từ chối khởi động trên Vercel hoặc Render nếu thiếu `DATABASE_URL` PostgreSQL, vì ổ đĩa ở đó không giữ dữ liệu.
 
-| Tệp / biến | Mục đích |
+## 8. Nội dung: mẫu, câu hỏi, đánh giá, số liệu
+
+| Muốn đổi | Sửa ở đâu |
 |---|---|
-| `cau_hoi.json` | Bộ câu hỏi, đáp án và nhóm của phiếu chi tiết. |
-| `mau.json` | Mã mẫu, tên, nhóm sản phẩm, kiểu video và mã YouTube. |
-| `web/app.js` → `maNoiBat` | Ba mã mẫu của nút lọc “Mẫu nổi bật”. Thay bằng mẫu mới tại đây khi studio có mẫu phù hợp hơn. |
-| `web/anh-mau/<mã>.jpg` | Ảnh bìa dự phòng. Nên thay bằng ảnh gốc rõ nét, khung dọc 9:16. |
-| `web/video-mau/<mã>.mp4` hoặc `.webm` | Đoạn phát thử tại chỗ nếu studio có. Khung xem đầy đủ vẫn dùng video YouTube. |
-| `ADMIN_PASSWORD` | Mật khẩu nhân viên. |
-| `SECRET_KEY` | Ký phiên đăng nhập; dùng giá trị cố định, ngẫu nhiên dài. |
-| `STUDIO_CONTACT` | Số điện thoại/email ở chân trang và trang chính sách; mặc định 0941761768 do chủ studio cung cấp. Số điện thoại có liên kết bấm gọi. |
-| `ZALO_LINK` | Liên kết Zalo thật của studio, nếu có. |
-| `REPLY_WITHIN` | Thời gian phản hồi hiển thị cho khách; cần khớp khả năng thực tế. |
-| `DATABASE_URL` | Kết nối PostgreSQL. Để trống khi thử tại chỗ bằng SQLite. |
-| `COOKIE_SECURE`, `TRUST_PROXY` | Bật khi triển khai HTTPS sau proxy tin cậy, như cấu hình Render đi kèm. |
+| Danh sách video mẫu | `mau.json`: `ma`, `ten`, `nhom`, `kieu`, `id` (YouTube), `hien` (`"video"` để tự phát thử trong thư viện) |
+| Ba mẫu nổi bật, mẫu đầu tiên trên điện thoại | `web/app.js` → `maNoiBat` (mẫu đầu danh sách cũng đứng đầu thư viện) |
+| Ảnh bìa nét hơn | Thêm `"anh_bia": "/anh-mau/<mã>-hd.webp"` vào mẫu; nên dùng ảnh dọc 9:16 |
+| Video phát tại chỗ (có tiếng cả trên iPhone) | Đặt `web/video-mau/<mã>.mp4` hoặc `.webm` (xem `DOC-TOI.txt`) |
+| Câu hỏi phiếu chi tiết | `cau_hoi.json` (không đổi mã câu đã dùng để dữ liệu cũ vẫn đọc được) |
 
-Sửa `cau_hoi.json` hoặc `mau.json` rồi khởi động lại. Mục `hien` trong `mau.json`: `"video"` là mẫu được tự phát thử không tiếng trong thư viện; các giá trị khác chỉ hiện ảnh. Tường mẫu ở màn hình đầu luôn hiện đủ mọi mẫu trong `mau.json`.
+Sửa xong khởi động lại máy chủ.
 
-Nguồn khách được lấy từ `?nguon=tiktok`, `?nguon=facebook`, `?nguon=zalo` hoặc `utm_source`.
+### Đánh giá và số liệu: chỉ dữ liệu thật
 
-## Bảo vệ dữ liệu và ảnh
+Trang không tự tạo đánh giá, số sao hay số lượt tương tác. Khi trống, phần tương ứng tự ẩn.
 
-- Phiếu chi tiết lưu bản nháp sau khi khách đồng ý; có bản nháp trên thiết bị, tự thử lại khi mạng phục hồi. “Đã lưu” nghĩa là máy chủ đã nhận bản hiện tại.
-- Nhân viên xem được phiếu dở như nội dung đã thông báo. Yêu cầu lưu đến muộn không ghi đè phiếu đã gửi.
-- Tối đa 3 ảnh/phiếu, mỗi ảnh 5 MB (4 MB khi chạy trên Vercel) và 20 triệu điểm ảnh. Ảnh trên 3 MB được trình duyệt tự thu nhỏ (cạnh dài 2560 px, JPEG) trước khi gửi, nên ảnh chụp điện thoại vẫn gửi được. Máy chủ giải mã ảnh tĩnh JPEG/PNG/WebP, tạo lại để loại metadata, chặn tệp giả/hỏng và giới hạn cả dung lượng yêu cầu tải lên.
-- Giới hạn số ảnh được kiểm tra trong giao dịch khóa phiếu, tránh vượt khi gửi đồng thời. Các thao tác lưu/gửi/xóa ảnh cùng dùng khóa phiếu.
-- Trang nhân viên có tìm kiếm, lọc, phân trang và nút xóa phiếu kèm ảnh sau xác nhận. Không tự xóa dữ liệu theo lịch.
-- Studio cần xác định thời hạn lưu theo quy trình thực tế, quản lý bản Excel/bản sao lưu riêng và xử lý yêu cầu xóa. Khi cần xóa bản nháp trên thiết bị, khách phải xóa dữ liệu trang trong trình duyệt đã sử dụng.
-- Kiểm tra nội dung `/chinh-sach`, mức ngân sách và thời gian phản hồi trước khi công khai.
-
-## Vercel + Neon (đang dùng)
-
-Repo có sẵn `app.py` (Vercel tìm biến `app` ở đây) và `.python-version`. Mỗi lần đẩy lên nhánh `main`, Vercel tự triển khai lại.
-
-1. Trên Neon, tạo một cơ sở dữ liệu riêng cho web này (không dùng chung với Video OS cũ) và chép chuỗi kết nối.
-2. Trong dự án Vercel: **Settings → Build and Deployment**: Framework Preset chọn **Python** (không chọn Other, vì Other không chạy tệp app.py), Root Directory để trống, tắt các ô Override của Build/Install/Output.
-3. **Settings → Environment Variables** (Production): `DATABASE_URL` (chuỗi Neon), `ADMIN_PASSWORD`, `SECRET_KEY` (chuỗi ngẫu nhiên dài), `COOKIE_SECURE=true`, `TRUST_PROXY=true`. Có thể thêm `STUDIO_CONTACT`, `ZALO_LINK`, `REPLY_WITHIN`.
-4. Vào **Deployments**, bấm **Redeploy** bản mới nhất. Mở `/api/suc-khoe` phải thấy `{"on":true}`.
-
-Máy chủ từ chối chạy trên Vercel nếu thiếu `DATABASE_URL` PostgreSQL, vì ổ đĩa ở đó không giữ dữ liệu.
-
-## Đánh giá của khách và số liệu thật (chỉ dữ liệu thật)
-
-Trang **không tự tạo** đánh giá, số sao hay số lượt tim/bình luận/chia sẻ. Hai chỗ dưới đây trống thì phần tương ứng tự ẩn.
-
-**Đánh giá 5 sao** — ghi vào `danh_gia.json` (danh sách). Chỉ đánh giá có `"da_dong_y": true` (khách đã đồng ý cho đăng), đủ tên, nội dung và số sao 1–5 mới hiện:
+**Đánh giá** — `danh_gia.json`. Chỉ hiện mục có `"da_dong_y": true`, đủ tên, nội dung và số sao 1–5:
 
 ```json
-[
-  {"ten": "Chị Lan", "doanh_nghiep": "Tiệm bánh ...", "sao": 5, "noi_dung": "Lời khách viết ...",
-   "ma_mau": "ST029", "ngay": "11/2026", "nguon": "https://... (đường dẫn tới đánh giá gốc, nếu có)", "da_dong_y": true}
-]
+[{"ten": "Chị Lan", "doanh_nghiep": "Tiệm bánh ...", "sao": 5, "noi_dung": "Lời khách viết ...",
+  "ma_mau": "ST029", "ngay": "11/2026", "nguon": "https://...", "da_dong_y": true}]
 ```
 
-**Số liệu bài đăng của từng mẫu** — thêm `so_lieu` vào mẫu trong `mau.json`, lấy từ bài đăng thật:
+**Số liệu bài đăng của một mẫu** — thêm `so_lieu` vào mẫu trong `mau.json`:
 
 ```json
-{"ma": "ST029", "...": "...", "so_lieu": {"nen_tang": "TikTok", "xem": 125000, "tim": 5400, "binh_luan": 82, "chia_se": 130,
-  "ngay": "11/2026", "nguon": "https://www.tiktok.com/@.../video/..."}}
+"so_lieu": {"nen_tang": "TikTok", "xem": 125000, "tim": 10100, "binh_luan": 2123, "chia_se": 534,
+            "ngay": "11/2026", "nguon": "https://www.tiktok.com/@.../video/..."}
 ```
 
-Khi có, điện thoại ở màn hình đầu hiện số dưới các nút tim/bình luận/chia sẻ, nhãn nền tảng ghi số lượt xem, và có dòng ghi nguồn bên dưới.
+Điện thoại ở màn hình đầu hiện số dưới các nút tim, bình luận, chia sẻ (từ 10.000 ghi gọn kiểu 10.1K) và một dòng ghi nguồn.
 
-## Hiệu ứng 3D
+## 9. API
 
-- **Chữ nổi khối**: tiêu đề lớn và tiêu đề từng phần có mặt chữ, sáu lớp cạnh và bóng đổ (`text-shadow`, biến `--canh`, `--sx`, `--sy` trong `web/style.css`, khối “Bản 20”). Từng chữ lật lên khi hiện ra. Trên máy tính, tiêu đề lớn và cụm ba máy xoay theo con trỏ chuột (`gan3D` trong `web/app.js`); trên điện thoại cụm ba máy tự lắc nhẹ.
-- **Màu chữ tiêu đề**: tiêu đề lớn có mặt chữ đổ dải màu (hai dòng đầu trắng ngả xanh ngọc; “chất lượng cao” vàng → cam → hồng) nhờ một lớp chữ phủ trùng khít (`::after` với `data-chu`), cạnh khối và quầng sáng vẫn là `text-shadow`. Tiêu đề từng phần: nền sáng chữ xanh đậm cạnh vàng, nền tối chữ trắng cạnh vàng cam. Đổi màu ở khối “Bản 21” trong `web/style.css`.
-- **Từng phần**: thẻ video mẫu lật vào như lật bài; dòng bảng so sánh lật xuống, cột studio nhô lên; thẻ cam kết mở như cánh cửa, biểu tượng nằm trên phím nổi và xoay một vòng; thẻ form xoay vào; câu hỏi đáp lật xuống; nút chính có cạnh dưới, bấm thì lún.
-- Khách bật giảm chuyển động thì chỉ còn chữ nổi đứng yên; nút “Dừng chuyển động” dừng phần lắc và xoay theo chuột.
+| Phương thức | Đường dẫn | Mục đích |
+|---|---|---|
+| GET | `/api/suc-khoe` | Kiểm tra máy chủ, trả `{"on": true}` |
+| GET | `/api/cau-hinh` | Câu hỏi, mẫu, thông tin liên hệ cho trang |
+| POST | `/api/luot-xem` | Ghi một lượt mở trang (thống kê) |
+| POST | `/api/tu-van` | Gửi tư vấn nhanh |
+| POST | `/api/tu-van/bo-sung` | Trả lời thêm sau tư vấn nhanh (24 giờ, kèm mã bí mật) |
+| POST | `/api/phieu` | Mở phiếu chi tiết |
+| GET / PUT | `/api/phieu/{ma}` | Đọc / lưu nháp phiếu |
+| POST | `/api/phieu/{ma}/anh` | Tải ảnh lên phiếu |
+| DELETE | `/api/phieu/{ma}/anh/{anh}` | Xóa ảnh của phiếu |
+| POST | `/api/phieu/{ma}/gui` | Gửi phiếu |
+| POST | `/api/nhan-vien/dang-nhap`, `/dang-xuat` | Đăng nhập / đăng xuất nhân viên |
+| GET | `/api/nhan-vien/phieu` | Danh sách, tìm, lọc, phân trang, thống kê |
+| DELETE | `/api/nhan-vien/phieu/{ma}` | Xóa phiếu kèm ảnh |
+| GET | `/api/nhan-vien/phieu/{ma}/anh`, `/api/nhan-vien/anh/{anh}` | Xem ảnh của phiếu |
+| POST | `/api/nhan-vien/phieu/{ma}/lien-he` | Đánh dấu đã liên hệ |
+| GET | `/api/nhan-vien/xuat-excel` | Tải Excel |
 
-## Điện thoại ở màn hình đầu
+Mọi đường dẫn `/api/nhan-vien/*` (trừ đăng nhập) cần phiên đăng nhập.
 
-- Ảnh bìa hiện ngay; video thật bắt đầu phát ngay khi trang dựng xong (mạng không ở chế độ tiết kiệm dữ liệu). Hai lần không phát được (mạng chặn YouTube) thì chỉ lướt ảnh bìa.
-- **Có tiếng ngay khi vào trang (trong giới hạn trình duyệt)**: trang thử bật tiếng một lần; trình duyệt nào cho phép (thường là khách đã hay xem video trên trang) thì có tiếng ngay. Trình duyệt chặn thì video trả về không tiếng và chạy tiếp, không bị dừng.
-- **Cú chạm đầu tiên ở bất kỳ đâu trên trang** (bấm chữ, nút, liên kết, phím Enter/Space) cũng bật tiếng video trên máy, trừ khi khách đã tự tắt tiếng. Trên iPhone chỉ áp dụng cho video đặt trong `web/video-mau/`.
-- Bấm vào máy hoặc khoảng trống của màn hình đầu là bật tiếng (trừ khi khách đã tự tắt). Đang có tiếng thì hết video mới chuyển mẫu kế.
-- Trên iPhone, nếu trang không bật tiếng hộ được thì mở khung xem lớn để khách bấm phát. Đặt tệp video gốc vào `web/video-mau/` thì iPhone cũng phát có tiếng ngay sau một lần bấm.
-- Số dưới các nút tim, bình luận, chia sẻ chỉ hiện khi mẫu có `so_lieu` thật; số dưới nút tim còn đếm số tim khách tự thả.
-- Video YouTube trên máy chỉ hiện sau khoảng 3 giây chạy, khi các nút của YouTube (ⓘ, lùi, dừng, tới) đã tự ẩn; trước đó hiện ảnh bìa.
-- Tim, bong bóng bình luận và mũi tên chia sẻ bay lên từ ba nút bên phải điện thoại khi video đang chạy (trang trí; tắt khi khách bật giảm chuyển động hoặc tiết kiệm dữ liệu).
-- Mẫu ST029 đang có `so_lieu` trong `mau.json` (10.100 tim, 2.123 bình luận, 534 chia sẻ) do chủ studio cung cấp là số thật của bài đăng; cần bổ sung `nen_tang`, `ngay`, `nguon` (link bài đăng). Số từ 10.000 hiện gọn kiểu 10.1K.
-- Nút tim (hiệu ứng tim bay), nút bình luận (mở form báo giá với mẫu đang xem), nút chia sẻ (chia sẻ hoặc chép liên kết trang).
+## 10. Triển khai
 
-## Render + Neon (cách khác)
+### Vercel + Neon (đang dùng)
 
-1. Đưa mã nguồn lên repo GitHub riêng và tạo cơ sở dữ liệu PostgreSQL trên Neon.
-2. Tạo dịch vụ qua Blueprint `render.yaml`, điền `ADMIN_PASSWORD`, `DATABASE_URL` và kiểm tra `STUDIO_CONTACT` đã đặt 0941761768. `SECRET_KEY` được Render tạo theo cấu hình đi kèm.
-3. Sau triển khai, thử gửi tư vấn nhanh, phiếu chi tiết, ảnh; xem và đánh dấu liên hệ; xuất Excel.
+Mỗi lần đẩy lên nhánh `main`, Vercel tự triển khai lại.
 
-Máy chủ từ chối khởi động trên Render nếu thiếu `DATABASE_URL` PostgreSQL để tránh mất dữ liệu trên ổ đĩa tạm. Gói miễn phí có thể ngủ khiến lượt truy cập đầu chậm; cần đánh giá điều này trước khi chạy quảng cáo.
+1. Trên Neon, tạo cơ sở dữ liệu riêng cho web này và chép chuỗi kết nối.
+2. Vercel → **Settings → Build and Deployment**: Framework Preset **Python** (không chọn Other), Root Directory để trống, tắt các ô Override.
+3. **Settings → Environment Variables** (Production): `DATABASE_URL`, `ADMIN_PASSWORD`, `SECRET_KEY`, `COOKIE_SECURE=true`, `TRUST_PROXY=true`; thêm `STUDIO_CONTACT`, `ZALO_LINK`, `REPLY_WITHIN` nếu cần.
+4. **Deployments → Redeploy**. Mở `/api/suc-khoe` phải thấy `{"on":true}`.
 
-Chưa kiểm thử tích hợp PostgreSQL/Neon hoặc triển khai lên Render trong phiên sửa này. Cần xác minh trực tiếp trên môi trường triển khai trước khi công khai.
+### Render + Neon (cách thay thế)
 
-## Kiểm thử
+Tạo dịch vụ qua Blueprint `render.yaml`, điền `ADMIN_PASSWORD` và `DATABASE_URL`. Gói miễn phí có thể ngủ, lượt truy cập đầu sẽ chậm.
+
+### Đưa thay đổi lên
+
+Trong GitHub Desktop: kiểm tra danh sách tệp đổi → ghi tóm tắt → **Commit to main** → **Push origin**. Đợi 1–2 phút rồi mở trang bằng tab mới.
+
+## 11. Cập nhật một bản đang dùng
+
+1. Sao lưu dữ liệu: SQLite thì chép cả thư mục `du-lieu/` khi máy chủ đã dừng; Neon thì dùng chức năng sao lưu của Neon.
+2. Thay mã nguồn, giữ nguyên `.env`, `du-lieu/`, ảnh và video riêng của studio.
+3. Cài lại `requirements.txt`, khởi động lại.
+4. Tải lại trang để nhận CSS/JS mới. Thử tư vấn nhanh, chọn mẫu, phiếu chi tiết, trang nhân viên và Excel.
+
+## 12. Dữ liệu, ảnh và quyền riêng tư
+
+- Tư vấn nhanh chỉ gửi khi khách đánh dấu đồng ý và bấm gửi; không lưu lúc đang gõ. Gửi lại cùng yêu cầu sau khi mất phản hồi không tạo bản trùng.
+- Phiếu chi tiết chỉ lưu nháp sau khi khách đồng ý; nhân viên xem được phiếu dở như đã thông báo. Lưu đến muộn không ghi đè phiếu đã gửi.
+- Ảnh: tối đa 3 ảnh/phiếu, mỗi ảnh 5 MB (4 MB trên Vercel), tối đa 20 triệu điểm ảnh. Trình duyệt tự thu nhỏ ảnh trên 3 MB. Máy chủ chỉ nhận JPEG/PNG/WebP, tạo lại ảnh để bỏ metadata và chặn tệp giả.
+- Lịch sử trình duyệt không chứa mã truy cập phiếu hay câu trả lời.
+- Không tự xóa dữ liệu theo lịch. Studio tự quyết thời hạn lưu, quản lý bản Excel và xử lý yêu cầu xóa.
+- Nội dung `/chinh-sach` ghi rõ thu gì, dùng để làm gì và quyền của khách; cần kiểm lại trước khi chạy quảng cáo.
+
+## 13. Kiểm thử
 
 ```bash
 python -m pip install -r requirements-test.txt
 python -m unittest discover -s tests -v
 ```
 
-26 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: bao gồm tải ảnh đồng thời, tệp giả/hỏng, quyền xóa, lưu đến muộn, phân trang, Excel và các trường hợp của tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn gửi, gửi lại và gửi đồng thời, cách liên hệ, trả lời bổ sung, gộp với phiếu chi tiết).
+26 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: ảnh (đồng thời, tệp giả, giới hạn), quyền xóa, lưu đến muộn, phân trang, Excel, tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn tần suất, gửi lại, gửi đồng thời, trả lời bổ sung, gộp với phiếu chi tiết), đánh giá chỉ hiện khi đủ điều kiện.
 
-Đã kiểm tra Chromium: trang đầu không tự tạo phiếu; lọc mẫu; chuyển mẫu; mở/đóng trình xem; chọn mẫu vào tư vấn nhanh; không gửi khi nhập; lỗi số điện thoại; mất phản hồi sau khi máy chủ đã lưu rồi gửi lại không trùng; hiển thị ở trang nhân viên; đồng ý khi mở phiếu chi tiết; lưu khi có mạng trở lại; phục hồi sau tải lại; gửi đủ 20 câu. Tải và phát video từ YouTube thực tế cần kiểm tra trên mạng của khách; trong phiên này chỉ xác minh URL nhúng, mở/đóng khung và ảnh dự phòng khi tài nguyên ngoài không tải được.
-
-### Kiểm tra Back/Forward bằng Chromium
-
-Chỉ chạy trên máy chủ thử cục bộ với `DATA_DIR` riêng; bài kiểm tra tạo phiếu giả. Không chạy vào dữ liệu đang vận hành.
+**Back/Forward bằng Chromium** (chỉ chạy trên máy chủ thử có `DATA_DIR` riêng, vì bài thử tạo phiếu giả):
 
 ```bash
 python -m pip install -r requirements-test.txt playwright
 python -m playwright install chromium
-# Chạy máy chủ ở cửa sổ khác với DATA_DIR trỏ đến thư mục dữ liệu thử:
-python -m uvicorn may_chu:app --host 127.0.0.1 --port 8000
-# Chạy bài kiểm tra:
+python -m uvicorn may_chu:app --host 127.0.0.1 --port 8000     # cửa sổ khác, DATA_DIR thử
 python tests/browser_history.py --base-url http://127.0.0.1:8000
 ```
 
-Nếu dùng Chromium cài sẵn trên Linux, thêm `--chromium /usr/bin/chromium`. Bài kiểm tra xác minh Back/Forward qua ba phần và trang đầu, giữ câu trả lời, không tạo phiếu trùng, chặn bước tiếp khi thiếu câu trả lời, hoạt động khi mất mạng và sau tải lại, gửi đủ 20 câu, không quay lại chỉnh sửa phiếu đã gửi, mở phiếu mới và số liên hệ bấm gọi đúng. Không thực hiện cuộc gọi và không tải video ngoài trong bài kiểm tra.
+Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md](KIEM_TRA_GIAO_DIEN.md).
+
+## 14. Giới hạn và việc chờ xác nhận
+
+- **YouTube:** máy kiểm tra không có mạng ra ngoài, nên việc phát video và bật tiếng thật cần thử trên trang đang chạy. iPhone không cho trang bật tiếng video YouTube hộ khách; đặt video gốc vào `web/video-mau/` để khắc phục.
+- **Số liệu ST029** (10.100 tim, 2.123 bình luận, 534 chia sẻ) do studio cung cấp là số thật của một bài đăng; cần bổ sung `nen_tang`, `ngay`, `nguon` cho đúng bài.
+- **Thông tin công ty mẹ** (số điện thoại, email, tên pháp nhân đầy đủ, năm thành lập) chưa đưa lên trang khi chưa được ban lãnh đạo xác nhận. Xem [BRAND_SOURCES.md](BRAND_SOURCES.md).
+- Chưa thử trên Safari/iPhone thật; chỉ giả lập kích thước màn hình trong Chromium.
+- Chưa có số liệu chuyển đổi thật; bố cục cần được đo bằng lượt khách thật.
+
+## 15. Lịch sử thay đổi
+
+| Ngày | Bản | Thay đổi chính |
+|---|---|---|
+| 17/11/2026 | Cân đối màu và hiệu ứng | Một hệ màu theo màn hình đầu (giấy, đá ấm, mực than), logo làm màu phụ; họa tiết mã vạch làm điểm nhấn; bật lại hiệu ứng xuất hiện thống nhất; chân trang đen có logo; ST025 lên đầu; viết lại README |
+| 17/11/2026 | Nhận diện công ty mẹ | Logo gốc, nền trắng/xám, tường poster sau điện thoại, phần "Về B Productions", bài đọc thêm từ blog, bố cục máy tính cho khung xem, phiếu, chính sách, nhân viên |
+| 16/11/2026 | Màn hình đầu | Ba điện thoại xòe quạt, tiếng bật ở lần chạm đầu, số liệu bài đăng thật, gọn chữ, bỏ phần Gợi ý và Cách làm |
+| 14–15/11/2026 | Bản 3–8 | Tường mẫu, thư viện lưới, tư vấn nhanh trong khung xem, trả lời bổ sung, gộp yêu cầu, Back/Forward, triển khai Vercel + Neon |
+
+Lịch sử chi tiết xem bằng `git log`.

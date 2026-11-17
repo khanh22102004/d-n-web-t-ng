@@ -2,6 +2,23 @@
 
 Đối chiếu ngày 16/11/2026. Mã gốc: main, commit 87e4af2c33333f08c36cb7a3e4b20484af8e54b5. Đã kiểm bằng git fetch, ls-remote và GitHub API. Tài liệu ghi nhận nguồn và quyết định thiết kế của bản cập nhật; trạng thái đưa mã lên GitHub và triển khai được đối chiếu riêng.
 
+## Cân đối màu và hiệu ứng — 17/11/2026
+
+Yêu cầu: một hệ màu cho cả trang, lấy màn hình đầu làm màu chính, lấy logo làm màu phụ, có điểm nhấn và hiệu ứng cân đối.
+
+| Quyết định | Lý do |
+|---|---|
+| Màu chính: giấy `#ffffff`, đá ấm `#f5f3ef` / `#ebe7e1` / `#dad6cf`, mực than `#202224` | Đúng các màu đang dùng ở nền và chữ màn hình đầu |
+| Màu phụ: đen logo `#111111` | Màu của logo gốc; dùng cho cột "B Productions làm", chân trang, khung điện thoại, thanh tiến độ |
+| Các dải tối (thư viện, tư vấn) đổi từ đen trung tính `#171717` / `#222` sang mực than `#202224` | Cùng sắc với chữ màn hình đầu, không lệch tông |
+| Các mảng sáng đổi từ xám trung tính `#f2f2f1` sang đá ấm `#f5f3ef` | Cùng sắc với nền màn hình đầu |
+| Điểm nhấn: họa tiết mã vạch lấy từ logo, dưới tiêu đề lớn và trên tiêu đề mỗi phần | Gắn trang với logo mà không thêm màu mới |
+| Không dùng màu cam của nút trên bprovn.com | Giữ trang trong một hệ màu như yêu cầu |
+| Chân trang đen, logo gốc đảo trắng bằng CSS (`filter: invert(1)` + `mix-blend-mode: screen`) | Dùng đúng tệp logo gốc, không vẽ lại |
+| Hiệu ứng: một màn mở đầu ở màn hình đầu; mỗi phần hiện một lần khi cuộn tới; cột studio trong bảng so sánh hiện sau cùng | Một nhịp chung, có điểm nhấn, không rải hiệu ứng khắp nơi |
+
+Toàn bộ nằm ở `web/can-doi.css`, nạp sau cùng trên trang chủ, chính sách và nhân viên. Đổi màu chỉ cần sửa các biến `--bp-*` ở đầu tệp.
+
 ## Nguồn công khai đã đọc
 
 | Nguồn | Thông tin sử dụng |

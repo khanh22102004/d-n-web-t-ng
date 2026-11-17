@@ -1,5 +1,20 @@
 # Kiểm tra bản hoàn thiện máy tính và điện thoại B PRODUCTIONS
 
+
+## Lượt cân đối màu và hiệu ứng — 17/11/2026
+
+Mã gốc: main, commit 3516c4e. Thay đổi: thêm `web/can-doi.css` (hệ màu thống nhất, họa tiết mã vạch, hiệu ứng), thêm vạch mã vạch dưới tiêu đề lớn và logo ở chân trang, đưa ST025 lên đầu điện thoại và thư viện, mở rộng danh sách phần có hiệu ứng xuất hiện trong `web/app.js`, viết lại README. Backend, API, câu hỏi và dữ liệu không đổi.
+
+| Kiểm tra | Kết quả |
+|---|---|
+| `python -m unittest` / `pytest tests` | 26/26 đạt |
+| `tests/browser_history.py` (Back/Forward, gửi phiếu, mất mạng, tải lại) | Đạt |
+| `node --check web/app.js web/nhan-vien.js` | Đạt |
+| Hành trình khách bằng Chromium, 1440×900 và 390×844 (36 bước) | 36/36 đạt |
+
+Các bước trong hành trình 36 bước: màn hình đầu hiện tiêu đề, vạch mã vạch, điện thoại, nút; mẫu đầu tiên là ST025; cuộn hết trang thì mọi phần đều đã hiện; giao diện không còn màu nào ngoài hệ giấy/đá/mực/logo (trừ video, ảnh, tim, báo lỗi); thư viện đủ 13 mẫu với ST025 đứng đầu; mở menu; mở khung xem video; form trống báo lỗi tiếng Việt; gửi tư vấn nhanh; mở phiếu chi tiết và phần giới thiệu ẩn; trang chính sách có logo chân trang; không lỗi JavaScript; không tràn ngang ở 320, 360, 390, 430, 768, 1024, 1280, 1440, 1920 px; chế độ giảm chuyển động hiện đủ nội dung, không chạy hiệu ứng; trang nhân viên thấy hai yêu cầu vừa gửi.
+
+Giới hạn: máy kiểm tra không có mạng ra ngoài nên không phát được YouTube; chưa thử Safari/iPhone thật; dữ liệu là dữ liệu thử trong SQLite riêng.
 Ngày 16/11/2026. Mã gốc: main, commit 87e4af2c33333f08c36cb7a3e4b20484af8e54b5. Báo cáo ghi nhận lần kiểm tra cục bộ trước khi đưa mã lên GitHub, không xác nhận trạng thái triển khai. FILE_MANIFEST.json trong ZIP bàn giao ghi kích thước và SHA-256 của từng tệp tại thời điểm đóng gói đó.
 
 Lượt sửa mới nhất: thay nền một cột điện thoại bằng bốn cột ô nhỏ so le như desktop. Ở 390 px, ô rộng 97,5 px; đủ 13 mẫu, các cột trôi xuống và lặp liên tục. Chỉ thay hàm dựng nền và CSS mobile; bố cục, nội dung và luồng gửi yêu cầu giữ nguyên. Kết quả lượt này nằm trong XEM_TRUOC/mobile-mosaic-checks.json; các kết quả nghiệp vụ bên dưới thuộc lượt hoàn thiện desktop trước đó.
