@@ -1,6 +1,16 @@
 # Kiểm tra bản hoàn thiện máy tính và điện thoại B PRODUCTIONS
 
 
+## Lượt tiêu đề khung ngắm — 17/11/2026
+
+Khung ngắm (bốn góc, REC, đồng hồ quay) và vạch quét mã vạch → tiêu đề, chu kỳ 7 giây. Đã chụp đúng lúc vạch quét đi qua chữ trên 1366×768 và 390×844: chữ lóe sáng rồi trở lại màu mực, nền trắng không đổi.
+
+| Kiểm tra | Kết quả |
+|---|---|
+| `pytest` | 26/26 |
+| Trình duyệt | 50/50; tìm ra và sửa lỗi cú kéo bị bỏ qua khi máy đang tự xoay |
+| Một khung hình | Máy tính mọi khổ và điện thoại cao từ 780px: vừa một khung |
+
 ## Lượt cụm máy xoay — 17/11/2026
 
 Thay hàng nút điều khiển bằng thao tác vuốt/kéo ngang; cụm máy xoay 3D sang mẫu kế (tự xoay mỗi 4 giây, 13 giây khi đang phát video); nút dừng tròn nhỏ cạnh dải chấm vị trí; cột biểu tượng bên phải theo bố cục TikTok.

@@ -297,7 +297,7 @@ body.parent-brand .dt-tren { z-index: 7; }
   body.parent-brand .san-khau > .tuong { min-height: 0; padding: 6px 0 0; margin-top: 4px; }
   /* chiều rộng điện thoại = phần chiều cao còn lại × 9/16, trong khoảng 132–200px */
   body.parent-brand .san-khau :is(.dien-thoai, .dien-thoai:hover, .dt-ben) {
-    width: clamp(132px, calc((100svh - var(--chu-mo-dau, 536px)) * .5625), 200px);
+    width: clamp(132px, calc((100svh - var(--chu-mo-dau, 552px)) * .5625), 200px);
   }
 }
 /* Điện thoại màn thấp (iPhone SE, Android nhỏ): bỏ dòng ghi chú lặp lại ở phần tư vấn, gọn chữ để điện thoại mẫu lộ ra nhiều hơn */
@@ -363,3 +363,67 @@ body.parent-brand .dt-thanh { position: relative; z-index: 2; padding: 6px 16px 
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 6px 20px -12px rgb(17 17 17 / .4); }
 @media (max-width: 760px) { body.parent-brand .dt-thanh { padding: 5px 14px 5px 5px; } }
 @media (max-width: 420px) { body.parent-brand .dt-goi-y { display: none; } }
+
+/* ======================================================================
+   TIÊU ĐỀ MÀN HÌNH ĐẦU — khung ngắm máy quay + tia quét mã vạch
+   Bốn góc khung ôm sát chữ, chấm REC và đồng hồ quay; một vạch quét chạy qua mã vạch logo rồi lướt qua tiêu đề.
+   ====================================================================== */
+body.parent-brand .san-khau .khung-ngam { --le: clamp(12px, 1.6vw, 22px); position: relative; width: fit-content; max-width: 100%;
+  margin: calc(var(--le) + 6px) 0 0 calc(var(--le) * -.0); padding: 0; isolation: isolate; }
+body.parent-brand .khung-goc i { position: absolute; width: clamp(14px, 1.6vw, 22px); aspect-ratio: 1; border: 0 solid var(--bp-logo); pointer-events: none; }
+body.parent-brand .khung-goc i:nth-child(1) { top: calc(var(--le) * -1); left: calc(var(--le) * -1); border-width: 2px 0 0 2px; }
+body.parent-brand .khung-goc i:nth-child(2) { top: calc(var(--le) * -1); right: calc(var(--le) * -1); border-width: 2px 2px 0 0; }
+body.parent-brand .khung-goc i:nth-child(3) { bottom: calc(var(--le) * -.55); left: calc(var(--le) * -1); border-width: 0 0 2px 2px; }
+body.parent-brand .khung-goc i:nth-child(4) { bottom: calc(var(--le) * -.55); right: calc(var(--le) * -1); border-width: 0 2px 2px 0; }
+body.parent-brand .khung-rec { position: absolute; right: calc(var(--le) * -1); bottom: calc(100% + var(--le) + 6px); display: inline-flex; align-items: center; gap: 6px;
+  font-size: clamp(.66rem, .8vw, .78rem); font-weight: 700; letter-spacing: .06em; color: var(--bp-muc-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+body.parent-brand .khung-rec b { width: 7px; height: 7px; border-radius: 50%; background: var(--bp-logo); }
+body.parent-brand .khung-tc { font-weight: 600; letter-spacing: .02em; color: var(--bp-muc-3); }
+/* tia quét: vạch mực mảnh + dải sáng; nằm trên chữ, hòa trộn "screen" nên chỉ làm chữ lóe sáng, nền trắng giữ nguyên */
+body.parent-brand .tia-quet { position: absolute; inset: -6px -10px; pointer-events: none; overflow: hidden; z-index: 2; opacity: 0; }
+body.parent-brand .tia-quet::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 34%; translate: -110% 0;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / .0) 20%, rgb(255 255 255 / .62) 72%, rgb(255 255 255 / .85) 96%, transparent);
+  mix-blend-mode: screen; }
+body.parent-brand .tia-quet::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 2px; translate: -10px 0; background: var(--bp-logo);
+  box-shadow: 0 0 10px 1px rgb(17 17 17 / .35); }
+/* mã vạch: vạch quét chạy qua khi tia sắp lướt tiêu đề */
+body.parent-brand .san-khau .ma-vach { position: relative; overflow: visible; }
+body.parent-brand .san-khau .ma-vach::after { content: ""; position: absolute; top: -5px; bottom: -5px; left: 0; width: 2px; background: var(--bp-logo); opacity: 0;
+  box-shadow: 0 0 8px rgb(17 17 17 / .4); }
+
+@media (max-width: 760px) {
+  body.parent-brand .san-khau .khung-ngam { --le: 9px; margin-top: 24px; margin-left: 9px; }
+  body.parent-brand .khung-goc i { width: 12px; border-color: var(--bp-logo); }
+  body.parent-brand .khung-rec { font-size: .62rem; gap: 5px; }
+  body.parent-brand .khung-rec b { width: 6px; height: 6px; }
+}
+@media (min-width: 761px) { body.parent-brand .san-khau .khung-ngam { margin-left: calc(var(--le)); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* vào trang: các góc khung bật ra sau khi chữ đã lên, REC hiện, rồi chu kỳ quét bắt đầu */
+  body.parent-brand .khung-goc i { animation: bp-goc-vao .7s var(--bp-mem) .75s both; }
+  body.parent-brand .khung-goc i:nth-child(2) { animation-delay: .82s; }
+  body.parent-brand .khung-goc i:nth-child(3) { animation-delay: .89s; }
+  body.parent-brand .khung-goc i:nth-child(4) { animation-delay: .96s; }
+  body.parent-brand .khung-rec { animation: bp-hien-len .6s var(--bp-mem) 1.05s both; }
+  body.parent-brand .khung-rec b { animation: bp-nhap-nhay 1.2s steps(1, end) 1.4s infinite; }
+  body.parent-brand .tia-quet { animation: bp-tia-hien 7s linear 1.6s infinite; }
+  body.parent-brand .tia-quet::before { animation: bp-dai-sang 7s cubic-bezier(.55,.1,.35,1) 1.6s infinite; }
+  body.parent-brand .tia-quet::after { animation: bp-vach-quet 7s cubic-bezier(.55,.1,.35,1) 1.6s infinite; }
+  body.parent-brand .san-khau .ma-vach::after { animation: bp-quet-ma 7s cubic-bezier(.45,0,.55,1) 1.6s infinite; }
+  body.dung-chuyen-dong :is(.khung-rec b, .tia-quet, .tia-quet::before, .tia-quet::after, .san-khau .ma-vach::after) { animation-play-state: paused !important; }
+  body.parent-brand .khung-ngam:hover .tia-quet { animation-duration: 7s; }
+}
+@keyframes bp-goc-vao { from { opacity: 0; scale: 1.9; } to { opacity: 1; scale: 1; } }
+@keyframes bp-nhap-nhay { 0% { opacity: 1; } 50% { opacity: .15; } }
+/* chu kỳ 7 giây: 0–9% quét mã vạch, 9–30% quét tiêu đề, phần còn lại nghỉ */
+@keyframes bp-quet-ma { 0% { left: 0; opacity: 0; } 1% { opacity: 1; } 9% { left: calc(100% - 2px); opacity: 1; } 10%, 100% { left: calc(100% - 2px); opacity: 0; } }
+@keyframes bp-tia-hien { 0%, 8% { opacity: 0; } 9%, 30% { opacity: 1; } 32%, 100% { opacity: 0; } }
+@keyframes bp-vach-quet { 0%, 9% { left: 0; } 30%, 100% { left: 100%; } }
+@keyframes bp-dai-sang { 0%, 9% { left: 0; translate: -110% 0; } 30%, 100% { left: 100%; translate: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { body.parent-brand .khung-rec b { opacity: 1; } }
+@media (forced-colors: active) { body.parent-brand :is(.tia-quet, .san-khau .ma-vach::after) { display: none; } body.parent-brand .khung-goc i { border-color: CanvasText; } body.parent-brand .khung-rec b { background: CanvasText; } }
+@media print { body.parent-brand :is(.khung-goc, .khung-rec, .tia-quet) { display: none; } }
+/* chừa chỗ cho góc dưới của khung ngắm trước mã vạch */
+body.parent-brand .san-khau .khung-ngam + .ma-vach { margin-top: clamp(26px, 3.6svh, 36px); }
+@media (max-width: 760px) { body.parent-brand .san-khau .khung-ngam + .ma-vach { margin-top: 14px; } }

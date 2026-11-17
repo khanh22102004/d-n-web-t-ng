@@ -258,7 +258,26 @@
       $("tuong-dung").setAttribute("aria-label", tamDung ? "Chạy tiếp tự xoay" : "Dừng tự xoay");
       dtCapNhat();
     });
-    veDienThoai(); ganXoay();
+    veDienThoai(); ganXoay(); chayDongHoQuay();
+  }
+  // Đồng hồ quay trong khung ngắm ở màn hình đầu: giờ:phút:giây:khung (25 khung/giây), chỉ chạy khi trang đang hiện và không tạm dừng.
+  function chayDongHoQuay() {
+    const tc = $("khung-tc");
+    if (!tc || itChuyenDong) return;
+    const hai = n => String(n).padStart(2, "0");
+    let goc = performance.now(), dung = 0, truoc = -1;
+    const ve = t => {
+      if (tamDung || document.hidden) { dung = dung || t; return requestAnimationFrame(ve); }
+      if (dung) { goc += t - dung; dung = 0; }
+      const khung = Math.floor((t - goc) / 40);
+      if (khung !== truoc) {
+        truoc = khung;
+        const s = Math.floor(khung / 25);
+        tc.textContent = `${hai(Math.floor(s / 3600))}:${hai(Math.floor(s / 60) % 60)}:${hai(s % 60)}:${hai(khung % 25)}`;
+      }
+      requestAnimationFrame(ve);
+    };
+    requestAnimationFrame(ve);
   }
 
   // ---------- Điện thoại ở màn hình đầu: lướt các video mẫu như đang xem TikTok ----------
@@ -513,12 +532,12 @@
   }
   let dtBatDauVideo = () => {};
   // ---------- Xoay cụm điện thoại sang mẫu trước / kế ----------
-  let dangXoay = false;
+  let dangXoay = false, choXoay = 0;   // choXoay: hướng khách vừa vuốt/bấm trong lúc máy đang xoay, làm ngay khi xoay xong
   const dtTuThe = dx => `perspective(1100px) translateX(${dx * .55}px) rotateY(${dx * .16}deg)`;
   function dtXoay(huong, dx = 0) {
     const may = $("dien-thoai");
     may.style.transform = "";
-    if (dangXoay) return;
+    if (dangXoay) { choXoay = huong; return; }
     if (itChuyenDong || !may.animate) { dtHien(dt.i + huong, huong); return; }
     dangXoay = true;
     const lech = `perspective(1100px) translateX(${-huong * 58}%) rotateY(${-huong * 78}deg) scale(.84)`;
@@ -531,7 +550,7 @@
         return may.animate([{ transform: vao, opacity: .2 }, { transform: "none", opacity: 1 }], { duration: 430, easing: "cubic-bezier(.16,.84,.24,1)" }).finished;
       })
       .catch(() => {})
-      .finally(() => { dangXoay = false; });
+      .finally(() => { dangXoay = false; if (choXoay) { const h = choXoay; choXoay = 0; dtXoay(h); } });
   }
   function veDienThoai() {
     const uuTien = maNoiBat.map(ma => mau[ma]).filter(Boolean);
@@ -560,7 +579,7 @@
     const cum = may.closest(".dt-cum") || may;
     let keo = null;
     cum.addEventListener("pointerdown", e => {
-      if (e.button > 0 || dangXoay) return;
+      if (e.button > 0) return;
       keo = { x: e.clientX, y: e.clientY, dx: 0, id: e.pointerId, bat: false };
     });
     cum.addEventListener("pointermove", e => {
