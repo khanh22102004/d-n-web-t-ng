@@ -1519,7 +1519,7 @@
     const loi = tao("p", "bao-loi"); loi.hidden = true; loi.setAttribute("role", "alert");
     const nut = tao("button", "nut tv-gui", nutGui); nut.type = "submit";
     f.append(tao("h4", "", tieuDe), hopSp, hopDt, kenh, dongY, bay, loi, nut,
-      tao("p", "form-goi-y", `Chúng tôi phản hồi trong ${cauHinh.hen_phan_hoi}. Thông tin chỉ được gửi khi Quý khách hàng bấm nút.`));
+      tao("p", "form-goi-y", `Chúng tôi phản hồi trong ${cauHinh.hen_phan_hoi}.`));
     let maGui = "";
     f.addEventListener("input", () => { maGui = ""; loi.hidden = true; });
     f.addEventListener("submit", async e => {
