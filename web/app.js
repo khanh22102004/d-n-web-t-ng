@@ -599,11 +599,7 @@
     $("dt-ben-trai").addEventListener("click", () => dtXoay(-1));
     $("dt-ben-phai").addEventListener("click", () => dtXoay(1));
     $("dt-tim").addEventListener("click", dtThaTim);
-    // Chạm vào khoảng trống bất kỳ trên màn hình đầu (không phải nút hay liên kết) cũng bật tiếng — trừ iPhone, và trừ khi khách đã tự tắt.
-    $("mo-dau").addEventListener("click", e => {
-      if (dt.tieng || dt.tatTay || laIOS || !dt.yt?.dangPhat || e.target.closest("a, button, input, textarea, select, label, summary, #dien-thoai")) return;
-      dtBatTatTieng();
-    });
+    // Tiếng chỉ bật khi khách bấm đúng vào video trên điện thoại hoặc nút "Bật tiếng" (không bật khi chạm chỗ khác).
     const chum = (loai, n) => { if (!itChuyenDong) for (let k = 0; k < n; k += 1) setTimeout(() => bayLen(loai), k * 70); };
     $("dt-hoi").addEventListener("click", () => { chum("binh-luan", 4); chonTuVan(dt.ds[dt.i]); });
     $("dt-chia-se").addEventListener("click", () => { chum("chia-se", 5); dtChiaSe(); });
@@ -655,20 +651,6 @@
     }
   }
 
-  // ---------- Cú chạm đầu tiên ở bất kỳ đâu trên trang thì bật tiếng video trên máy ----------
-  // Trình duyệt chỉ cho có tiếng sau khi khách chạm/bấm vào trang; nên lần chạm đầu tiên, dù ở đâu, cũng dùng để bật tiếng.
-  function ganChamDauTien() {
-    const thoi = () => { document.removeEventListener("click", thu, true); document.removeEventListener("keydown", thu, true); };
-    const thu = e => {
-      if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
-      if (dt.tieng || dt.tatTay) { thoi(); return; }               // đã có tiếng, hoặc khách đã tự tắt: thôi
-      // Chưa bật được lúc này (video chưa chạy, khách bấm chính nút tiếng): chờ lần chạm sau.
-      if ($("mo-dau").hidden || e.target.closest?.("#dt-mo") || !dt.yt?.dangPhat) return;
-      if (laIOS && !dt.ds[dt.i]?.doan) { thoi(); return; }         // iPhone không cho trang bật tiếng video YouTube hộ khách
-      thoi(); dtBatTatTieng();
-    };
-    document.addEventListener("click", thu, true); document.addEventListener("keydown", thu, true);
-  }
 
   // ---------- Menu đầu trang: "Kiểu video" mở bảng ngành hàng (máy tính), nút Menu mở trang menu (điện thoại) ----------
   function oKieu(nhom) {
@@ -1591,7 +1573,7 @@
     }
     if (cauHinh.zalo) { ["link-zalo", "zalo-cam-on"].forEach(id => { $(id).href = cauHinh.zalo; $(id).hidden = false; }); }
     veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); veMenu(); ganXemTruoc(); veDanhGia(); veCamKet(); ganHieuUng(); ganNghieng(); gan3D();
-    await khoiPhuc(); khoiTaoLichSu(); ganChamDauTien();
+    await khoiPhuc(); khoiTaoLichSu();
     document.querySelectorAll("[data-bat-dau]").forEach(b => b.addEventListener("click", batDau));
     $("tiep-tuc").addEventListener("click", async () => {
       if (!kiemTraNhom()) return;

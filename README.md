@@ -54,7 +54,7 @@ Màn hình đầu  →  Thư viện 13 video mẫu  →  Tư vấn nhanh (2 ô) 
 ### Phía khách
 
 - **Màn hình đầu:** tiêu đề "Video AI chân thật chất lượng cao", ba điện thoại xòe quạt phát video mẫu, nền là tường poster các mẫu trôi chậm. Mẫu đầu tiên là ST025 (hoạt hình giới thiệu món ăn).
-- **Điện thoại có tiếng:** video chạy không tiếng khi vào trang; lần chạm đầu tiên ở bất kỳ đâu trên trang bật tiếng, trừ khi khách đã tự tắt. Đây là giới hạn của trình duyệt: không trang nào tự phát có tiếng khi khách chưa tương tác.
+- **Điện thoại có tiếng:** video chạy không tiếng khi vào trang; tiếng chỉ bật khi khách bấm vào video trên điện thoại hoặc nút "Bật tiếng" (chạm chỗ khác, như ô điền thông tin, không bật tiếng). Đây là giới hạn của trình duyệt: không trang nào tự phát có tiếng khi khách chưa tương tác.
 - **Thư viện mẫu:** 13 mẫu, lọc "Tất cả / Mẫu nổi bật / Ngành hàng". Bấm ảnh mở khung xem video có tiếng, lướt qua các mẫu, và có nút "Nhận báo giá làm video kiểu này" mở form ngay dưới video.
 - **Tư vấn nhanh:** chỉ cần tên sản phẩm và số điện thoại, chọn Zalo hoặc gọi điện, đánh dấu đồng ý. Gửi xong có thể trả lời thêm (tên, thời hạn, ngân sách, nơi đăng), không bắt buộc, trong 24 giờ.
 - **Phiếu chi tiết:** 20 câu chia 6 phần, lưu nháp sau khi khách đồng ý, Back/Forward của trình duyệt dùng được, khôi phục khi tải lại hoặc mất mạng, gửi kèm tối đa 3 ảnh.
@@ -322,6 +322,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 |---|---|---|
 | 17/11/2026 | Đầu thư viện nổi | Tiêu đề "Anh chị muốn sản phẩm xuất hiện như thế nào?" đặt trong khung ngắm trắng, nổi lên và có vạch sáng quét qua một lần khi cuộn tới; dòng "Bấm vào ảnh để xem video có tiếng" thành thẻ kính mờ có biểu tượng sóng âm nhấp nhô |
 | 17/11/2026 | Đầu thư viện: dòng thời gian | Bên phải tiêu đề thư viện là dòng thời gian dựng phim thu nhỏ: rãnh hình gồm các đoạn clip mang tên kiểu video có trong thư viện (dài theo số mẫu), rãnh tiếng có sóng âm, kim phát chạy ngang; kim tới đoạn nào thì đoạn sáng lên và dòng chữ tự gõ dưới tiêu đề đổi sang kiểu đó; thẻ "Bấm vào ảnh để xem video có tiếng" có sóng âm nhấp nhô; dừng theo nút dừng và chế độ giảm chuyển động |
+| 17/11/2026 | Tiếng chỉ bật khi bấm video, cân phần tư vấn | Bỏ việc tự bật tiếng khi khách chạm bất kỳ đâu (kể cả ô điền thông tin); tiếng chỉ bật khi bấm vào video trên điện thoại hoặc nút "Bật tiếng". Phần tư vấn: điện thoại minh họa nhỏ lại, khối chữ căn giữa theo nó, cột trái cao bằng khung điền thông tin |
 | 17/11/2026 | Gọn khung tư vấn | Bỏ các dòng chữ phụ trong khung tư vấn nhanh: chú thích dưới khung video minh họa, "Quý khách hàng chỉ cần cho biết sản phẩm và số điện thoại.", "Chỉ dùng để tư vấn về yêu cầu này.", "Thông tin chỉ được gửi khi Quý khách hàng bấm nút…" |
 | 17/11/2026 | Góc chia sẻ | Đường dẫn "Góc chia sẻ của B Productions" chuyển từ góc tiêu đề xuống thành ô thứ nhất (dẫn tới bprovn.com/blog, thay bài 5 tiêu chí); ô thứ hai giữ bài video marketing |
 | 17/11/2026 | Đổi bài đọc thêm | Góc chia sẻ thay bài "Video TikTok" bằng bài "Cách chọn công ty làm phim quảng cáo uy tín: 5 tiêu chí" trên bprovn.com |

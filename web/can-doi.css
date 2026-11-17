@@ -586,3 +586,12 @@ body.parent-brand .thuong-hieu-dau { justify-items: center; text-align: center; 
 body.parent-brand .thuong-hieu-logo { margin-left: auto; margin-right: auto; }
 body.parent-brand .thuong-hieu-dau p { margin-left: auto; margin-right: auto; }
 @media (max-width: 760px) { body.parent-brand .thuong-hieu-dau { padding-bottom: 40px; } }
+
+/* Phần tư vấn: cột trái (chữ + điện thoại minh họa) cao bằng khung điền thông tin; điện thoại nhỏ lại, khối chữ căn giữa theo nó */
+@media (min-width: 761px) {
+  body.parent-brand .tu-van { align-items: center; }
+  body.parent-brand .tu-van-hang { align-items: center; gap: clamp(24px, 3vw, 40px); margin-top: clamp(22px, 2.6vw, 30px); }
+  body.parent-brand .tu-van-hang .tv-may { width: clamp(118px, 9.5vw, 136px); padding: 5px; border-radius: 24px; }
+  body.parent-brand .tu-van-hang .tv-may .tv-man { border-radius: 19px; }
+  body.parent-brand .tu-van-hang .tv-xt-chu { font-size: .74rem; line-height: 1.3; }
+}
