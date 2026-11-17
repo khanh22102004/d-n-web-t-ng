@@ -26,7 +26,8 @@ Toàn bộ nằm ở `web/can-doi.css`, nạp sau cùng trên trang chủ, chín
 | https://www.bprovn.com/ | Tên B Productions, tinh thần truyền tải thông điệp qua phim sáng tạo |
 | https://www.bprovn.com/blog | Nền nhận diện trắng/xám/đen và nguồn tuyển bài video |
 | https://www.bprovn.com/dich-vu-video | TVC, video giới thiệu doanh nghiệp, animation/motion graphics; dùng cho đoạn giới thiệu nền tảng công ty |
-| https://www.bprovn.com/blog/dich-vu-san-xuat-video-tiktok | Cách phát triển ý tưởng/kịch bản, duyệt và sản xuất video ngắn; liên kết đọc thêm |
+| https://www.bprovn.com/blog/dich-vu-san-xuat-video-tiktok | Cách phát triển ý tưởng/kịch bản, duyệt và sản xuất video ngắn; từng là liên kết đọc thêm, đã thay ngày 17/11/2026 |
+| https://www.bprovn.com/blog/cach-chon-cong-ty-lam-phim-quang-cao-uy-tin | Năm tiêu chí chọn công ty làm phim quảng cáo (hồ sơ thực tế, đội ngũ và thiết bị, hiểu marketing và thương hiệu, phản hồi khách cũ, báo giá minh bạch); liên kết đọc thêm từ 17/11/2026 |
 | https://www.bprovn.com/blog/dich-vu-san-xuat-video-marketing | Các hình thức video, câu chuyện thương hiệu và ứng dụng AI; liên kết đọc thêm |
 
 Đã đọc nội dung và xem render trang blog trong Chromium. Trang mẹ dùng đen #1c1c1c, trắng, các mảng xám và điểm cam ở điều hướng. Bản này dùng chữ đậm, độ tương phản và các mảng trắng/charcoal để tạo nhịp. Phần đầu dùng trắng #ffffff, xám ấm sáng chuyển #e8e4de đến #dad6cf, chữ than #202224. Sắc màu đến từ chính thư viện video/ảnh mẫu, dùng cùng nguồn ở lớp nền và cụm điện thoại. Vùng chữ được giữ sáng và tương phản cao.
