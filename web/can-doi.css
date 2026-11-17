@@ -618,3 +618,6 @@ body.parent-brand .thuong-hieu-dau p { margin-left: auto; margin-right: auto; }
 }
 @media (prefers-reduced-motion: reduce) { body.parent-brand :is(.menu > li > a, .menu-nut)::before { transition: none; } }
 body.parent-brand .menu-dt-dau-ds { margin: 0 0 18px; }
+/* Hàng cuối thư viện chỉ còn nút tư vấn (dòng đếm mẫu chỉ dành cho trình đọc màn hình) */
+body.parent-brand .mau-toi .mau-duoi { justify-content: flex-end; }
+@media (max-width: 760px) { body.parent-brand .mau-toi .mau-duoi { align-items: stretch; } }
