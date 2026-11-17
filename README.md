@@ -58,7 +58,7 @@ Màn hình đầu  →  Thư viện 13 video mẫu  →  Tư vấn nhanh (2 ô) 
 - **Thư viện mẫu:** 13 mẫu, lọc "Tất cả / Mẫu nổi bật / Ngành hàng". Bấm ảnh mở khung xem video có tiếng, lướt qua các mẫu, và có nút "Nhận báo giá làm video kiểu này" mở form ngay dưới video.
 - **Tư vấn nhanh:** chỉ cần tên sản phẩm và số điện thoại, chọn Zalo hoặc gọi điện, đánh dấu đồng ý. Gửi xong có thể trả lời thêm (tên, thời hạn, ngân sách, nơi đăng), không bắt buộc, trong 24 giờ.
 - **Phiếu chi tiết:** 20 câu chia 6 phần, lưu nháp sau khi khách đồng ý, Back/Forward của trình duyệt dùng được, khôi phục khi tải lại hoặc mất mạng, gửi kèm tối đa 3 ảnh.
-- Cam kết, giới thiệu B PRODUCTIONS, Góc chia sẻ gồm hai bài đọc thêm từ blog công ty.
+- Giới thiệu B PRODUCTIONS, Góc chia sẻ gồm đường dẫn blog công ty và một bài đọc thêm.
 - **Gộp yêu cầu:** khách gửi tư vấn nhanh rồi gửi phiếu chi tiết với cùng số điện thoại thì hai yêu cầu thành một.
 - **Nguồn khách:** đọc `?nguon=tiktok|facebook|zalo` hoặc `utm_source`.
 
@@ -80,7 +80,7 @@ Một hệ màu cho cả trang. **Màu chính lấy từ màn hình đầu**: gi
 | Vai trò | Biến CSS | Mã | Dùng cho |
 |---|---|---|---|
 | Giấy | `--bp-giay` | `#ffffff` | Nền chính, thẻ form |
-| Đá 1 | `--bp-da-1` | `#f5f3ef` | Phần "Về B Productions", cam kết, nút phụ khi rê chuột |
+| Đá 1 | `--bp-da-1` | `#f5f3ef` | Phần "Về B Productions", nút phụ khi rê chuột |
 | Đá 2 | `--bp-da-2` | `#ebe7e1` | Đường kẻ, nhãn mã mẫu |
 | Đá 3 | `--bp-da-3` | `#dad6cf` | Cuối dải nền màn hình đầu |
 | Mực than | `--bp-muc` | `#202224` | Chữ, nút chính, dải thư viện mẫu, dải tư vấn |
@@ -88,7 +88,7 @@ Một hệ màu cho cả trang. **Màu chính lấy từ màn hình đầu**: gi
 | Logo | `--bp-logo` | `#111111` | Cột "B Productions làm", chân trang, khung điện thoại, thanh tiến độ |
 | Báo lỗi | `--do` | `#b3261e` | Chỉ dùng cho lỗi |
 
-Nhịp các phần: màn hình đầu (giấy → đá) · thư viện (mực than) · về B Productions (đá) · cam kết (đá) · tư vấn (mực than) · Góc chia sẻ (giấy) · chân trang (đen logo).
+Nhịp các phần: màn hình đầu (giấy → đá) · thư viện (mực than) · về B Productions (đá) · tư vấn (mực than) · Góc chia sẻ (giấy) · chân trang (đen logo).
 
 ### Logo và điểm nhấn
 
@@ -104,7 +104,7 @@ Một nhịp chung, vừa phải:
 |---|---|
 | Màn hình đầu (một lần khi tải) | Ba dòng tiêu đề trồi lên lần lượt; vạch mã vạch vẽ ra; mô tả và nút hiện lên; hai điện thoại bên xòe ra từ máy giữa |
 | Mỗi phần khi cuộn tới (một lần) | Phần mờ → rõ, trồi lên 22 px; vạch mã vạch trên tiêu đề vẽ ra; thẻ và dòng bên trong nối đuôi nhau |
-| Rê chuột | Thẻ mẫu và bài đọc nhấc lên; mũi tên trong nút nhích; vạch mực trên thẻ cam kết vẽ ra |
+| Rê chuột | Thẻ mẫu và bài đọc nhấc lên; mũi tên trong nút nhích |
 | Liên tục | Tường poster ở màn hình đầu trôi chậm; điện thoại tự chuyển mẫu |
 
 Khách bật **giảm chuyển động** thì mọi hiệu ứng tắt, nội dung hiện đầy đủ ngay. Nút "Dừng chuyển động" dưới điện thoại dừng tường poster và việc tự chuyển mẫu. Tường poster cũng dừng khi khách rê chuột lên điện thoại, mở hộp thoại, chuyển tab hoặc bật tiết kiệm dữ liệu.
@@ -322,6 +322,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 |---|---|---|
 | 17/11/2026 | Đầu thư viện nổi | Tiêu đề "Anh chị muốn sản phẩm xuất hiện như thế nào?" đặt trong khung ngắm trắng, nổi lên và có vạch sáng quét qua một lần khi cuộn tới; dòng "Bấm vào ảnh để xem video có tiếng" thành thẻ kính mờ có biểu tượng sóng âm nhấp nhô |
 | 17/11/2026 | Đầu thư viện: dòng thời gian | Bên phải tiêu đề thư viện là dòng thời gian dựng phim thu nhỏ: rãnh hình gồm các đoạn clip mang tên kiểu video có trong thư viện (dài theo số mẫu), rãnh tiếng có sóng âm, kim phát chạy ngang; kim tới đoạn nào thì đoạn sáng lên và dòng chữ tự gõ dưới tiêu đề đổi sang kiểu đó; thẻ "Bấm vào ảnh để xem video có tiếng" có sóng âm nhấp nhô; dừng theo nút dừng và chế độ giảm chuyển động |
+| 17/11/2026 | Bỏ phần cam kết | Bỏ phần "Cảm ơn Quý khách hàng đã tin tưởng" (4 cam kết và dòng gọi trực tiếp); số điện thoại vẫn ở phần tư vấn. Trang chủ còn: màn hình đầu → thư viện → về B Productions → tư vấn → Góc chia sẻ |
 | 17/11/2026 | Tiếng chỉ bật khi bấm video, cân phần tư vấn | Bỏ việc tự bật tiếng khi khách chạm bất kỳ đâu (kể cả ô điền thông tin); tiếng chỉ bật khi bấm vào video trên điện thoại hoặc nút "Bật tiếng". Phần tư vấn: điện thoại minh họa nhỏ lại, khối chữ căn giữa theo nó, cột trái cao bằng khung điền thông tin |
 | 17/11/2026 | Gọn khung tư vấn | Bỏ các dòng chữ phụ trong khung tư vấn nhanh: chú thích dưới khung video minh họa, "Quý khách hàng chỉ cần cho biết sản phẩm và số điện thoại.", "Chỉ dùng để tư vấn về yêu cầu này.", "Thông tin chỉ được gửi khi Quý khách hàng bấm nút…" |
 | 17/11/2026 | Góc chia sẻ | Đường dẫn "Góc chia sẻ của B Productions" chuyển từ góc tiêu đề xuống thành ô thứ nhất (dẫn tới bprovn.com/blog, thay bài 5 tiêu chí); ô thứ hai giữ bài video marketing |

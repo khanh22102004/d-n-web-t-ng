@@ -730,16 +730,6 @@
       return li;
     }));
   }
-  // Cam kết: thêm cách liên hệ trực tiếp nếu studio đã cấu hình số điện thoại hoặc Zalo.
-  function veCamKet() {
-    const p = $("cam-ket-lien-he"), cach = [];
-    if (cauHinh.lien_he && cauHinh.lien_he_url) { const a = tao("a", "", cauHinh.lien_he); a.href = cauHinh.lien_he_url; cach.push(["Gọi trực tiếp ", a]); }
-    if (cauHinh.zalo) { const a = tao("a", "", "nhắn Zalo"); a.href = cauHinh.zalo; a.target = "_blank"; a.rel = "noopener"; cach.push([a]); }
-    if (!cach.length) return;
-    p.append("Muốn hỏi trước khi để lại thông tin? ");
-    cach.forEach((c, i) => { if (i) p.append(" hoặc "); p.append(...c); });
-    p.append("."); p.hidden = false;
-  }
 
   // ---------- Hiệu ứng khi cuộn: mỗi phần xuất hiện theo một kiểu riêng, chỉ một lần ----------
   // Không có JavaScript hoặc khách chọn giảm chuyển động thì mọi thứ hiện sẵn, không ẩn gì.
@@ -765,7 +755,7 @@
       const chu = dong.textContent.trim(), tu = dong.classList.contains("h1-nen") ? [chu] : chu.split(/\s+/);
       dong.replaceChildren(...tu.flatMap((t, k) => { const ngoai = tao("span", "h1-tu"), trong = tao("span", "", t); trong.dataset.chu = t; trong.style.setProperty("--i", thuTu); thuTu += 1; ngoai.append(trong); return k ? [" ", ngoai] : [ngoai]; }));
     });
-    ["mau", "ve-b-productions", "danh-gia", "cam-ket", "tu-van", "goc-chia-se"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
+    ["mau", "ve-b-productions", "danh-gia", "tu-van", "goc-chia-se"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
     document.querySelectorAll("#luoi-mau, #loc, .nang-luc-goc, .thuong-hieu-dau, .so-sanh-bang, .so-sanh-chan, .tu-van-hop, .tv-xem-truoc, .bai-viet-luoi, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
     const qs = new IntersectionObserver(ds => ds.forEach(e => { if (e.isIntersecting) { e.target.classList.add("lo"); qs.unobserve(e.target); } }),
       { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
@@ -1233,7 +1223,7 @@
   function hien(man) {
     document.body.classList.toggle("man-phieu", man === "phieu");
     document.body.classList.toggle("man-cam-on", man === "cam-on");
-    ["mo-dau", "mau", "ve-b-productions", "danh-gia", "cam-ket", "tu-van", "goc-chia-se", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
+    ["mo-dau", "mau", "ve-b-productions", "danh-gia", "tu-van", "goc-chia-se", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
     $("danh-gia").hidden = man !== "dau" || !(cauHinh.danh_gia || []).length;
     if (man !== "dau") dongMenu();
     document.querySelectorAll(".dau-trang nav").forEach(n => { n.hidden = man !== "dau"; });
@@ -1572,7 +1562,7 @@
       }
     }
     if (cauHinh.zalo) { ["link-zalo", "zalo-cam-on"].forEach(id => { $(id).href = cauHinh.zalo; $(id).hidden = false; }); }
-    veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); veMenu(); ganXemTruoc(); veDanhGia(); veCamKet(); ganHieuUng(); ganNghieng(); gan3D();
+    veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); veMenu(); ganXemTruoc(); veDanhGia(); ganHieuUng(); ganNghieng(); gan3D();
     await khoiPhuc(); khoiTaoLichSu();
     document.querySelectorAll("[data-bat-dau]").forEach(b => b.addEventListener("click", batDau));
     $("tiep-tuc").addEventListener("click", async () => {
