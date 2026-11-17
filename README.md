@@ -92,8 +92,8 @@ Nhịp các phần: màn hình đầu (giấy → đá) · thư viện (mực th
 
 ### Logo và điểm nhấn
 
-- Logo gốc của công ty: `web/logo-b-productions.png` (ở đầu trang chính, chính sách, nhân viên); chân trang dùng cùng tệp, đảo sang trắng bằng CSS. Favicon: `web/bieu-tuong.png`.
-- **Họa tiết mã vạch** lấy từ logo (biến `--bp-ma-vach`) là điểm nhấn xuyên suốt: dưới tiêu đề lớn, phía trên tiêu đề mỗi phần, và khối lớn ở phần "Về B Productions".
+- Logo gốc của công ty: `web/logo-b-productions.png` (ở đầu trang chính, chính sách, nhân viên); logo **luôn giữ chữ đen gốc**, không đảo màu: ở chân trang nền tối, logo đặt trên một ô trắng; ở phần "Về B Productions", logo nằm trên thẻ nền giấy trắng. Favicon: `web/bieu-tuong.png`.
+- **Họa tiết mã vạch** lấy từ logo (biến `--bp-ma-vach`) là điểm nhấn xuyên suốt: dưới tiêu đề lớn (kèm vạch quét) và phía trên tiêu đề mỗi phần. Bốn góc khung ngắm máy quay ôm tiêu đề màn hình đầu và thẻ logo ở phần "Về B Productions".
 - Chữ: Inter và Inter Display (tệp cục bộ trong `web/fonts/`, giấy phép OFL).
 
 ### Hiệu ứng
@@ -320,7 +320,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
-| 17/11/2026 | Thẻ công ty mẹ | Khối B Productions ở mục "Về B Productions" thành thẻ nền mực: logo thật màu trắng thay cho chữ gõ và mã vạch vẽ bằng CSS, bốn góc khung ngắm như màn hình đầu, nút "Khám phá B Productions" viền trắng, đổi nền trắng khi rê chuột |
+| 17/11/2026 | Thẻ công ty mẹ | Khối B Productions ở mục "Về B Productions" thành thẻ nền giấy trắng với logo thật chữ đen (thay chữ gõ và mã vạch vẽ bằng CSS), bốn góc khung ngắm như màn hình đầu, nút "Khám phá B Productions" nền mực; logo luôn giữ chữ đen gốc, ở chân trang nền tối đặt trên ô trắng |
 | 17/11/2026 | Tiêu đề khung ngắm | Tiêu đề màn hình đầu đặt trong khung ngắm máy quay: bốn góc bật ra sau khi chữ lên, chấm REC nhấp nháy và đồng hồ quay giờ:phút:giây:khung; cứ 7 giây một vạch quét chạy qua mã vạch logo rồi lướt qua tiêu đề kèm dải sáng; dừng theo nút dừng và chế độ giảm chuyển động; cú vuốt trong lúc máy đang xoay được thực hiện ngay sau đó |
 | 17/11/2026 | Cụm máy xoay | Bỏ hàng nút ‹ ⏸ ⤢ ›; cụm điện thoại tự xoay tròn sang mẫu kế, vuốt hoặc kéo ngang để xoay, bấm máy bên cạnh hoặc phím mũi tên cũng được; thanh dưới gồm nút dừng tự xoay và chấm vị trí; cột tim, bình luận, chia sẻ, xem lớn xếp kiểu TikTok kèm ảnh kênh; máy vẫn tự xoay khi video không tải được |
 | 17/11/2026 | Một khung hình | Màn hình đầu vừa đúng chiều cao cửa sổ: thanh đầu trang gọn lại, tiêu đề và điện thoại mẫu co theo chiều cao (svh); từ laptop 1280×720 tới màn 1920×1080 và điện thoại 360×780 trở lên thấy đủ tiêu đề, nút, điện thoại và nút điều khiển không cần lướt; chữ trong điện thoại mẫu co theo cỡ máy |
