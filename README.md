@@ -93,7 +93,7 @@ Nhịp các phần: màn hình đầu (giấy → đá) · thư viện (mực th
 ### Logo và điểm nhấn
 
 - Logo gốc của công ty: `web/logo-b-productions.png` (ở đầu trang chính, chính sách, nhân viên); logo **luôn giữ chữ đen gốc**, không đảo màu: ở chân trang nền tối, logo đặt trên một ô trắng; ở phần "Về B Productions", logo nằm trên thẻ nền giấy trắng. Favicon: `web/bieu-tuong.png`.
-- **Họa tiết mã vạch** lấy từ logo (biến `--bp-ma-vach`) là điểm nhấn xuyên suốt: dưới tiêu đề lớn (kèm vạch quét) và phía trên tiêu đề mỗi phần. Bốn góc khung ngắm máy quay ôm tiêu đề màn hình đầu và thẻ logo ở phần "Về B Productions".
+- **Họa tiết mã vạch** đo đúng từ logo gốc (biến `--bp-ma-vach`): 11 vạch cách đều, dày dần từ trái sang phải, khung tỉ lệ 365 : 205. Đây là điểm nhấn xuyên suốt: dưới tiêu đề lớn (kèm vạch quét) và phía trên tiêu đề mỗi phần. Bốn góc khung ngắm máy quay ôm tiêu đề màn hình đầu và thẻ logo ở phần "Về B Productions".
 - Chữ: Inter và Inter Display (tệp cục bộ trong `web/fonts/`, giấy phép OFL).
 
 ### Hiệu ứng
@@ -320,6 +320,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 17/11/2026 | Mã vạch đúng logo | Họa tiết mã vạch ở dưới tiêu đề lớn và trên tiêu đề các phần được dựng lại theo đúng mã vạch trong logo (11 vạch cách đều, dày dần 10 → 31 trên khung 365 × 205), thay cho mẫu sọc tự vẽ sai nhịp và sai tỉ lệ |
 | 17/11/2026 | Thẻ công ty mẹ | Khối B Productions ở mục "Về B Productions" thành thẻ nền giấy trắng với logo thật chữ đen (thay chữ gõ và mã vạch vẽ bằng CSS), bốn góc khung ngắm như màn hình đầu, nút "Khám phá B Productions" nền mực; logo luôn giữ chữ đen gốc, ở chân trang nền tối đặt trên ô trắng |
 | 17/11/2026 | Tiêu đề khung ngắm | Tiêu đề màn hình đầu đặt trong khung ngắm máy quay: bốn góc bật ra sau khi chữ lên, chấm REC nhấp nháy và đồng hồ quay giờ:phút:giây:khung; cứ 7 giây một vạch quét chạy qua mã vạch logo rồi lướt qua tiêu đề kèm dải sáng; dừng theo nút dừng và chế độ giảm chuyển động; cú vuốt trong lúc máy đang xoay được thực hiện ngay sau đó |
 | 17/11/2026 | Cụm máy xoay | Bỏ hàng nút ‹ ⏸ ⤢ ›; cụm điện thoại tự xoay tròn sang mẫu kế, vuốt hoặc kéo ngang để xoay, bấm máy bên cạnh hoặc phím mũi tên cũng được; thanh dưới gồm nút dừng tự xoay và chấm vị trí; cột tim, bình luận, chia sẻ, xem lớn xếp kiểu TikTok kèm ảnh kênh; máy vẫn tự xoay khi video không tải được |

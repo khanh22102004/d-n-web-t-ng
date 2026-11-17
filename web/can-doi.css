@@ -18,15 +18,15 @@ body.parent-brand {
   --bp-than-sang: #2c2f32;
   /* Màu phụ (logo) */
   --bp-logo: #111111;
-  /* Họa tiết mã vạch của logo: các vạch đen dày mỏng xen kẽ */
+  /* Họa tiết mã vạch đo đúng từ logo gốc (web/logo-b-productions.png): 11 vạch cách đều,
+     dày dần từ trái sang phải (10 → 31px trên khung 365 × 205px). Khung dùng luôn giữ tỉ lệ 365 : 205. */
   --bp-ma-vach: linear-gradient(90deg,
-    currentColor 0 6%, transparent 6% 9%, currentColor 9% 12%, transparent 12% 16%,
-    currentColor 16% 24%, transparent 24% 27%, currentColor 27% 29%, transparent 29% 34%,
-    currentColor 34% 40%, transparent 40% 43%, currentColor 43% 45%, transparent 45% 48%,
-    currentColor 48% 57%, transparent 57% 61%, currentColor 61% 63%, transparent 63% 66%,
-    currentColor 66% 72%, transparent 72% 76%, currentColor 76% 78%, transparent 78% 82%,
-    currentColor 82% 90%, transparent 90% 93%, currentColor 93% 95%, transparent 95% 97%,
-    currentColor 97% 100%);
+    currentColor 0% 2.74%, transparent 2.74% 9.32%, currentColor 9.32% 12.6%, transparent 12.6% 18.36%,
+    currentColor 18.36% 22.19%, transparent 22.19% 27.4%, currentColor 27.4% 32.05%, transparent 32.05% 36.71%,
+    currentColor 36.71% 41.92%, transparent 41.92% 45.75%, currentColor 45.75% 51.51%, transparent 51.51% 55.07%,
+    currentColor 55.07% 61.37%, transparent 61.37% 64.11%, currentColor 64.11% 70.96%, transparent 70.96% 73.15%,
+    currentColor 73.15% 80.55%, transparent 80.55% 82.47%, currentColor 82.47% 90.41%, transparent 90.41% 91.51%,
+    currentColor 91.51% 100%);
   --bp-mem: cubic-bezier(.2, .8, .2, 1);
   --muc: var(--bp-muc);
   --nhat: var(--bp-muc-3);
@@ -37,12 +37,12 @@ body.parent-brand {
 body.parent-brand ::selection { background: var(--bp-muc); color: #fff; }
 
 /* ---------- Điểm nhấn 1: vạch mã vạch của logo ---------- */
-.ma-vach { display: block; width: 96px; height: 24px; margin-top: 26px; color: var(--bp-logo); background: var(--bp-ma-vach); }
+.ma-vach { display: block; height: 30px; width: calc(30px * 365 / 205); margin-top: 26px; color: var(--bp-logo); background: var(--bp-ma-vach); }
 body.parent-brand :is(.muc-dau h2, .so-sanh h2, .tu-van h2, .cau-hoi-thuong-gap h2, .thuong-hieu-goc h2)::before {
   content: "";
   display: block;
-  width: 46px;
-  height: 16px;
+  height: 20px;
+  width: calc(20px * 365 / 205);
   margin-bottom: 18px;
   color: currentColor;
   background: var(--bp-ma-vach);
@@ -219,8 +219,8 @@ body.parent-brand .xem-ben .nut { background: var(--bp-muc); border-color: var(-
 @keyframes bp-xoe-phai { from { opacity: 0; translate: -60% 18px; } }
 
 @media (max-width: 760px) {
-  .ma-vach { width: 72px; height: 18px; margin-top: 16px; }
-  body.parent-brand :is(.muc-dau h2, .so-sanh h2, .tu-van h2, .cau-hoi-thuong-gap h2, .thuong-hieu-goc h2)::before { width: 38px; height: 13px; margin-bottom: 12px; }
+  .ma-vach { height: 24px; width: calc(24px * 365 / 205); margin-top: 16px; }
+  body.parent-brand :is(.muc-dau h2, .so-sanh h2, .tu-van h2, .cau-hoi-thuong-gap h2, .thuong-hieu-goc h2)::before { height: 17px; width: calc(17px * 365 / 205); margin-bottom: 12px; }
   body.parent-brand .thuong-hieu-dau::before { height: 26px; max-width: 160px; margin-bottom: 16px; }
   body.parent-brand .chan-trang { padding-bottom: 96px; }
   body.parent-brand .chan-trang .ct-logo { width: 104px; }
@@ -295,9 +295,9 @@ body.parent-brand .dt-tren { z-index: 7; }
   body.parent-brand .hero-note { margin-top: 6px; font-size: .8rem; line-height: 1.4; }
   body.parent-brand .san-khau .lien-chi-tiet { min-height: 40px; margin-top: 0; padding-block: 6px; }
   body.parent-brand .san-khau > .tuong { min-height: 0; padding: 6px 0 0; margin-top: 4px; }
-  /* chiều rộng điện thoại = phần chiều cao còn lại × 9/16, trong khoảng 132–200px */
+  /* chiều rộng điện thoại = phần chiều cao còn lại × 9/16, trong khoảng 124–200px */
   body.parent-brand .san-khau :is(.dien-thoai, .dien-thoai:hover, .dt-ben) {
-    width: clamp(132px, calc((100svh - var(--chu-mo-dau, 552px)) * .5625), 200px);
+    width: clamp(124px, calc((100svh - var(--chu-mo-dau, 560px)) * .5625), 200px);
   }
 }
 /* Điện thoại màn thấp (iPhone SE, Android nhỏ): bỏ dòng ghi chú lặp lại ở phần tư vấn, gọn chữ để điện thoại mẫu lộ ra nhiều hơn */
