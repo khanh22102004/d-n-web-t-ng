@@ -565,6 +565,8 @@ body.parent-brand .song-am i:nth-child(2) { scale: 1 .8; } body.parent-brand .so
   body.parent-brand .song-am i:nth-child(2) { animation-delay: -.3s; } body.parent-brand .song-am i:nth-child(3) { animation-delay: -.6s; }
   body.parent-brand .song-am i:nth-child(4) { animation-delay: -.15s; } body.parent-brand .song-am i:nth-child(5) { animation-delay: -.45s; }
   body.dung-chuyen-dong :is(.song-am i, .con-tro, .mau-toi .muc-dau h2 .tu-net) { animation-play-state: paused; }
+  /* Máy yếu: sóng âm và con trỏ đứng yên (chạy liên tục tốn CPU dù không ai nhìn) */
+  html.may-yeu body.parent-brand :is(.song-am i, .con-tro) { animation: none; }
 }
 @media (prefers-reduced-motion: reduce) { body.parent-brand .con-tro { display: none; } }
 @keyframes bp-anh-kim { 0% { background-position: 100% 0; } 45%, 100% { background-position: 0% 0; } }
@@ -674,3 +676,6 @@ html.may-yeu body.parent-brand .san-khau .dien-thoai { will-change: auto; }
 /* Tường ảnh nền nhẹ hơn cho mọi máy: bỏ bộ lọc màu và bóng đổ từng ô (rất tốn khi tường trôi), viền mảnh vẽ thẳng trên ô */
 body.parent-brand .san-khau > .tuong-nen { filter: none; }
 body.parent-brand .tuong-nen .o-tuong .khung { box-shadow: none; border-color: rgb(0 0 0 / .14); }
+
+/* Máy yếu: bỏ thanh đếm giờ trên điện thoại (chạy liên tục bắt máy vẽ lại mỗi khung hình); điện thoại vẫn tự đổi mẫu */
+html.may-yeu .dt-tien { display: none; }

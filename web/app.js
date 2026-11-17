@@ -74,7 +74,8 @@
   // Mỗi mẫu hiện theo "hien" trong mau.json: "video" tự phát thử khi nằm trong tầm nhìn,
   // "dong" là ảnh bìa trôi chậm, "anh" là ảnh tĩnh. Rê chuột vào mẫu nào cũng phát thử mẫu đó.
   let tamDung = false, theDangPhat = null;
-  const duocPhat = () => !itChuyenDong && !tietKiem && !tamDung && !$("xem").open && !$("bat-dau-hop").open && !document.hidden;
+  const duocPhat = () => !itChuyenDong && !tietKiem && !mayYeu && !tamDung &&   // máy yếu: thẻ thư viện chỉ hiện ảnh bìa, bấm mới phát
+    !$("xem").open && !$("bat-dau-hop").open && !document.hidden;
 
   function phatThu(the) {
     if (!duocPhat() || the === theDangPhat) return;
@@ -142,7 +143,7 @@
   // ---------- Đoạn video ngắn của studio (web/video-mau/<mã>.mp4) ----------
   // Mẫu nào có tệp thì tự phát không tiếng khi nằm trong màn hình, nhiều mẫu cùng lúc được vì tệp nhỏ.
   // Video chỉ được tải khi thẻ hiện ra lần đầu, tạm dừng khi ra khỏi màn hình.
-  const duocPhatDoan = () => !itChuyenDong && !tietKiem && !tamDung && !document.hidden && !$("xem").open;
+  const duocPhatDoan = () => !itChuyenDong && !tietKiem && !mayYeu && !tamDung && !document.hidden && !$("xem").open;
   const quanSatDoan = "IntersectionObserver" in window ? new IntersectionObserver(muc => muc.forEach(e => {
     const the = e.target; let v = the.querySelector("video.doan");
     if (e.isIntersecting && duocPhatDoan()) {
@@ -319,7 +320,7 @@
 
   // ---------- Điện thoại ở màn hình đầu: lướt các video mẫu như đang xem TikTok ----------
   // Ảnh bìa hiện ngay cho nhanh; trang rảnh rồi thì phát video thật (không tiếng). Bấm vào máy là bật tiếng ngay trên máy.
-  const DT_LUOT = 4000, DT_VIDEO = 13000;
+  const DT_LUOT = mayYeu ? 6500 : 4000, DT_VIDEO = 13000;   // máy yếu: đổi mẫu thưa hơn
   const dt = { ds: [], i: 0, hen: 0, re: false, trongTam: true, canh: new Map(), video: false, tieng: false, yt: null, henTieng: 0, tatTay: false };
   const coModal = () => $("xem").open || $("bat-dau-hop").open || !!$("menu-dt")?.open;
   const dtDuocPhat = () => !tamDung && dt.trongTam && !document.hidden && !coModal();
@@ -808,7 +809,7 @@
   const XT_MAC_DINH = "Sản phẩm của Quý khách hàng";
   let xtHen = 0, xtVong = 0;
   function xemTruocMau(m) {
-    document.querySelectorAll(".tv-xt-anh").forEach(a => { a.src = a.closest(".tv-mini") ? `/anh-mau/nho/${m.ma}.webp` : `/anh-mau/${m.ma}.jpg`; });
+    document.querySelectorAll(".tv-xt-anh").forEach(a => { a.src = a.closest(".tv-mini") ? `/anh-mau/nho/${m.ma}.webp` : `/anh-mau/${m.ma}.webp`; });
     clearInterval(xtVong);
   }
   function ganXemTruoc() {
@@ -826,7 +827,7 @@
     // Chưa chọn mẫu nào thì khung đổi lần lượt vài mẫu nổi bật.
     const ds = maNoiBat.map(ma => mau[ma]).filter(Boolean); let i = 0;
     if (ds.length > 1) xtVong = setInterval(() => { if (tamDung || document.hidden || mauTuVan) return; i = (i + 1) % ds.length;
-      document.querySelectorAll(".tv-xt-anh").forEach(a => { a.src = a.closest(".tv-mini") ? `/anh-mau/nho/${ds[i].ma}.webp` : `/anh-mau/${ds[i].ma}.jpg`; }); }, 4200);
+      document.querySelectorAll(".tv-xt-anh").forEach(a => { a.src = a.closest(".tv-mini") ? `/anh-mau/nho/${ds[i].ma}.webp` : `/anh-mau/${ds[i].ma}.webp`; }); }, mayYeu ? 7000 : 4200);
   }
 
   function veMau() {
