@@ -258,7 +258,7 @@
       $("tuong-dung").setAttribute("aria-label", tamDung ? "Chạy tiếp tự xoay" : "Dừng tự xoay");
       dtCapNhat();
     });
-    veDienThoai(); ganXoay(); chayDongHoQuay(); quetTieuDe();
+    veDienThoai(); ganXoay(); chayDongHoQuay(); quetTieuDe(); ganMenuDangXem();
   }
   // Đồng hồ quay trong khung ngắm ở màn hình đầu: giờ:phút:giây:khung (25 khung/giây), chỉ chạy khi trang đang hiện và không tạm dừng.
   // Đầu thư viện: tiêu đề "lấy nét" từng chữ khi cuộn tới; dòng "Ví dụ" tự gõ lần lượt các kiểu video có trong thư viện.
@@ -297,6 +297,19 @@
         chu.classList.add("ve");
       }
     })();
+  }
+  // Menu: đánh dấu mục ứng với phần khách đang xem (Trang chủ, Kiểu video = thư viện, Về B Productions, Blog).
+  function ganMenuDangXem() {
+    const muc = [...document.querySelectorAll(".dau-trang [data-phan]")];
+    if (!muc.length || !("IntersectionObserver" in window)) return;
+    const dat = id => muc.forEach(m => { const co = m.dataset.phan === id; m.classList.toggle("dang-xem", co); if (m.tagName === "A") { if (co) m.setAttribute("aria-current", "location"); else m.removeAttribute("aria-current"); } });
+    const hien = new Map();
+    const io = new IntersectionObserver(ds => {
+      ds.forEach(d => hien.set(d.target.id, d.isIntersecting ? d.intersectionRect.height : 0));
+      let tot = "", cao = 0; hien.forEach((h, id) => { if (h > cao) { cao = h; tot = id; } });
+      dat(muc.some(m => m.dataset.phan === tot) ? tot : "");
+    }, { threshold: [0, .15, .35, .6], rootMargin: "-90px 0px -35% 0px" });
+    ["mo-dau", "mau", "ve-b-productions", "tu-van", "goc-chia-se"].forEach(id => { const s = $(id); if (s) io.observe(s); });
   }
   function chayDongHoQuay() {
     const tc = $("khung-tc");

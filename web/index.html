@@ -26,8 +26,9 @@
   <a class="ten-studio" href="/" aria-label="B PRODUCTIONS — trang chủ"><img class="brand-logo" src="/logo-b-productions.png" alt="B PRODUCTIONS — Borderless Video Production Company" width="768" height="508" fetchpriority="high"></a>
   <nav aria-label="Điều hướng chính">
     <ul class="menu">
+      <li class="menu-trang-chu"><a href="#mo-dau" data-phan="mo-dau">Trang chủ</a></li>
       <li class="menu-co-con" id="menu-co-con">
-        <button type="button" class="menu-nut" id="menu-kieu-nut" aria-expanded="false" aria-controls="menu-kieu">Kiểu video</button>
+        <button type="button" class="menu-nut" id="menu-kieu-nut" aria-expanded="false" aria-controls="menu-kieu" data-phan="mau">Kiểu video</button>
         <div class="menu-kieu" id="menu-kieu" hidden>
           <div><p class="menu-nho">Theo ngành hàng</p><div class="menu-kieu-luoi" id="menu-kieu-luoi"></div></div>
           <div class="menu-kieu-ben">
@@ -38,9 +39,8 @@
           </div>
         </div>
       </li>
-      <li><a href="#mau">Video mẫu</a></li>
-      <li><a href="#ve-b-productions">Về B Productions</a></li>
-      <li><a href="#goc-chia-se">Góc chia sẻ</a></li>
+      <li><a href="#ve-b-productions" data-phan="ve-b-productions">Về B Productions</a></li>
+      <li><a href="#goc-chia-se" data-phan="goc-chia-se">Blog</a></li>
     </ul>
     <a class="nut nho" href="#tu-van">Nhận báo giá</a>
     <button type="button" class="menu-mo" id="menu-mo" aria-label="Mở menu" aria-haspopup="dialog" aria-controls="menu-dt"><span class="menu-mo-icon" aria-hidden="true"></span><span class="menu-mo-chu">Menu</span></button>
@@ -49,12 +49,12 @@
 <dialog class="menu-dt" id="menu-dt" aria-labelledby="menu-dt-tieu-de">
   <div class="menu-dt-dau"><p id="menu-dt-tieu-de">Menu</p><button type="button" class="menu-dong" id="menu-dong" aria-label="Đóng menu">×</button></div>
   <nav aria-label="Menu trên điện thoại">
+    <ul class="menu-dt-ds menu-dt-dau-ds"><li><a href="#mo-dau">Trang chủ</a></li></ul>
     <p class="menu-nho">Kiểu video theo ngành hàng</p>
     <div class="menu-kieu-luoi" id="menu-dt-kieu"></div>
     <ul class="menu-dt-ds">
-      <li><a href="#mau">Xem tất cả video mẫu</a></li>
       <li><a href="#ve-b-productions">Về B Productions</a></li>
-      <li><a href="#goc-chia-se">Góc chia sẻ</a></li>
+      <li><a href="#goc-chia-se">Blog</a></li>
     </ul>
     <a class="nut menu-dt-nut" href="#tu-van">Nhận báo giá</a>
   </nav>

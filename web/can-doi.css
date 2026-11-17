@@ -595,3 +595,26 @@ body.parent-brand .thuong-hieu-dau p { margin-left: auto; margin-right: auto; }
   body.parent-brand .tu-van-hang .tv-may .tv-man { border-radius: 19px; }
   body.parent-brand .tu-van-hang .tv-xt-chu { font-size: .74rem; line-height: 1.3; }
 }
+
+/* ======================================================================
+   MENU ĐẦU TRANG — Trang chủ · Kiểu video · Về B Productions · Blog
+   gạch chân mực trượt ra khi rê chuột; mục ứng với phần đang xem giữ gạch chân
+   ====================================================================== */
+@media (min-width: 761px) {
+  body.parent-brand .dau-trang .menu { gap: clamp(2px, .6vw, 10px); }
+  body.parent-brand :is(.menu > li > a, .menu-nut) { position: relative; background: none; font-weight: 600; letter-spacing: -.005em; color: var(--bp-muc-2); transition: color .2s ease; }
+  body.parent-brand :is(.menu > li > a, .menu-nut)::before { content: ""; position: absolute; left: 12px; right: 12px; bottom: 6px; height: 2px; border-radius: 2px;
+    background: var(--bp-logo); scale: 0 1; transform-origin: left center; transition: scale .35s var(--bp-mem); }
+  body.parent-brand .menu-nut::before { right: 26px; }
+  body.parent-brand :is(.menu > li > a, .menu-nut):is(:hover, :focus-visible, .dang-xem, [aria-expanded="true"]) { background: none; color: var(--bp-logo); }
+  body.parent-brand :is(.menu > li > a, .menu-nut):is(:hover, :focus-visible, .dang-xem, [aria-expanded="true"])::before { scale: 1 1; }
+  body.parent-brand .dau-trang .nut.nho { margin-left: clamp(6px, 1.2vw, 18px); transition: translate .25s var(--bp-mem), box-shadow .25s ease; }
+  body.parent-brand .dau-trang .nut.nho:hover { translate: 0 -1px; box-shadow: 0 10px 22px -12px rgb(17 17 17 / .6); }
+}
+/* 761–920px: ẩn "Trang chủ" (logo đã dẫn về trang chủ) thay vì ẩn "Blog" */
+@media (max-width: 920px) and (min-width: 761px) {
+  body.parent-brand .dau-trang .menu > li:last-child { display: block; }
+  body.parent-brand .dau-trang .menu > li.menu-trang-chu { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { body.parent-brand :is(.menu > li > a, .menu-nut)::before { transition: none; } }
+body.parent-brand .menu-dt-dau-ds { margin: 0 0 18px; }
