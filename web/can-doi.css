@@ -625,3 +625,27 @@ body.parent-brand .mau-toi .mau-duoi { justify-content: center; }
 @media (min-width: 761px) { body.parent-brand .mau-toi .mau-duoi { justify-content: flex-end; padding-right: clamp(16px, 2vw, 28px); } }
 /* nút tư vấn cuối thư viện to hơn một chút */
 body.parent-brand .mau-toi .mau-duoi .nut-chu { min-height: 56px; padding: 14px 28px; font-size: 1.08rem; gap: 12px; }
+
+/* Tiêu đề thư viện "Dịch vụ sản xuất Video AI": một dòng */
+body.parent-brand .mau-toi .muc-dau h2 { white-space: nowrap; font-size: clamp(1.45rem, 4.4vw, 4.5rem); }
+@media (max-width: 760px) { body.parent-brand .mau-toi .muc-dau h2 { font-size: clamp(1.35rem, 6.4vw, 2rem); letter-spacing: -.035em; } }
+
+/* ======================================================================
+   BLOG — tiêu đề một dòng; hai bài thành hai ô đều nhau, các hàng thẳng nhau
+   ====================================================================== */
+@media (min-width: 900px) { body.parent-brand .goc-chia-se .xuong-dong-hep { display: none; } }
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 761px) {
+    body.parent-brand .bai-viet-luoi { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(4, auto); gap: 0 clamp(20px, 2.6vw, 36px); }
+    body.parent-brand .bai-viet-luoi > .bai-viet { display: grid; grid-row: span 4; grid-template-rows: subgrid; align-items: start; }
+    body.parent-brand .bai-viet-luoi > .bai-viet > .bai-viet-xem { align-self: end; }
+  }
+}
+body.parent-brand .bai-viet { min-height: 0; padding: clamp(24px, 2.6vw, 34px); border: 1px solid var(--bp-vien); border-top: 3px solid var(--bp-logo); border-radius: 4px;
+  background: var(--bp-giay); transition: translate .3s var(--bp-mem), box-shadow .3s ease; }
+body.parent-brand .bai-viet:hover { translate: 0 -4px; box-shadow: 0 22px 40px -28px rgb(17 17 17 / .45); }
+body.parent-brand .bai-viet h3 { max-width: none; margin-top: 12px; text-wrap: balance; }
+body.parent-brand .bai-viet p { max-width: none; margin-top: 10px; }
+body.parent-brand .bai-viet .bai-viet-xem { margin-top: 22px; }
+body.parent-brand .goc-chia-se { background: var(--bp-da-1); }
+@media (max-width: 1100px) { body.parent-brand .mau-toi .muc-dau { flex-wrap: wrap; } body.parent-brand .mau-toi .mau-dau-ben { justify-items: start; } }
