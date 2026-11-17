@@ -86,9 +86,11 @@
             <p class="dt-bao" id="dt-bao" role="status"></p>
             <div class="dt-tren" aria-hidden="true"><span class="dt-ma" id="dt-ma"></span><span class="dt-dem" id="dt-dem"></span></div>
             <div class="dt-ray">
+              <span class="dt-kenh" aria-hidden="true"><img src="/logo-b-productions.png" alt="" width="768" height="508" loading="lazy"></span>
               <button type="button" class="dt-ray-nut" id="dt-tim" aria-label="Thả tim cho mẫu này"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.6.7-1.4 2.2-2.6 4.3-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg><span class="dt-so" id="dt-so-tim"></span></button>
               <button type="button" class="dt-ray-nut" id="dt-hoi" aria-label="Hỏi về mẫu này"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.9 2 11.6c0 2.5 1.3 4.8 3.4 6.3L4.6 21l3.9-1.9c1.1.3 2.3.5 3.5.5 5.5 0 10-3.9 10-8.6S17.5 3 12 3z"/></svg><span class="dt-so" id="dt-so-bl"></span></button>
               <button type="button" class="dt-ray-nut" id="dt-chia-se" aria-label="Chia sẻ trang này"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4l8 7.5-8 7.5v-4.6c-5.3 0-8.8 1.6-11.6 5.6 1-5.6 4.2-10.7 11.6-11.6V4z"/></svg><span class="dt-so" id="dt-so-cs"></span></button>
+              <button type="button" class="dt-ray-nut dt-ray-lon" id="dt-xem-lon" aria-label="Xem video mẫu này cỡ lớn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v2H7.4l4.3 4.3-1.4 1.4L6 7.4V10H4V4zm16 16h-6v-2h2.6l-4.3-4.3 1.4-1.4 4.3 4.3V14h2v6z"/></svg></button>
             </div>
             <div class="dt-duoi" id="dt-duoi" aria-hidden="true"><span class="dt-nganh" id="dt-nganh"></span><p class="dt-ten" id="dt-ten"></p><p class="dt-kieu" id="dt-kieu"></p><span class="dt-nghe" id="dt-nghe"><span class="dt-loa"></span><span id="dt-nghe-chu">Bấm để bật tiếng</span></span></div>
             <div class="dt-tien" aria-hidden="true"><span id="dt-tien"></span></div>
@@ -96,7 +98,11 @@
           </div>
         </div>
         </div>
-        <div class="dt-dieu-khien"><button type="button" class="dt-nut" id="dt-truoc" aria-label="Video mẫu trước">‹</button><button type="button" class="dt-nut tuong-dung" id="tuong-dung" aria-pressed="false" aria-label="Dừng chuyển động"><span class="dt-dung" aria-hidden="true"></span></button><button type="button" class="dt-nut dt-lon" id="dt-xem-lon" aria-label="Xem video mẫu này cỡ lớn"><span aria-hidden="true">⤢</span></button><button type="button" class="dt-nut" id="dt-sau" aria-label="Video mẫu tiếp theo">›</button></div>
+        <div class="dt-thanh">
+          <button type="button" class="tuong-dung" id="tuong-dung" aria-pressed="false" aria-label="Dừng tự xoay"><span class="dt-dung" aria-hidden="true"></span></button>
+          <span class="dt-cham" id="dt-cham" aria-hidden="true"></span>
+          <span class="dt-goi-y" aria-hidden="true">Vuốt ngang để xem mẫu khác</span>
+        </div>
         <p class="dt-nguon" id="dt-nguon" hidden></p>
       </div>
     </div>

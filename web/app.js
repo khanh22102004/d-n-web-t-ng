@@ -255,7 +255,7 @@
       document.body.classList.toggle("dung-chuyen-dong", tamDung);
       if (tamDung) dungTatCa(); else chayLaiDoan();
       $("tuong-dung").setAttribute("aria-pressed", String(tamDung));
-      $("tuong-dung").setAttribute("aria-label", tamDung ? "Chạy tiếp chuyển động" : "Dừng chuyển động");
+      $("tuong-dung").setAttribute("aria-label", tamDung ? "Chạy tiếp tự xoay" : "Dừng tự xoay");
       dtCapNhat();
     });
     veDienThoai(); ganXoay();
@@ -295,7 +295,7 @@
       const v = tao("video"); v.src = m.doan; v.playsInline = true; v.loop = !coTieng; v.muted = !coTieng; v.autoplay = true; v.preload = "auto";
       v.setAttribute("aria-hidden", "true"); v.tabIndex = -1; yt.v = v;
       v.addEventListener("playing", () => dtDangPhat(yt), { once: true });
-      v.addEventListener("ended", () => { if (dt.tieng) dtHien(dt.i + 1, 1); });
+      v.addEventListener("ended", () => { if (dt.tieng) dtXoay(1); });
       $("dt-video").append(v); dt.yt = yt; v.play().catch(() => {});
     } else if (m.id) {
       const f = tao("iframe"); f.title = `Video mẫu ${m.ma}`; f.tabIndex = -1; f.setAttribute("aria-hidden", "true");
@@ -337,10 +337,10 @@
       // Trình duyệt chặn tiếng (dừng video lại): trả về không tiếng và phát tiếp ngay.
       if (info.playerState === 2 && !dt.tieng) { dt.thu = null; dtLenh("mute"); dtLenh("playVideo"); }
     }
-    if (info.playerState === 0 && dt.tieng) dtHien(dt.i + 1, 1);
+    if (info.playerState === 0 && dt.tieng) dtXoay(1);
     // Đang nghe có tiếng: video gần hết thì chuyển sang mẫu kế (video không tiếng thì tự lặp, nên phải tự canh).
     if (dt.tieng && dt.yt && !dt.yt.daHet && typeof info.currentTime === "number" && typeof info.duration === "number" && info.duration > 3 && info.duration - info.currentTime < 0.7) {
-      dt.yt.daHet = true; dtHien(dt.i + 1, 1);
+      dt.yt.daHet = true; dtXoay(1);
     }
     if (info.muted === false && dt.tieng) clearTimeout(dt.henTieng);
   });
@@ -451,6 +451,11 @@
     dt.i = viTri;
     dtCanh(dt.ds[(viTri + 1) % n]);                            // tải sẵn ảnh mẫu kế tiếp
     $("dt-ma").textContent = m.ma; $("dt-dem").textContent = `${viTri + 1}/${n}`;
+    const cham = $("dt-cham");
+    if (cham) {
+      if (cham.childElementCount !== n) cham.replaceChildren(...dt.ds.map(() => tao("i")));
+      [...cham.children].forEach((c, k) => c.classList.toggle("hien", k === viTri));
+    }
     // Hai máy hai bên: ảnh bìa của mẫu trước và mẫu kế.
     [["dt-ben-trai", dt.ds[(viTri - 1 + n) % n]], ["dt-ben-phai", dt.ds[(viTri + 1) % n]]].forEach(([id, mb]) => {
       const anh = $(id).querySelector("img"), src = `/anh-mau/nho/${encodeURIComponent(mb.ma)}.webp`;
@@ -474,10 +479,11 @@
       else { const lenh = duoc ? "playVideo" : "pauseVideo"; if (dt.yt.lenh !== lenh) { dt.yt.lenh = lenh; dtLenh(lenh); } }   // chỉ gửi khi đổi trạng thái, để YouTube không hiện lại nút của nó
     }
     tien.classList.remove("chay"); void tien.offsetWidth;
-    if (luot && !choVideo) {
-      const tg = dt.yt?.dangPhat ? DT_VIDEO : DT_LUOT;
+    if (luot) {
+      // Video chưa chạy được (mạng chậm, bị chặn): vẫn chờ một lượt video rồi xoay tiếp, không đứng im.
+      const tg = dt.yt?.dangPhat || choVideo ? DT_VIDEO : DT_LUOT;
       tien.style.animationDuration = `${tg}ms`; tien.classList.add("chay");
-      dt.hen = setTimeout(() => dtHien(dt.i + 1, 1), tg);
+      dt.hen = setTimeout(() => dtXoay(1), tg);
     }
   }
   // Mỗi lần bấm tim là một tim của chính khách (như thả tim khi xem live): số dưới nút đếm tim khách đã thả, không phải số giả.
@@ -506,6 +512,27 @@
     } catch (err) { if (err?.name !== "AbortError") bao("Chưa chia sẻ được. Anh chị thử lại giúp."); }
   }
   let dtBatDauVideo = () => {};
+  // ---------- Xoay cụm điện thoại sang mẫu trước / kế ----------
+  let dangXoay = false;
+  const dtTuThe = dx => `perspective(1100px) translateX(${dx * .55}px) rotateY(${dx * .16}deg)`;
+  function dtXoay(huong, dx = 0) {
+    const may = $("dien-thoai");
+    may.style.transform = "";
+    if (dangXoay) return;
+    if (itChuyenDong || !may.animate) { dtHien(dt.i + huong, huong); return; }
+    dangXoay = true;
+    const lech = `perspective(1100px) translateX(${-huong * 58}%) rotateY(${-huong * 78}deg) scale(.84)`;
+    const vao = `perspective(1100px) translateX(${huong * 58}%) rotateY(${huong * 78}deg) scale(.84)`;
+    may.animate([{ transform: dtTuThe(dx), opacity: 1 }, { transform: lech, opacity: .2 }], { duration: 210, easing: "cubic-bezier(.45,0,.9,.6)" }).finished
+      .then(() => {
+        dtHien(dt.i + huong, huong);
+        ["dt-ben-trai", "dt-ben-phai"].forEach(id => $(id).querySelector("img")?.animate(
+          [{ transform: `rotateY(${-huong * 70}deg)`, opacity: .35 }, { transform: "none", opacity: 1 }], { duration: 460, easing: "cubic-bezier(.2,.8,.2,1)" }));
+        return may.animate([{ transform: vao, opacity: .2 }, { transform: "none", opacity: 1 }], { duration: 430, easing: "cubic-bezier(.16,.84,.24,1)" }).finished;
+      })
+      .catch(() => {})
+      .finally(() => { dangXoay = false; });
+  }
   function veDienThoai() {
     const uuTien = maNoiBat.map(ma => mau[ma]).filter(Boolean);
     dt.ds = [...uuTien, ...cauHinh.mau.filter(m => !maNoiBat.includes(m.ma))];
@@ -513,10 +540,8 @@
     dtHien(0); batBay();
     $("dt-mo").addEventListener("click", () => { if (dt.vuot) { dt.vuot = false; return; } dtBatTatTieng(); });
     $("dt-xem-lon").addEventListener("click", () => { if (dt.tieng) { dt.tieng = false; dtVeTieng(); } dtGoVideo(); moXem(dt.ds, dt.ds[dt.i].ma); });
-    $("dt-truoc").addEventListener("click", () => dtHien(dt.i - 1, -1));
-    $("dt-ben-trai").addEventListener("click", () => dtHien(dt.i - 1, -1));
-    $("dt-ben-phai").addEventListener("click", () => dtHien(dt.i + 1, 1));
-    $("dt-sau").addEventListener("click", () => dtHien(dt.i + 1, 1));
+    $("dt-ben-trai").addEventListener("click", () => dtXoay(-1));
+    $("dt-ben-phai").addEventListener("click", () => dtXoay(1));
     $("dt-tim").addEventListener("click", dtThaTim);
     // Chạm vào khoảng trống bất kỳ trên màn hình đầu (không phải nút hay liên kết) cũng bật tiếng — trừ iPhone, và trừ khi khách đã tự tắt.
     $("mo-dau").addEventListener("click", e => {
@@ -530,14 +555,38 @@
     // Máy tính: rê chuột vào máy thì dừng lướt để xem kỹ mẫu đang hiện.
     may.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") { dt.re = true; dtCapNhat(); } });
     may.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") { dt.re = false; dtCapNhat(); } });
-    // Điện thoại: vuốt ngang trên máy để đổi mẫu (vuốt dọc vẫn là cuộn trang).
-    let x0 = null, y0 = null;
-    may.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
-    may.addEventListener("touchend", e => {
-      if (x0 == null) return;
-      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { dt.vuot = true; setTimeout(() => { dt.vuot = false; }, 400); dtHien(dt.i + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); }
-    }, { passive: true });
+    // Vuốt (điện thoại) hoặc kéo chuột (máy tính) ngang trên cụm máy: máy giữa nghiêng theo tay, thả ra thì cả cụm xoay sang mẫu kế.
+    // Vuốt dọc vẫn là cuộn trang (touch-action: pan-y trong CSS).
+    const cum = may.closest(".dt-cum") || may;
+    let keo = null;
+    cum.addEventListener("pointerdown", e => {
+      if (e.button > 0 || dangXoay) return;
+      keo = { x: e.clientX, y: e.clientY, dx: 0, id: e.pointerId, bat: false };
+    });
+    cum.addEventListener("pointermove", e => {
+      if (!keo || e.pointerId !== keo.id) return;
+      const dx = e.clientX - keo.x, dy = e.clientY - keo.y;
+      if (!keo.bat) {
+        if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { keo = null; return; }   // khách đang cuộn dọc
+        if (Math.abs(dx) < 8) return;
+        keo.bat = true; cum.setPointerCapture?.(e.pointerId); cum.classList.add("dang-keo");
+      }
+      keo.dx = Math.max(-170, Math.min(170, dx));
+      may.style.transform = dtTuThe(keo.dx);
+    });
+    const tha = e => {
+      if (!keo || (e && e.pointerId !== keo.id)) return;
+      const { dx, bat } = keo; keo = null; cum.classList.remove("dang-keo");
+      if (!bat) return;
+      dt.vuot = true; setTimeout(() => { dt.vuot = false; }, 350);       // không coi cú vuốt là một lần chạm bật tiếng
+      if (Math.abs(dx) > 42) dtXoay(dx < 0 ? 1 : -1, dx);
+      else { may.style.transform = ""; if (!itChuyenDong) may.animate?.([{ transform: dtTuThe(dx) }, { transform: "none" }], { duration: 260, easing: "cubic-bezier(.2,.8,.2,1)" }); }
+    };
+    cum.addEventListener("pointerup", tha); cum.addEventListener("pointercancel", tha);
+    cum.addEventListener("click", e => { if (dt.vuot) { e.stopPropagation(); e.preventDefault(); } }, true);
+    cum.addEventListener("dragstart", e => e.preventDefault());
+    // Bàn phím: đang ở trong cụm máy thì mũi tên trái/phải đổi mẫu.
+    cum.addEventListener("keydown", e => { if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); dtXoay(e.key === "ArrowRight" ? 1 : -1); } });
     if ("IntersectionObserver" in window) new IntersectionObserver(([e]) => { dt.trongTam = e.isIntersecting; dtCapNhat(); }, { threshold: 0.15 }).observe(may);
     document.addEventListener("visibilitychange", dtCapNhat);
     ["xem", "bat-dau-hop", "menu-dt"].forEach(id => $(id)?.addEventListener("close", dtCapNhat));

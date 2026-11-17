@@ -1,6 +1,16 @@
 # Kiểm tra bản hoàn thiện máy tính và điện thoại B PRODUCTIONS
 
 
+## Lượt cụm máy xoay — 17/11/2026
+
+Thay hàng nút điều khiển bằng thao tác vuốt/kéo ngang; cụm máy xoay 3D sang mẫu kế (tự xoay mỗi 4 giây, 13 giây khi đang phát video); nút dừng tròn nhỏ cạnh dải chấm vị trí; cột biểu tượng bên phải theo bố cục TikTok.
+
+| Kiểm tra | Kết quả |
+|---|---|
+| `pytest` | 26/26 |
+| Trình duyệt (máy tính và điện thoại) | 50/50: kéo trái/phải đổi mẫu và về lại, bấm máy bên cạnh, không còn biến dạng sau khi xoay, tự xoay, nút dừng giữ nguyên mẫu, 13 chấm vị trí, tương phản nút |
+| Một khung hình | Giữ nguyên kết quả lượt trước |
+
 ## Lượt "một khung hình" — 17/11/2026
 
 Yêu cầu: màn hình đầu phải thấy đủ thông tin trong một khung hình, không phải lướt. Trước khi sửa, thanh đầu trang máy tính cao 143px; laptop 1366×768 và 1280×720 bị đẩy dòng "Tôi đã có yêu cầu cụ thể" xuống dưới mép, điện thoại 390×844 thấy điện thoại mẫu bị cắt và nút điều khiển nằm ngoài màn hình.
