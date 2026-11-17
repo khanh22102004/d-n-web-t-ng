@@ -320,6 +320,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 17/11/2026 | Thẻ công ty mẹ | Khối B Productions ở mục "Về B Productions" thành thẻ nền mực: logo thật màu trắng thay cho chữ gõ và mã vạch vẽ bằng CSS, bốn góc khung ngắm như màn hình đầu, nút "Khám phá B Productions" viền trắng, đổi nền trắng khi rê chuột |
 | 17/11/2026 | Tiêu đề khung ngắm | Tiêu đề màn hình đầu đặt trong khung ngắm máy quay: bốn góc bật ra sau khi chữ lên, chấm REC nhấp nháy và đồng hồ quay giờ:phút:giây:khung; cứ 7 giây một vạch quét chạy qua mã vạch logo rồi lướt qua tiêu đề kèm dải sáng; dừng theo nút dừng và chế độ giảm chuyển động; cú vuốt trong lúc máy đang xoay được thực hiện ngay sau đó |
 | 17/11/2026 | Cụm máy xoay | Bỏ hàng nút ‹ ⏸ ⤢ ›; cụm điện thoại tự xoay tròn sang mẫu kế, vuốt hoặc kéo ngang để xoay, bấm máy bên cạnh hoặc phím mũi tên cũng được; thanh dưới gồm nút dừng tự xoay và chấm vị trí; cột tim, bình luận, chia sẻ, xem lớn xếp kiểu TikTok kèm ảnh kênh; máy vẫn tự xoay khi video không tải được |
 | 17/11/2026 | Một khung hình | Màn hình đầu vừa đúng chiều cao cửa sổ: thanh đầu trang gọn lại, tiêu đề và điện thoại mẫu co theo chiều cao (svh); từ laptop 1280×720 tới màn 1920×1080 và điện thoại 360×780 trở lên thấy đủ tiêu đề, nút, điện thoại và nút điều khiển không cần lướt; chữ trong điện thoại mẫu co theo cỡ máy |

@@ -427,3 +427,39 @@ body.parent-brand .san-khau .ma-vach::after { content: ""; position: absolute; t
 /* chừa chỗ cho góc dưới của khung ngắm trước mã vạch */
 body.parent-brand .san-khau .khung-ngam + .ma-vach { margin-top: clamp(26px, 3.6svh, 36px); }
 @media (max-width: 760px) { body.parent-brand .san-khau .khung-ngam + .ma-vach { margin-top: 14px; } }
+
+/* ======================================================================
+   THẺ THƯƠNG HIỆU CÔNG TY MẸ — logo thật trên nền mực, khung ngắm như màn hình đầu
+   ====================================================================== */
+body.parent-brand .thuong-hieu-goc { align-items: center; }
+body.parent-brand .thuong-hieu-dau { --le: 14px; position: relative; isolation: isolate; align-self: center; display: grid; justify-items: start;
+  padding: clamp(36px, 4vw, 56px); border: 0; border-left: 0; background: var(--bp-logo); color: #fff; border-radius: 4px;
+  box-shadow: 0 30px 60px -34px rgb(17 17 17 / .55); }
+body.parent-brand .thuong-hieu-dau::before { display: none; }
+body.parent-brand .thuong-hieu-dau .khung-goc i { border-color: rgb(255 255 255 / .55); width: 18px; }
+body.parent-brand .thuong-hieu-dau .khung-goc i:nth-child(1) { top: var(--le); left: var(--le); }
+body.parent-brand .thuong-hieu-dau .khung-goc i:nth-child(2) { top: var(--le); right: var(--le); }
+body.parent-brand .thuong-hieu-dau .khung-goc i:nth-child(3) { bottom: var(--le); left: var(--le); }
+body.parent-brand .thuong-hieu-dau .khung-goc i:nth-child(4) { bottom: var(--le); right: var(--le); }
+/* ảnh logo có lề trong ~8,9% bên trái, ~6,4% bên trên (theo chiều rộng): kéo ra để logo thẳng hàng với chữ */
+body.parent-brand .thuong-hieu-logo { --logo: clamp(200px, 19vw, 260px); display: block; width: var(--logo); height: auto; filter: invert(1); mix-blend-mode: screen;
+  margin: calc(var(--logo) * -.064) 0 calc(var(--logo) * -.04) calc(var(--logo) * -.0885); }
+body.parent-brand .thuong-hieu-dau p { max-width: 34ch; margin-top: 18px; font-size: 1rem; line-height: 1.6; color: #c9c6c0; }
+body.parent-brand .thuong-hieu-goc .thuong-hieu-dau .thuong-hieu-nut { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; margin-top: 26px; padding: 12px 20px;
+  border: 1px solid rgb(255 255 255 / .5); border-radius: 4px; color: #fff; text-decoration: none; font-weight: 700; transition: background .2s ease, color .2s ease, border-color .2s ease; }
+body.parent-brand .thuong-hieu-goc .thuong-hieu-dau .thuong-hieu-nut:hover { background: #fff; color: var(--bp-logo); border-color: #fff; }
+body.parent-brand .thuong-hieu-goc .thuong-hieu-dau .thuong-hieu-nut:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+body.parent-brand .thuong-hieu-nut span { transition: translate .25s var(--bp-mem); }
+body.parent-brand .thuong-hieu-nut:hover span { translate: 2px -2px; }
+@media (max-width: 760px) {
+  body.parent-brand .thuong-hieu-dau { --le: 10px; padding: 34px 26px 30px; margin-top: 8px; border-top: 0; }
+  body.parent-brand .thuong-hieu-dau .khung-goc i { width: 14px; }
+  body.parent-brand .thuong-hieu-logo { --logo: 184px; }
+  body.parent-brand .thuong-hieu-dau p { font-size: .95rem; margin-top: 14px; }
+  body.parent-brand .thuong-hieu-goc .thuong-hieu-dau .thuong-hieu-nut { margin-top: 20px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.hieu-ung body.parent-brand .thuong-hieu-dau[data-lo] .khung-goc i { transition: scale .7s var(--bp-mem) .25s, opacity .7s ease .25s; }
+  html.hieu-ung body.parent-brand .thuong-hieu-dau[data-lo]:not(.lo) .khung-goc i { scale: 1.8; opacity: 0; }
+}
+@media (forced-colors: active) { body.parent-brand .thuong-hieu-dau { border: 1px solid CanvasText; } body.parent-brand .thuong-hieu-logo { filter: none; mix-blend-mode: normal; background: #fff; } }
