@@ -320,6 +320,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 17/11/2026 | Một khung hình | Màn hình đầu vừa đúng chiều cao cửa sổ: thanh đầu trang gọn lại, tiêu đề và điện thoại mẫu co theo chiều cao (svh); từ laptop 1280×720 tới màn 1920×1080 và điện thoại 360×780 trở lên thấy đủ tiêu đề, nút, điện thoại và nút điều khiển không cần lướt; chữ trong điện thoại mẫu co theo cỡ máy |
 | 17/11/2026 | Cân đối màu và hiệu ứng | Một hệ màu theo màn hình đầu (giấy, đá ấm, mực than), logo làm màu phụ; họa tiết mã vạch làm điểm nhấn; bật lại hiệu ứng xuất hiện thống nhất; chân trang đen có logo; ST025 lên đầu; viết lại README |
 | 17/11/2026 | Nhận diện công ty mẹ | Logo gốc, nền trắng/xám, tường poster sau điện thoại, phần "Về B Productions", bài đọc thêm từ blog, bố cục máy tính cho khung xem, phiếu, chính sách, nhân viên |
 | 16/11/2026 | Màn hình đầu | Ba điện thoại xòe quạt, tiếng bật ở lần chạm đầu, số liệu bài đăng thật, gọn chữ, bỏ phần Gợi ý và Cách làm |

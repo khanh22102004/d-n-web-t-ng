@@ -258,3 +258,60 @@ body.parent-brand .thuong-hieu-dau { border-color: var(--bp-vien); }
 
 /* ---------- Điện thoại: số mẫu và mã mẫu nằm trên các biểu tượng bay lên ---------- */
 body.parent-brand .dt-tren { z-index: 7; }
+
+/* ======================================================================
+   MỘT KHUNG HÌNH — màn hình đầu vừa đủ chiều cao cửa sổ, không phải lướt
+   Tiêu đề và điện thoại co theo chiều cao (svh), không chỉ theo chiều ngang.
+   ====================================================================== */
+@media (min-width: 761px) {
+  body.parent-brand { --cao-dau: 94px; }
+  body.parent-brand .dau-trang { min-height: 0; padding-block: 10px; }
+  body.parent-brand .brand-logo { width: 112px; }
+  body.parent-brand .mo-dau.san-khau {
+    min-height: clamp(540px, calc(100svh - var(--cao-dau)), 900px);
+    padding-block: clamp(18px, 4.2svh, 56px);
+    row-gap: clamp(14px, 2.6svh, 26px);
+    align-content: center;
+  }
+  body.parent-brand .san-khau h1 { font-size: clamp(2.5rem, min(5.4vw, 9.4svh), 5rem); }
+  body.parent-brand .san-khau .ma-vach { margin-top: clamp(14px, 2.6svh, 26px); }
+  body.parent-brand .san-khau .ma-vach + .hero-description { margin-top: clamp(12px, 2svh, 20px); }
+  body.parent-brand .san-khau > .tuong { padding-top: 0; align-self: center; }
+  body.parent-brand .san-khau :is(.dien-thoai, .dien-thoai:hover, .dt-ben) {
+    width: max(190px, min(clamp(220px, 18vw, 256px), calc((100svh - 270px) * .56)));
+  }
+  body.parent-brand .san-khau .dt-dieu-khien { margin-top: clamp(10px, 2svh, 22px); }
+}
+@media (max-width: 1120px) and (min-width: 761px) {
+  body.parent-brand .san-khau :is(.dien-thoai, .dien-thoai:hover, .dt-ben) { width: max(180px, min(205px, calc((100svh - 270px) * .56))); }
+}
+
+@media (max-width: 760px) {
+  body.parent-brand .dau-trang { min-height: 66px; padding-block: 6px; }
+  body.parent-brand .brand-logo { width: clamp(88px, 24vw, 98px); }
+  body.parent-brand .mo-dau.san-khau { padding-top: clamp(12px, 2.4svh, 22px); padding-bottom: 10px; }
+  body.parent-brand .san-khau h1 { font-size: clamp(1.75rem, min(9.5vw, 5svh), 3.2rem); }
+  body.parent-brand .san-khau .ma-vach { margin-top: clamp(8px, 1.6svh, 14px); }
+  body.parent-brand .san-khau .ma-vach + .hero-description { margin-top: clamp(8px, 1.4svh, 12px); line-height: 1.5; }
+  body.parent-brand .san-khau .hero-footer { margin-top: clamp(10px, 1.8svh, 16px); }
+  body.parent-brand .hero-note { margin-top: 6px; font-size: .8rem; line-height: 1.4; }
+  body.parent-brand .san-khau .lien-chi-tiet { min-height: 40px; margin-top: 0; padding-block: 6px; }
+  body.parent-brand .san-khau > .tuong { min-height: 0; padding: 6px 0 0; margin-top: 4px; }
+  /* chiều rộng điện thoại = phần chiều cao còn lại × 9/16, trong khoảng 132–200px */
+  body.parent-brand .san-khau :is(.dien-thoai, .dien-thoai:hover, .dt-ben) {
+    width: clamp(132px, calc((100svh - var(--chu-mo-dau, 556px)) * .5625), 200px);
+  }
+  body.parent-brand .san-khau .dt-dieu-khien { margin-top: 8px; }
+  body.parent-brand .san-khau :is(.dt-nut, .dt-nut.tuong-dung) { width: 44px; height: 44px; min-height: 44px; }
+}
+/* Điện thoại màn thấp (iPhone SE, Android nhỏ): bỏ dòng ghi chú lặp lại ở phần tư vấn, gọn chữ để điện thoại mẫu lộ ra nhiều hơn */
+@media (max-width: 760px) and (max-height: 720px) {
+  body.parent-brand .hero-note { display: none; }
+  body.parent-brand .san-khau .ma-vach + .hero-description { font-size: .9rem; line-height: 1.45; }
+  body.parent-brand .san-khau :is(.dien-thoai, .dien-thoai:hover, .dt-ben) { width: 128px; }
+}
+/* Điện thoại mẫu nhỏ lại thì chữ và biểu tượng bên trong màn hình co theo, không chồng lên nhau */
+body.parent-brand .san-khau .dien-thoai { container-type: inline-size; container-name: dt; }
+@container dt (max-width: 196px) { body.parent-brand .dt-man :is(.dt-tren, .dt-ray, .dt-duoi) { zoom: .86; } }
+@container dt (max-width: 168px) { body.parent-brand .dt-man :is(.dt-tren, .dt-ray, .dt-duoi) { zoom: .74; } }
+@container dt (max-width: 140px) { body.parent-brand .dt-man :is(.dt-tren, .dt-ray, .dt-duoi) { zoom: .64; } }

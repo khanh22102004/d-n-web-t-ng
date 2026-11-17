@@ -1,6 +1,20 @@
 # Kiểm tra bản hoàn thiện máy tính và điện thoại B PRODUCTIONS
 
 
+## Lượt "một khung hình" — 17/11/2026
+
+Yêu cầu: màn hình đầu phải thấy đủ thông tin trong một khung hình, không phải lướt. Trước khi sửa, thanh đầu trang máy tính cao 143px; laptop 1366×768 và 1280×720 bị đẩy dòng "Tôi đã có yêu cầu cụ thể" xuống dưới mép, điện thoại 390×844 thấy điện thoại mẫu bị cắt và nút điều khiển nằm ngoài màn hình.
+
+Đã đo vị trí cuối cùng của chữ, nút và nút điều khiển điện thoại so với chiều cao cửa sổ:
+
+| Khổ | Kết quả |
+|---|---|
+| 1920×1080, 1536×864, 1440×900, 1366×768, 1280×720, 1024×768, 768×1024 | Vừa một khung hình |
+| Điện thoại 430×932, 412×915, 393×873, 390×844, 360×800, 360×780 | Vừa một khung hình |
+| Điện thoại thấp 375×667, 360×640 | Đủ tiêu đề, mô tả, nút và màn hình điện thoại mẫu; riêng hàng nút điều khiển nằm ngay dưới mép (dòng ghi chú lặp lại được ẩn ở khổ này) |
+
+`pytest` 26/26, kiểm thử trình duyệt 40/40 (gồm tương phản nút).
+
 ## Lượt cân đối màu và hiệu ứng — 17/11/2026
 
 Mã gốc: main, commit 3516c4e. Thay đổi: thêm `web/can-doi.css` (hệ màu thống nhất, họa tiết mã vạch, hiệu ứng), thêm vạch mã vạch dưới tiêu đề lớn và logo ở chân trang, đưa ST025 lên đầu điện thoại và thư viện, mở rộng danh sách phần có hiệu ứng xuất hiện trong `web/app.js`, viết lại README. Backend, API, câu hỏi và dữ liệu không đổi.
