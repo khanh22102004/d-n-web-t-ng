@@ -258,9 +258,46 @@
       $("tuong-dung").setAttribute("aria-label", tamDung ? "Chạy tiếp tự xoay" : "Dừng tự xoay");
       dtCapNhat();
     });
-    veDienThoai(); ganXoay(); chayDongHoQuay();
+    veDienThoai(); ganXoay(); chayDongHoQuay(); quetTieuDe();
   }
   // Đồng hồ quay trong khung ngắm ở màn hình đầu: giờ:phút:giây:khung (25 khung/giây), chỉ chạy khi trang đang hiện và không tạm dừng.
+  // Đầu thư viện: tiêu đề "lấy nét" từng chữ khi cuộn tới; dòng "Ví dụ" tự gõ lần lượt các kiểu video có trong thư viện.
+  function quetTieuDe() {
+    const h2 = $("mau-tieu-de"), chu = $("kieu-chay-chu");
+    if (!h2 || !chu) return;
+    // tách tiêu đề thành từng chữ (giữ nguyên dấu xuống dòng) để làm hiệu ứng lấy nét lần lượt
+    if (!h2.querySelector(".tu-net")) {
+      let k = 0;
+      [...h2.childNodes].forEach(n => {
+        if (n.nodeType !== 3) return;
+        const f = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach(t => { if (!t) return; if (/^\s+$/.test(t)) f.append(t); else { const s = tao("span", "tu-net", t); s.style.setProperty("--i", k++); f.append(s); } });
+        n.replaceWith(f);
+      });
+    }
+    const vao = () => h2.classList.add("da-net");
+    if (itChuyenDong || !("IntersectionObserver" in window)) vao();
+    else { const io = new IntersectionObserver(ds => { if (ds.some(d => d.isIntersecting)) { vao(); io.disconnect(); } }, { threshold: .5 }); io.observe(h2); }
+
+    const ds = [...new Set(dauTien(cauHinh.mau).map(m => m.kieu).filter(Boolean))];
+    if (!ds.length) return;
+    chu.textContent = ds[0];
+    if (itChuyenDong || ds.length < 2) return;
+    const cho = ms => new Promise(r => setTimeout(r, ms));
+    const dangThay = () => { const r = chu.getBoundingClientRect(); return !tamDung && !document.hidden && r.bottom > 0 && r.top < innerHeight; };
+    let i = 0;
+    (async () => {
+      for (;;) {
+        await cho(2600);
+        if (!dangThay()) continue;
+        const cu = chu.textContent; chu.classList.remove("ve");
+        for (let n = cu.length; n >= 0; n--) { chu.textContent = cu.slice(0, n); await cho(20); }
+        i = (i + 1) % ds.length; const kieu = ds[i];
+        for (let n = 1; n <= kieu.length; n++) { chu.textContent = kieu.slice(0, n); await cho(45); }
+        chu.classList.add("ve");
+      }
+    })();
+  }
   function chayDongHoQuay() {
     const tc = $("khung-tc");
     if (!tc || itChuyenDong) return;
