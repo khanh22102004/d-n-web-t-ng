@@ -1,8 +1,8 @@
 [
+  {"ma": "ST025", "ten": "Giới thiệu món ăn", "nhom": "Thực phẩm", "kieu": "Hoạt hình", "id": "G7q3wGO_mPg", "hien": "video"},
+  {"ma": "ST033", "ten": "Video gây chú ý cho nước uống", "nhom": "Thực phẩm", "kieu": "Video vui, gây chú ý", "id": "fCYmUOi18iY", "hien": "video"},
   {"ma": "ST029", "ten": "Quảng cáo son tint", "nhom": "Làm đẹp", "kieu": "Người mẫu giới thiệu sản phẩm", "id": "dh8TnhpcutA", "hien": "video", "so_lieu": {"tim": 10100, "binh_luan": 2123, "chia_se": 534}},
-  {"ma": "ST033", "ten": "Video gây chú ý cho nước uống", "nhom": "Đồ ăn, thức uống", "kieu": "Video vui, gây chú ý", "id": "fCYmUOi18iY", "hien": "video"},
   {"ma": "ST051", "ten": "Giới thiệu son dưỡng dạng thỏi", "nhom": "Làm đẹp", "kieu": "Chỉ có sản phẩm, sang trọng", "id": "fg1A4YsODeQ", "hien": "dong"},
-  {"ma": "ST025", "ten": "Giới thiệu món ăn", "nhom": "Đồ ăn, thức uống", "kieu": "Hoạt hình", "id": "G7q3wGO_mPg", "hien": "video"},
   {"ma": "ST052", "ten": "Tinh chất chăm sóc da", "nhom": "Làm đẹp", "kieu": "Người thật, đời thường", "id": "wyxdW7Fxpu8", "hien": "dong"},
   {"ma": "ST056", "ten": "Quảng cáo ứng dụng nhân sự", "nhom": "Ứng dụng", "kieu": "Giới thiệu ứng dụng", "id": "ewML01QHtVk", "hien": "dong"},
   {"ma": "ST053", "ten": "Quảng cáo ứng dụng game", "nhom": "Ứng dụng", "kieu": "Giới thiệu ứng dụng", "id": "buIhQLUtgFE", "hien": "video"},

@@ -256,10 +256,10 @@ EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$")
 def kiem_tra_lien_he(kenh, gia_tri):
     so = re.sub(r"[\s.\-()]", "", gia_tri)
     if kenh in ("Zalo", "Điện thoại"):
-        return None if DT.match(so) else "Số điện thoại chưa đúng. Anh chị vui lòng nhập đủ 10 số, ví dụ 0901 234 567."
+        return None if DT.match(so) else "Số điện thoại chưa đúng. Quý khách hàng vui lòng nhập đủ 10 số, ví dụ 0901 234 567."
     if kenh == "Email":
-        return None if EMAIL.match(gia_tri) else "Địa chỉ email chưa đúng. Anh chị vui lòng xem lại, ví dụ ten@gmail.com."
-    return None if len(gia_tri) >= 3 else "Anh chị vui lòng nhập tên hoặc link Messenger."
+        return None if EMAIL.match(gia_tri) else "Địa chỉ email chưa đúng. Quý khách hàng vui lòng xem lại, ví dụ ten@gmail.com."
+    return None if len(gia_tri) >= 3 else "Quý khách hàng vui lòng nhập tên hoặc link Messenger."
 
 
 def lam_sach(tra_loi):
@@ -377,9 +377,9 @@ async def ghi_luot_xem(request):
 async def mo_phieu(request):
     du_lieu = await doc_json(request, 2000) or {}
     if du_lieu.get("dong_y_luu") is not True:
-        return loi("CHUA_DONG_Y_LUU", "Anh chị vui lòng đồng ý lưu bản nháp trước khi bắt đầu.")
+        return loi("CHUA_DONG_Y_LUU", "Quý khách hàng vui lòng đồng ý lưu bản nháp trước khi bắt đầu.")
     if qua_nhieu(("mo", dia_chi_khach(request)), 8, 3600) or qua_nhieu("mo-tat-ca", 300, 3600):
-        return loi("QUA_NHIEU", "Anh chị mở phiếu quá nhiều lần trong một giờ. Anh chị vui lòng thử lại sau.", 429)
+        return loi("QUA_NHIEU", "Quý khách hàng mở phiếu quá nhiều lần trong một giờ. Vui lòng thử lại sau.", 429)
     ma, luc = secrets.token_urlsafe(24), bay_gio()
     await run_in_threadpool(sql, "INSERT INTO phieu (id, tao_luc, sua_luc, nguon, dong_y_luu_luc) VALUES (?,?,?,?,?)",
                             (ma, luc, luc, sach_nguon(du_lieu.get("nguon")), luc))
@@ -408,15 +408,15 @@ def so_dien_thoai(gia_tri):
 async def bo_sung_tu_van(request):
     du_lieu = await doc_json(request, 4000)
     if du_lieu is None:
-        return loi("SAI_DU_LIEU", "Yêu cầu chưa đúng. Anh chị vui lòng thử lại.")
+        return loi("SAI_DU_LIEU", "Yêu cầu chưa đúng. Quý khách hàng vui lòng thử lại.")
     ma_gui = du_lieu.get("ma_gui")
     if not isinstance(ma_gui, str) or not re.fullmatch(r"[a-f0-9]{48}", ma_gui):
-        return loi("SAI_MA_GUI", "Mã yêu cầu chưa đúng. Anh chị vui lòng tải lại trang.")
+        return loi("SAI_MA_GUI", "Mã yêu cầu chưa đúng. Quý khách hàng vui lòng tải lại trang.")
     if qua_nhieu(("bo-sung", dia_chi_khach(request)), 20, 3600):
-        return loi("QUA_NHIEU", "Anh chị gửi quá nhiều lần. Anh chị vui lòng thử lại sau.", 429)
+        return loi("QUA_NHIEU", "Quý khách hàng gửi quá nhiều lần. Vui lòng thử lại sau.", 429)
     them = lam_sach({khoa: du_lieu.get(ten) for ten, khoa in KHOA_BO_SUNG.items()})
     if not them:
-        return loi("TRONG", "Anh chị chưa chọn hoặc điền thông tin nào.")
+        return loi("TRONG", "Quý khách hàng chưa chọn hoặc điền thông tin nào.")
     ma = "tv_" + ma_gui
 
     def ghi():
@@ -437,41 +437,41 @@ async def bo_sung_tu_van(request):
     if kq == "khong-thay":
         return loi("KHONG_THAY", "Không tìm thấy yêu cầu tư vấn này.", 404)
     if kq == "het-han":
-        return loi("HET_HAN", "Yêu cầu này đã gửi quá lâu. Anh chị vui lòng gửi yêu cầu chi tiết.", 409)
+        return loi("HET_HAN", "Yêu cầu này đã gửi quá lâu. Quý khách hàng vui lòng gửi yêu cầu chi tiết.", 409)
     return JSONResponse({"da_luu": True})
 
 
 async def gui_tu_van(request):
     du_lieu = await doc_json(request, 4000)
     if du_lieu is None:
-        return loi("SAI_DU_LIEU", "Yêu cầu chưa đúng. Anh chị vui lòng thử lại.")
+        return loi("SAI_DU_LIEU", "Yêu cầu chưa đúng. Quý khách hàng vui lòng thử lại.")
     if du_lieu.get("trang_web"):
         return JSONResponse({"da_gui": True}, status_code=201)
     if du_lieu.get("dong_y") is not True:
-        return loi("CHUA_DONG_Y", "Anh chị vui lòng đồng ý để chúng tôi liên hệ tư vấn.")
+        return loi("CHUA_DONG_Y", "Quý khách hàng vui lòng đồng ý để chúng tôi liên hệ tư vấn.")
     san_pham, lien_he = du_lieu.get("san_pham"), du_lieu.get("lien_he")
     if not isinstance(san_pham, str) or not 1 <= len(san_pham.strip()) <= 300:
-        return loi("THIEU_SAN_PHAM", "Anh chị vui lòng nhập tên sản phẩm, tối đa 300 ký tự.")
+        return loi("THIEU_SAN_PHAM", "Quý khách hàng vui lòng nhập tên sản phẩm, tối đa 300 ký tự.")
     if not isinstance(lien_he, str) or len(lien_he) > 30:
-        return loi("SAI_LIEN_HE", "Anh chị vui lòng kiểm tra số điện thoại.")
+        return loi("SAI_LIEN_HE", "Quý khách hàng vui lòng kiểm tra số điện thoại.")
     so = re.sub(r"[\s.\-()]", "", lien_he)
     if not re.fullmatch(r"(?:0\d{9}|\+?84\d{9})", so):
-        return loi("SAI_LIEN_HE", "Anh chị vui lòng kiểm tra số điện thoại, ví dụ 0901 234 567.")
+        return loi("SAI_LIEN_HE", "Quý khách hàng vui lòng kiểm tra số điện thoại, ví dụ 0901 234 567.")
     ma_gui = du_lieu.get("ma_gui")
     if not isinstance(ma_gui, str) or not re.fullmatch(r"[a-f0-9]{48}", ma_gui):
-        return loi("SAI_MA_GUI", "Mã yêu cầu chưa đúng. Anh chị vui lòng tải lại trang.")
+        return loi("SAI_MA_GUI", "Mã yêu cầu chưa đúng. Quý khách hàng vui lòng tải lại trang.")
     ma_mau = du_lieu.get("ma_mau", "")
     if not isinstance(ma_mau, str):
         return loi("SAI_MAU", "Mẫu tham khảo chưa đúng.")
     m = next((m for m in MAU if m["ma"] == ma_mau), None)
     if ma_mau and m is None:
-        return loi("SAI_MAU", "Mẫu này không còn trong danh sách. Anh chị có thể bỏ chọn mẫu rồi gửi lại.")
+        return loi("SAI_MAU", "Mẫu này không còn trong danh sách. Quý khách hàng có thể bỏ chọn mẫu rồi gửi lại.")
     kenh = du_lieu.get("kenh", "Điện thoại")
     if kenh not in KENH_NHANH:
-        return loi("SAI_KENH", "Anh chị vui lòng chọn Zalo hoặc gọi điện.")
+        return loi("SAI_KENH", "Quý khách hàng vui lòng chọn Zalo hoặc gọi điện.")
     them = du_lieu.get("them") or {}
     if not isinstance(them, dict):
-        return loi("SAI_DU_LIEU", "Yêu cầu chưa đúng. Anh chị vui lòng thử lại.")
+        return loi("SAI_DU_LIEU", "Yêu cầu chưa đúng. Quý khách hàng vui lòng thử lại.")
     tra_loi = {**lam_sach({k: them.get(k) for k in KHOA_GOI_Y}),
                "1.san_pham": san_pham.strip(), "19.kenh": kenh, "19.dia_chi": so, "_loai": "tu-van-nhanh"}
     if m:
@@ -482,10 +482,10 @@ async def gui_tu_van(request):
     cu = await run_in_threadpool(lay_phieu, ma)
     if cu:
         if not cung_yeu_cau(cu["tra_loi"], tra_loi):
-            return loi("MA_DA_DUNG", "Nội dung yêu cầu đã thay đổi. Anh chị vui lòng sửa thông tin rồi gửi lại.", 409)
+            return loi("MA_DA_DUNG", "Nội dung yêu cầu đã thay đổi. Quý khách hàng vui lòng sửa thông tin rồi gửi lại.", 409)
         return JSONResponse({"da_gui": True})
     if qua_nhieu(("tu-van", dia_chi_khach(request)), 5, 3600) or qua_nhieu("tu-van-tat-ca", 300, 3600):
-        return loi("QUA_NHIEU", "Anh chị đã gửi nhiều yêu cầu. Vui lòng thử lại sau hoặc liên hệ studio qua kênh đã biết.", 429)
+        return loi("QUA_NHIEU", "Quý khách hàng đã gửi nhiều yêu cầu. Vui lòng thử lại sau hoặc liên hệ studio qua kênh đã biết.", 429)
     luc = bay_gio()
     await run_in_threadpool(sql,
         "INSERT INTO phieu (id,tao_luc,sua_luc,gui_luc,nguon,nhom_dang_dung,tra_loi,dong_y_gui_luc) "
@@ -493,7 +493,7 @@ async def gui_tu_van(request):
         (ma, luc, luc, luc, sach_nguon(du_lieu.get("nguon")), THU_TU_NHOM[-1], json.dumps(tra_loi, ensure_ascii=False), luc))
     da_luu = await run_in_threadpool(lay_phieu, ma)
     if not da_luu or not cung_yeu_cau(da_luu["tra_loi"], tra_loi):
-        return loi("MA_DA_DUNG", "Nội dung yêu cầu đã thay đổi. Anh chị vui lòng sửa thông tin rồi gửi lại.", 409)
+        return loi("MA_DA_DUNG", "Nội dung yêu cầu đã thay đổi. Quý khách hàng vui lòng sửa thông tin rồi gửi lại.", 409)
     return JSONResponse({"da_gui": True}, status_code=201)
 
 
@@ -531,7 +531,7 @@ async def luu_phieu(request):
     if phieu["gui_luc"]:
         return loi("DA_GUI", "Phiếu này đã được gửi.", 409)
     if qua_nhieu(("luu", phieu["id"]), 300, 3600):
-        return loi("QUA_NHIEU", "Anh chị lưu quá nhiều lần. Anh chị vui lòng chờ ít phút.", 429)
+        return loi("QUA_NHIEU", "Quý khách hàng lưu quá nhiều lần. Vui lòng chờ ít phút.", 429)
     tra_loi = lam_sach(du_lieu.get("tra_loi"))
     nhom = du_lieu.get("nhom") if du_lieu.get("nhom") in THU_TU_NHOM else phieu["nhom_dang_dung"]
     def ghi():
@@ -582,13 +582,13 @@ async def tai_anh(request):
         du_lieu = await tep.read(ANH_NANG_NHAT + 1)
         ten_goc = tep.filename or "anh"
     if len(du_lieu) > ANH_NANG_NHAT:
-        return loi("ANH_QUA_NANG", f"Ảnh nặng quá {MB_ANH} MB. Anh chị vui lòng chọn ảnh nhẹ hơn.", 413)
+        return loi("ANH_QUA_NANG", f"Ảnh nặng quá {MB_ANH} MB. Quý khách hàng vui lòng chọn ảnh nhẹ hơn.", 413)
     try:
         du_lieu, kieu = await run_in_threadpool(chuan_hoa_anh, du_lieu)
     except (UnidentifiedImageError, OSError, ValueError, SyntaxError, Image.DecompressionBombError, Image.DecompressionBombWarning):
         return loi("SAI_KIEU_ANH", "Ảnh không hợp lệ hoặc quá lớn. Chỉ nhận ảnh tĩnh JPG, PNG hoặc WEBP, tối đa 20 triệu điểm ảnh.")
     if len(du_lieu) > ANH_NANG_NHAT:
-        return loi("ANH_QUA_NANG", f"Ảnh sau xử lý nặng quá {MB_ANH} MB. Anh chị vui lòng chọn ảnh nhỏ hơn.", 413)
+        return loi("ANH_QUA_NANG", f"Ảnh sau xử lý nặng quá {MB_ANH} MB. Quý khách hàng vui lòng chọn ảnh nhỏ hơn.", 413)
     ten = re.sub(r"[^\w.\- ]", "_", os.path.basename(ten_goc))[:80] or "anh"
 
     def ghi():
@@ -634,7 +634,7 @@ async def gui_phieu(request):
     if du_lieu.get("trang_web"):  # ô ẩn, người thật không thấy và không điền
         return JSONResponse({"da_gui": True, "tom_tat": []})
     if du_lieu.get("dong_y") is not True:
-        return loi("CHUA_DONG_Y", "Anh chị vui lòng đánh dấu ô đồng ý trước khi gửi.")
+        return loi("CHUA_DONG_Y", "Quý khách hàng vui lòng đánh dấu ô đồng ý trước khi gửi.")
     tra_loi = lam_sach(du_lieu.get("tra_loi")) if "tra_loi" in du_lieu else phieu["tra_loi"]
     thieu = tim_thieu(tra_loi)
     if thieu:
@@ -901,6 +901,10 @@ async def trang_chinh_sach(request):
     return HTMLResponse(trang, headers={"Cache-Control": TRANG_CONG_KHAI})
 
 
+async def trang_blog_tu_lam(request):
+    return FileResponse(WEB / "blog-tu-lam.html", headers={"Cache-Control": TRANG_CONG_KHAI})
+
+
 async def trang_nhan_vien(request):
     return FileResponse(WEB / "nhan-vien.html", headers={"Cache-Control": "no-store"})
 
@@ -928,7 +932,7 @@ class BaoVe:
                     return
                 than.extend(tin.get("body", b""))
                 if len(than) > ANH_NANG_NHAT + 200_000:
-                    return await loi("ANH_QUA_NANG", f"Ảnh nặng quá {MB_ANH} MB. Anh chị vui lòng chọn ảnh nhẹ hơn.", 413)(scope, receive, send)
+                    return await loi("ANH_QUA_NANG", f"Ảnh nặng quá {MB_ANH} MB. Quý khách hàng vui lòng chọn ảnh nhẹ hơn.", 413)(scope, receive, send)
                 if not tin.get("more_body", False):
                     break
             nhan_goc = receive
@@ -973,6 +977,7 @@ app = BaoVe(GZipMiddleware(Starlette(routes=[
     Route("/nhan-vien", trang_nhan_vien),
     Route("/chinh-sach", trang_chinh_sach),
     Route("/chinh-sach.html", trang_chinh_sach),
+    Route("/blog/tu-lam-hay-de-chung-toi-lam", trang_blog_tu_lam),
     Route("/api/suc-khoe", suc_khoe),
     Route("/api/cau-hinh", cau_hinh),
     Route("/api/luot-xem", ghi_luot_xem, methods=["POST"]),

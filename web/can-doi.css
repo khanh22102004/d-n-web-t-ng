@@ -580,3 +580,31 @@ body.parent-brand .song-am i:nth-child(2) { scale: 1 .8; } body.parent-brand .so
 }
 @media (forced-colors: active) { body.parent-brand .song-am i, body.parent-brand .con-tro { background: CanvasText; }
   body.parent-brand .mau-toi .muc-dau h2 .tu-net { background: none; color: CanvasText; -webkit-text-fill-color: CanvasText; } }
+
+/* ======================================================================
+   BÀI BLOG (Góc chia sẻ) — /blog/tu-lam-hay-de-chung-toi-lam
+   ====================================================================== */
+body.parent-brand .bai-blog { max-width: 1040px; margin: 0 auto; padding: clamp(28px, 5vw, 64px) var(--brand-edge, 24px) clamp(48px, 7vw, 96px); }
+body.parent-brand .bai-blog-muc { margin: 0; font-size: .9rem; color: var(--bp-muc-3); }
+body.parent-brand .bai-blog-muc a { color: var(--bp-muc-2); }
+body.parent-brand .bai-blog h1 { margin-top: 18px; font-family: var(--tieu-de); font-size: clamp(2.2rem, 5vw, 4rem); font-weight: 800; line-height: 1.04; letter-spacing: -.04em; color: var(--bp-muc); }
+body.parent-brand .bai-blog h1::before { content: ""; display: block; height: 26px; width: calc(26px * 365 / 205); margin-bottom: 18px; background: var(--bp-logo);
+  -webkit-mask: url("/ma-vach.svg") 0 0 / 100% 100% no-repeat; mask: url("/ma-vach.svg") 0 0 / 100% 100% no-repeat; }
+body.parent-brand .bai-blog-dan { max-width: 62ch; margin-top: 18px; font-size: 1.1rem; line-height: 1.65; color: var(--bp-muc-2); }
+body.parent-brand .bai-blog .so-sanh-bang { margin-top: clamp(28px, 4vw, 44px); }
+body.parent-brand .bai-blog .so-sanh-bang .cot-studio { background: var(--bp-logo); color: #fff; }
+body.parent-brand .bai-blog h2 { margin-top: clamp(32px, 4vw, 48px); font-family: var(--tieu-de); font-size: clamp(1.4rem, 2.4vw, 1.9rem); font-weight: 800; letter-spacing: -.03em; color: var(--bp-muc); }
+body.parent-brand .bai-blog article > p:not(.bai-blog-muc, .bai-blog-dan) { max-width: 66ch; margin-top: 12px; line-height: 1.7; color: var(--bp-muc-2); }
+body.parent-brand .bai-blog-chan { display: flex; align-items: center; justify-content: space-between; gap: 18px 28px; flex-wrap: wrap; margin-top: clamp(36px, 5vw, 56px);
+  padding: clamp(22px, 3vw, 32px); border-radius: 4px; background: var(--bp-logo); color: #fff; }
+body.parent-brand .bai-blog-chan p { margin: 0; font-family: var(--tieu-de); font-size: clamp(1.15rem, 2vw, 1.5rem); font-weight: 700; letter-spacing: -.02em; color: #fff; }
+body.parent-brand .bai-blog-nut { display: flex; gap: 12px; flex-wrap: wrap; }
+body.parent-brand .bai-blog-chan .nut { background: #fff; color: var(--bp-logo); }
+body.parent-brand .bai-blog-chan .nut-phu { background: transparent; color: #fff; border-color: rgb(255 255 255 / .5); }
+body.parent-brand .bai-blog-chan .nut-phu:hover { background: #fff; color: var(--bp-logo); border-color: #fff; }
+/* khung dẫn tới bài blog trong Góc chia sẻ: nổi hơn hai bài đọc trên bprovn.com */
+body.parent-brand .bai-viet.bai-viet-noi-bo { background: var(--bp-logo); color: #fff; border-color: var(--bp-logo); }
+body.parent-brand .bai-viet.bai-viet-noi-bo :is(h3, .bai-viet-xem) { color: #fff; }
+body.parent-brand .bai-viet.bai-viet-noi-bo p { color: #cfccc6; }
+body.parent-brand .bai-viet.bai-viet-noi-bo .bai-viet-chuyen-muc { color: #cfccc6; }
+body.parent-brand .bai-viet.bai-viet-noi-bo { padding: 24px 24px 22px; border-radius: 4px; }

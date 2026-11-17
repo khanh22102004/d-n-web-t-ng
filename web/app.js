@@ -33,7 +33,7 @@
     const r = await fetch(duong, { cache: "no-store", ...tuy, headers: tuy.body && !(tuy.body instanceof FormData) ? { "Content-Type": "application/json" } : undefined });
     let du = {};
     try { du = r.status === 204 ? {} : await r.json(); } catch { /* không có nội dung */ }
-    if (!r.ok) { const loi = new Error(du.loi?.thong_bao || "Chưa kết nối được máy chủ. Anh chị vui lòng thử lại."); loi.chi_tiet = du.loi; loi.trangThai = r.status; throw loi; }
+    if (!r.ok) { const loi = new Error(du.loi?.thong_bao || "Chưa kết nối được máy chủ. Quý khách hàng vui lòng thử lại."); loi.chi_tiet = du.loi; loi.trangThai = r.status; throw loi; }
     return du;
   }
 
@@ -434,7 +434,7 @@
       dt.tieng = false; dt.tatTay = true;
       if (dt.yt?.dangPhat && dt.video) { if (dt.yt.v) dt.yt.v.muted = true; else dtLenh("mute"); dt.yt.tieng = false; } else dtGoVideo();
     } else {
-      // iPhone không cho trang tự phát video YouTube có tiếng: mở khung xem lớn để anh chị bấm phát.
+      // iPhone không cho trang tự phát video YouTube có tiếng: mở khung xem lớn để Quý khách hàng bấm phát.
       if (laIOS && !m.doan && !(dt.yt && dt.yt.ma === m.ma && dt.yt.dangPhat)) { dtGoVideo(); moXem(dt.ds, m.ma); return; }
       dt.tieng = true; dt.thu = null; dungTatCa();
       if (dt.yt && dt.yt.ma === m.ma && dt.yt.dangPhat) {
@@ -475,8 +475,8 @@
       if (Math.random() < 0.4) bayLen("chia-se");
     }, 220);
   }
-  // Số dưới nút: từ 10.000 trở lên ghi gọn kiểu 10.1K, nhỏ hơn thì ghi đủ (2.123).
-  const soNut = so => (so >= 10000 ? `${(Math.floor(so / 100) / 10).toFixed(1).replace(/\.0$/, "")}K` : new Intl.NumberFormat("vi-VN").format(so));
+  // Số dưới nút: từ 10.000 trở lên ghi gọn kiểu 10,1K (dấu phẩy thập phân như tiếng Việt), nhỏ hơn thì ghi đủ (2.123).
+  const soNut = so => (so >= 10000 ? `${(Math.floor(so / 100) / 10).toFixed(1).replace(/\.0$/, "").replace(".", ",")}K` : new Intl.NumberFormat("vi-VN").format(so));
   function dtSoLieu(m) {
     const s = m.so_lieu || {}, dat = (id, v) => { $(id).textContent = soThat(v) ? soNut(soThat(v)) : ""; };
     dat("dt-so-tim", s.tim); dat("dt-so-bl", s.binh_luan); dat("dt-so-cs", s.chia_se);
@@ -547,7 +547,7 @@
   function dtThaTim() {
     const nut = $("dt-tim"), m = dt.ds[dt.i];
     timCuaKhach[m.ma] = (timCuaKhach[m.ma] || 0) + 1;
-    nut.classList.add("da-thich"); nut.setAttribute("aria-label", `Thả tim cho mẫu này, anh chị đã thả ${timCuaKhach[m.ma]} tim`);
+    nut.classList.add("da-thich"); nut.setAttribute("aria-label", `Thả tim cho mẫu này, Quý khách hàng đã thả ${timCuaKhach[m.ma]} tim`);
     if (!soThat(m.so_lieu?.tim)) { const so = $("dt-so-tim"); so.textContent = timCuaKhach[m.ma]; so.classList.remove("nay"); void so.offsetWidth; so.classList.add("nay"); }
     const cong = tao("span", "tim-cong", "+1"); $("dt-tim-bay").append(cong); setTimeout(() => cong.remove(), 900);
     if (itChuyenDong) return;
@@ -565,7 +565,7 @@
     try {
       if (navigator.share) { await navigator.share({ title: document.title, text: `Video mẫu ${m.ma}: ${m.ten}`, url }); return; }
       await navigator.clipboard.writeText(url); bao("Đã chép liên kết trang");
-    } catch (err) { if (err?.name !== "AbortError") bao("Chưa chia sẻ được. Anh chị thử lại giúp."); }
+    } catch (err) { if (err?.name !== "AbortError") bao("Chưa chia sẻ được. Quý khách hàng vui lòng thử lại."); }
   }
   let dtBatDauVideo = () => {};
   // ---------- Xoay cụm điện thoại sang mẫu trước / kế ----------
@@ -590,8 +590,8 @@
       .finally(() => { dangXoay = false; if (choXoay) { const h = choXoay; choXoay = 0; dtXoay(h); } });
   }
   function veDienThoai() {
-    const uuTien = maNoiBat.map(ma => mau[ma]).filter(Boolean);
-    dt.ds = [...uuTien, ...cauHinh.mau.filter(m => !maNoiBat.includes(m.ma))];
+    // Cùng thứ tự với thư viện: mẫu đầu (ST025), rồi lần lượt từng nhóm ngành theo mau.json.
+    dt.ds = dauTien(cauHinh.mau);
     if (!dt.ds.length) return;
     dtHien(0); batBay();
     $("dt-mo").addEventListener("click", () => { if (dt.vuot) { dt.vuot = false; return; } dtBatTatTieng(); });
@@ -783,8 +783,8 @@
       const chu = dong.textContent.trim(), tu = dong.classList.contains("h1-nen") ? [chu] : chu.split(/\s+/);
       dong.replaceChildren(...tu.flatMap((t, k) => { const ngoai = tao("span", "h1-tu"), trong = tao("span", "", t); trong.dataset.chu = t; trong.style.setProperty("--i", thuTu); thuTu += 1; ngoai.append(trong); return k ? [" ", ngoai] : [ngoai]; }));
     });
-    ["mau", "ve-b-productions", "danh-gia", "so-sanh", "cam-ket", "tu-van", "goc-chia-se", "hoi-dap"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
-    document.querySelectorAll("#luoi-mau, #loc, .nang-luc-goc, .thuong-hieu-dau, .so-sanh-bang, .so-sanh-chan, .tu-van-hop, .tv-xem-truoc, .bai-viet-luoi, .hoi-dap-ds, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
+    ["mau", "ve-b-productions", "danh-gia", "cam-ket", "tu-van", "goc-chia-se"].forEach(id => { const h = $(id)?.querySelector("h2"); if (h) { tachChu(h); h.dataset.lo = ""; } });
+    document.querySelectorAll("#luoi-mau, #loc, .nang-luc-goc, .thuong-hieu-dau, .so-sanh-bang, .so-sanh-chan, .tu-van-hop, .tv-xem-truoc, .bai-viet-luoi, .cam-ket-ds, .dg-ds, .dg-tong").forEach(e => { e.dataset.lo = ""; });
     const qs = new IntersectionObserver(ds => ds.forEach(e => { if (e.isIntersecting) { e.target.classList.add("lo"); qs.unobserve(e.target); } }),
       { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
     document.querySelectorAll("[data-lo]").forEach(e => qs.observe(e));
@@ -833,7 +833,7 @@
   }
 
   // ---------- Khung video minh họa ở phần để lại thông tin: tên sản phẩm khách gõ hiện ngay trên khung ----------
-  const XT_MAC_DINH = "Sản phẩm của anh chị";
+  const XT_MAC_DINH = "Sản phẩm của Quý khách hàng";
   let xtHen = 0, xtVong = 0;
   function xemTruocMau(m) {
     document.querySelectorAll(".tv-xt-anh").forEach(a => { a.src = a.closest(".tv-mini") ? `/anh-mau/nho/${m.ma}.webp` : `/anh-mau/${m.ma}.jpg`; });
@@ -931,7 +931,7 @@
     const p = xemPlayer;
     if (tin?.event === "onError") {
       p.khung.classList.remove("xem-san-sang");
-      p.trangThai.textContent = "Chưa phát được video. Anh chị có thể thử lại hoặc mở trên YouTube.";
+      p.trangThai.textContent = "Chưa phát được video. Quý khách hàng có thể thử lại hoặc mở trên YouTube.";
       p.phat.textContent = "Thử phát lại";
       xoaPlayerXem(); return;
     }
@@ -968,7 +968,7 @@
       f.addEventListener("load", () => { hoi(); p.hen.push(setTimeout(hoi, 800), setTimeout(hoi, 2500)); }, { once: true });
       p.hen.push(setTimeout(() => {
         if (xemPlayer !== p || p.sanSang) return;
-        trangThai.textContent = "Video chưa tải được. Anh chị có thể thử lại hoặc mở trên YouTube.";
+        trangThai.textContent = "Video chưa tải được. Quý khách hàng có thể thử lại hoặc mở trên YouTube.";
         phat.textContent = "Thử phát lại";
       }, 8000));
       khung.append(f);
@@ -1075,7 +1075,7 @@
 
     if (t.tu_dien) {
       oRieng = tao("input", "tu-dien"); oRieng.type = "text"; oRieng.maxLength = 300;
-      oRieng.placeholder = "Hoặc anh chị tự điền câu trả lời khác"; oRieng.setAttribute("aria-label", "Câu trả lời khác của anh chị");
+      oRieng.placeholder = "Hoặc Quý khách hàng tự điền câu trả lời khác"; oRieng.setAttribute("aria-label", "Câu trả lời khác của Quý khách hàng");
       oRieng.value = traLoi[k + ".khac"] || "";
       oRieng.addEventListener("input", () => {
         const chu = oRieng.value.trim();
@@ -1125,7 +1125,7 @@
       bao.hidden = true; o.disabled = true; trangThai.textContent = "Đang chuẩn bị ảnh…";
       const tep = await thuNhoAnh(goc);
       if (tep.size > cauHinh.anh.nang_nhat) {
-        bao.textContent = `Ảnh nặng quá ${Math.floor(cauHinh.anh.nang_nhat / 1048576)} MB. Anh chị vui lòng chọn ảnh nhẹ hơn.`; bao.hidden = false; o.value = ""; veDs(); return;
+        bao.textContent = `Ảnh nặng quá ${Math.floor(cauHinh.anh.nang_nhat / 1048576)} MB. Quý khách hàng vui lòng chọn ảnh nhẹ hơn.`; bao.hidden = false; o.value = ""; veDs(); return;
       }
       const form = new FormData(); form.append("anh", tep, tep.name);
       trangThai.textContent = "Đang gửi ảnh…";
@@ -1190,7 +1190,7 @@
       } catch (e) {
         if (e.trangThai === 409) {
           daGui = true; canLuu = false; xoaBanNhap();
-          $("tien-do-luu").textContent = "Phiếu đã gửi. Anh chị vui lòng tải lại trang.";
+          $("tien-do-luu").textContent = "Phiếu đã gửi. Quý khách hàng vui lòng tải lại trang.";
         } else if (e.trangThai === 404) {
           // Giữ bản nháp cục bộ để người dùng có thể khôi phục thành phiếu mới.
           $("tien-do-luu").textContent = "Phiếu không còn trên máy chủ. Tải lại trang để khôi phục bản nháp.";
@@ -1212,11 +1212,11 @@
     for (const t of c.truong) {
       if (biBoQua(c, t)) continue;
       const k = khoa(c, t), co = (Array.isArray(traLoi[k]) ? traLoi[k].length : !!traLoi[k]) || !!traLoi[k + ".khac"];
-      if (t.bat_buoc && !co) return t.nhan ? `Anh chị vui lòng trả lời mục “${t.nhan}”.` : "Anh chị vui lòng chọn hoặc điền một câu trả lời.";
+      if (t.bat_buoc && !co) return t.nhan ? `Quý khách hàng vui lòng trả lời mục “${t.nhan}”.` : "Quý khách hàng vui lòng chọn hoặc điền một câu trả lời.";
       if (t.kiem_tra === "lien_he" && co) {
         const kenh = traLoi[`${c.so}.kenh`], v = traLoi[k];
-        if ((kenh === "Zalo" || kenh === "Điện thoại") && !SDT.test(v.replace(/[\s.\-()]/g, ""))) return "Số điện thoại chưa đúng. Anh chị vui lòng nhập đủ 10 số, ví dụ 0901 234 567.";
-        if (kenh === "Email" && !EMAIL.test(v)) return "Địa chỉ email chưa đúng. Anh chị vui lòng xem lại, ví dụ ten@gmail.com.";
+        if ((kenh === "Zalo" || kenh === "Điện thoại") && !SDT.test(v.replace(/[\s.\-()]/g, ""))) return "Số điện thoại chưa đúng. Quý khách hàng vui lòng nhập đủ 10 số, ví dụ 0901 234 567.";
+        if (kenh === "Email" && !EMAIL.test(v)) return "Địa chỉ email chưa đúng. Quý khách hàng vui lòng xem lại, ví dụ ten@gmail.com.";
       }
     }
     return "";
@@ -1233,7 +1233,7 @@
 
   async function gui() {
     const loi = $("loi-phieu");
-    if (!$("dong-y").checked) { loi.textContent = "Anh chị vui lòng đánh dấu ô đồng ý trước khi gửi."; loi.hidden = false; $("dong-y").focus(); return; }
+    if (!$("dong-y").checked) { loi.textContent = "Quý khách hàng vui lòng đánh dấu ô đồng ý trước khi gửi."; loi.hidden = false; $("dong-y").focus(); return; }
     dangGui = true; nhoBanNhap();
     $("tiep-tuc").disabled = true; $("tiep-tuc").textContent = "Đang gửi phiếu";
     try {
@@ -1251,7 +1251,7 @@
   function hien(man) {
     document.body.classList.toggle("man-phieu", man === "phieu");
     document.body.classList.toggle("man-cam-on", man === "cam-on");
-    ["mo-dau", "mau", "ve-b-productions", "danh-gia", "so-sanh", "cam-ket", "tu-van", "goc-chia-se", "hoi-dap", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
+    ["mo-dau", "mau", "ve-b-productions", "danh-gia", "cam-ket", "tu-van", "goc-chia-se", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
     $("danh-gia").hidden = man !== "dau" || !(cauHinh.danh_gia || []).length;
     if (man !== "dau") dongMenu();
     document.querySelectorAll(".dau-trang nav").forEach(n => { n.hidden = man !== "dau"; });
@@ -1341,7 +1341,7 @@
     if (canTaiPhieu) {
       await khoiPhuc();
       if (canTaiPhieu) {
-        loi.textContent = "Chưa tải được phiếu cũ. Anh chị vui lòng kiểm tra mạng rồi thử lại."; loi.hidden = false; return;
+        loi.textContent = "Chưa tải được phiếu cũ. Quý khách hàng vui lòng kiểm tra mạng rồi thử lại."; loi.hidden = false; return;
       }
     }
     if (!$("dong-y-luu").checked) {
@@ -1385,7 +1385,7 @@
       }
       if (!nhap) {
         canTaiPhieu = true;
-        $("dang-do").textContent = "Chưa tải được phiếu đang dở. Anh chị vui lòng kiểm tra mạng rồi tải lại trang.";
+        $("dang-do").textContent = "Chưa tải được phiếu đang dở. Quý khách hàng vui lòng kiểm tra mạng rồi tải lại trang.";
         $("dang-do").hidden = false;
         // Không tạo phiếu khác thay cho phiếu đang có khi mạng chưa phục hồi.
         maPhieu = ma;
@@ -1401,7 +1401,7 @@
     }
     const so = new Set(Object.keys(traLoi).map(k => k.split(".")[0])).size;
     if (so) {
-      $("dang-do").textContent = `Anh chị đang điền dở một phiếu, đã trả lời ${so} trên ${cau.length} câu. Bấm “Tiếp tục điền phiếu” để làm tiếp từ chỗ đang dừng.`; $("dang-do").hidden = false;
+      $("dang-do").textContent = `Quý khách hàng đang điền dở một phiếu, đã trả lời ${so} trên ${cau.length} câu. Bấm “Tiếp tục điền phiếu” để làm tiếp từ chỗ đang dừng.`; $("dang-do").hidden = false;
       document.querySelectorAll("[data-bat-dau]").forEach(b => { b.textContent = "Tiếp tục điền phiếu"; });
     }
   }
@@ -1452,7 +1452,7 @@
       e.preventDefault();
       const t = docTuVan(), du = { ...boSung, ten: $("bs-ten").value.trim() };
       Object.keys(du).forEach(k => { if (!du[k] || (Array.isArray(du[k]) && !du[k].length)) delete du[k]; });
-      if (!t || !Object.keys(du).length) { $("bs-loi").textContent = "Anh chị chưa chọn hoặc điền câu nào."; $("bs-loi").hidden = false; return; }
+      if (!t || !Object.keys(du).length) { $("bs-loi").textContent = "Quý khách hàng chưa chọn hoặc điền câu nào."; $("bs-loi").hidden = false; return; }
       $("bs-gui").disabled = true; $("bs-gui").textContent = "Đang gửi…";
       try {
         await goi("/api/tu-van/bo-sung", { method: "POST", body: JSON.stringify({ ...du, ma_gui: t.ma_gui }), signal: AbortSignal.timeout(15000) });
@@ -1460,7 +1460,7 @@
         Object.keys(daCo).forEach(k => { if (!daCo[k]) delete daCo[k]; });
         nho.ghi(KHOA_TU_VAN, JSON.stringify({ ...t, bo_sung: { ...(t.bo_sung || {}), ...daCo } }));
         $("form-bo-sung").hidden = true; $("bs-xong").hidden = false; $("bs-xong").focus?.();
-      } catch (err) { $("bs-loi").textContent = err.trangThai ? err.message : "Chưa gửi được. Anh chị vui lòng kiểm tra mạng rồi thử lại."; $("bs-loi").hidden = false; }
+      } catch (err) { $("bs-loi").textContent = err.trangThai ? err.message : "Chưa gửi được. Quý khách hàng vui lòng kiểm tra mạng rồi thử lại."; $("bs-loi").hidden = false; }
       finally { $("bs-gui").disabled = false; $("bs-gui").textContent = "Gửi thêm thông tin"; }
     });
   }
@@ -1473,16 +1473,16 @@
   }
   const taoMaGui = () => [...crypto.getRandomValues(new Uint8Array(24))].map(v => v.toString(16).padStart(2, "0")).join("");
   function loiNhanh(sanPham, lienHe, dongY) {
-    if (!sanPham) return ["san-pham", "Anh chị vui lòng cho biết tên sản phẩm."];
-    if (!/^(?:0\d{9}|\+?84\d{9})$/.test(lienHe.replace(/[\s.\-()]/g, ""))) return ["lien-he", "Anh chị vui lòng kiểm tra số điện thoại, ví dụ 0901 234 567."];
-    if (!dongY) return ["dong-y", "Anh chị vui lòng đánh dấu ô đồng ý để chúng tôi liên hệ."];
+    if (!sanPham) return ["san-pham", "Quý khách hàng vui lòng cho biết tên sản phẩm."];
+    if (!/^(?:0\d{9}|\+?84\d{9})$/.test(lienHe.replace(/[\s.\-()]/g, ""))) return ["lien-he", "Quý khách hàng vui lòng kiểm tra số điện thoại, ví dụ 0901 234 567."];
+    if (!dongY) return ["dong-y", "Quý khách hàng vui lòng đánh dấu ô đồng ý để chúng tôi liên hệ."];
     return null;
   }
   async function guiNhanh(du) {
     const kq = await goi("/api/tu-van", { method: "POST", body: JSON.stringify({ ...du, dong_y: true, nguon: nguon() }), signal: AbortSignal.timeout(15000) });
-    if (kq.da_gui !== true) throw new Error("Chưa xác nhận được yêu cầu. Anh chị vui lòng thử lại.");
+    if (kq.da_gui !== true) throw new Error("Chưa xác nhận được yêu cầu. Quý khách hàng vui lòng thử lại.");
   }
-  const loiMang = err => err.trangThai ? err.message : "Chưa gửi được. Anh chị vui lòng kiểm tra mạng rồi thử lại; thông tin đang điền vẫn còn.";
+  const loiMang = err => err.trangThai ? err.message : "Chưa gửi được. Quý khách hàng vui lòng kiểm tra mạng rồi thử lại; thông tin đang điền vẫn còn.";
   // Gửi xong ở bất kỳ đâu: ghi nhớ để điền sẵn phiếu chi tiết, và chuyển phần tư vấn sang bước hỏi thêm.
   function sauKhiGuiNhanh(du) {
     nho.ghi(KHOA_TU_VAN, JSON.stringify({ ma_gui: du.ma_gui, san_pham: du.san_pham, lien_he: du.lien_he, kenh: du.kenh,
@@ -1503,7 +1503,7 @@
       if (tuDong) i.autocomplete = tuDong; if (kieu === "tel") i.inputMode = "tel";
       hop.append(l, i); return [hop, i];
     };
-    const [hopSp, sp] = o("Sản phẩm của anh chị", "text", "san-pham", cu?.san_pham, "Ví dụ: son dưỡng, cà phê, ứng dụng…");
+    const [hopSp, sp] = o("Sản phẩm của Quý khách hàng", "text", "san-pham", cu?.san_pham, "Ví dụ: son dưỡng, cà phê, ứng dụng…");
     const [hopDt, dt] = o("Số điện thoại", "tel", "lien-he", cu?.lien_he, "0901 234 567", "tel");
     const kenh = tao("fieldset", "truong tv-kenh"); kenh.append(tao("legend", "nhan", "Nhận phương án qua"));
     const chonKenh = tao("div", "chon-nho");
@@ -1519,7 +1519,7 @@
     const loi = tao("p", "bao-loi"); loi.hidden = true; loi.setAttribute("role", "alert");
     const nut = tao("button", "nut tv-gui", nutGui); nut.type = "submit";
     f.append(tao("h4", "", tieuDe), hopSp, hopDt, kenh, dongY, bay, loi, nut,
-      tao("p", "form-goi-y", `Chúng tôi phản hồi trong ${cauHinh.hen_phan_hoi}. Thông tin chỉ được gửi khi anh chị bấm nút.`));
+      tao("p", "form-goi-y", `Chúng tôi phản hồi trong ${cauHinh.hen_phan_hoi}. Thông tin chỉ được gửi khi Quý khách hàng bấm nút.`));
     let maGui = "";
     f.addEventListener("input", () => { maGui = ""; loi.hidden = true; });
     f.addEventListener("submit", async e => {
@@ -1535,7 +1535,7 @@
         const xong = tao("div", "form-nhanh xong"); xong.setAttribute("role", "status"); xong.tabIndex = -1;
         const them = tao("button", "nut-phu", "Trả lời thêm 2 câu để báo giá sát hơn"); them.type = "button";
         them.addEventListener("click", () => { if ($("xem").open) $("xem").close(); $("tu-van").scrollIntoView({ block: "start" }); $("bs-ten").focus({ preventScroll: true }); });
-        xong.append(tao("span", "dau-xong", "✓"), tao("h4", "", "Chúng tôi đã nhận yêu cầu của anh chị."),
+        xong.append(tao("span", "dau-xong", "✓"), tao("h4", "", "Chúng tôi đã nhận yêu cầu của Quý khách hàng."),
           tao("p", "", `Chúng tôi sẽ gửi phương án và báo giá cho ${du.san_pham} qua ${du.kenh === "Zalo" ? "Zalo" : "điện thoại"} trong ${cauHinh.hen_phan_hoi}.`), them);
         f.replaceWith(xong); xong.focus({ preventScroll: true });
       } catch (err) { loi.textContent = loiMang(err); loi.hidden = false; }
@@ -1566,7 +1566,7 @@
     $("bat-dau-nhanh").addEventListener("click", () => { $("bat-dau-hop").close(); $("tu-van").scrollIntoView({ block: "start" }); $("tv-san-pham").focus({ preventScroll: true }); });
     $("bat-dau-xac-nhan").addEventListener("click", () => {
       if (!$("dong-y-luu").checked) {
-        $("loi-dong-y-luu").textContent = "Anh chị vui lòng đồng ý lưu bản nháp trước khi bắt đầu."; $("loi-dong-y-luu").hidden = false; $("dong-y-luu").focus(); return;
+        $("loi-dong-y-luu").textContent = "Quý khách hàng vui lòng đồng ý lưu bản nháp trước khi bắt đầu."; $("loi-dong-y-luu").hidden = false; $("dong-y-luu").focus(); return;
       }
       $("loi-dong-y-luu").hidden = true; batDau();
     });
@@ -1576,7 +1576,7 @@
     // Bộ câu hỏi và danh sách mẫu được máy chủ gắn sẵn vào trang; chỉ gọi thêm khi phần gắn sẵn bị thiếu.
     try { cauHinh = JSON.parse($("cau-hinh").textContent); } catch { cauHinh = null; }
     try { if (!cauHinh || !cauHinh.bo_cau_hoi) cauHinh = await goi("/api/cau-hinh"); }
-    catch (e) { const loi = $("loi-mo-dau"); loi.textContent = "Trang chưa tải được bộ câu hỏi. Anh chị vui lòng tải lại trang."; loi.hidden = false; return; }
+    catch (e) { const loi = $("loi-mo-dau"); loi.textContent = "Trang chưa tải được bộ câu hỏi. Quý khách hàng vui lòng tải lại trang."; loi.hidden = false; return; }
     nhom = cauHinh.bo_cau_hoi.nhom; cau = cauHinh.bo_cau_hoi.cau_hoi;
     document.querySelectorAll("[data-bat-dau]").forEach(b => { b.dataset.nhanGoc = b.textContent; });
     cauHinh.mau.forEach(m => { mau[m.ma] = m; });
