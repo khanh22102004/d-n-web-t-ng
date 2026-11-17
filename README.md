@@ -165,6 +165,12 @@ web-b-productions/
 - **Bảo mật:** Content-Security-Policy, cookie phiên ký bằng `SECRET_KEY`, giới hạn tần suất gửi, chống gửi trùng, ô bẫy chống bot, ảnh tải lên được giải mã và tạo lại.
 - **Bộ nhớ đệm:** trang công khai và tệp tĩnh có `s-maxage` cho CDN của Vercel.
 
+### Hiệu năng cho máy yếu
+
+- **Nhận biết máy yếu** (`app.js`, biến `mayYeu`, lớp `html.may-yeu`): RAM từ 4 GB trở xuống, CPU từ 4 nhân trở xuống, hoặc bật tiết kiệm dữ liệu. Khi đó: tường ảnh nền đứng yên, không làm mờ nền (`backdrop-filter`), tiêu đề thư viện không dùng làm mờ khi lấy nét, không có ánh kim và vạch quét lặp, ảnh mẫu không trôi kiểu Ken Burns, không có tim/bình luận bay lên, không nghiêng 3D theo chuột, và **không tự tải trình phát YouTube**: khách bấm vào điện thoại thì video mới tải và phát có tiếng.
+- **Mọi máy:** tường ảnh nền chỉ dựng cho loại màn hình đang xem (máy tính cột dọc, điện thoại hàng ngang), tự dựng lại khi đổi khổ qua 760px; số ảnh lặp vừa đủ cho vòng trôi liền mạch; bỏ lớp tường thứ hai chỉ để vẽ viền, bỏ bộ lọc màu và bóng đổ trên tường. Phần nào khuất khỏi màn hình thì dừng mọi hiệu ứng CSS bên trong (lớp `.khuat`); các phần phía dưới dùng `content-visibility: auto`.
+- **Số đo** (Chromium, CPU chậm 4 lần): máy yếu từ 17 lên 60 khung/giây khi cuộn trên máy tính, 0 khung giật; số phần tử trên trang từ 1.728 còn khoảng 850–980; ảnh từ 160 còn 62–84. Máy mạnh từ 17 lên 43 khung/giây (máy tính), 46 lên 58 (điện thoại).
+
 ## 6. Chạy trên máy
 
 ### Windows
@@ -322,6 +328,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 |---|---|---|
 | 17/11/2026 | Đầu thư viện nổi | Tiêu đề "Anh chị muốn sản phẩm xuất hiện như thế nào?" đặt trong khung ngắm trắng, nổi lên và có vạch sáng quét qua một lần khi cuộn tới; dòng "Bấm vào ảnh để xem video có tiếng" thành thẻ kính mờ có biểu tượng sóng âm nhấp nhô |
 | 17/11/2026 | Đầu thư viện: dòng thời gian | Bên phải tiêu đề thư viện là dòng thời gian dựng phim thu nhỏ: rãnh hình gồm các đoạn clip mang tên kiểu video có trong thư viện (dài theo số mẫu), rãnh tiếng có sóng âm, kim phát chạy ngang; kim tới đoạn nào thì đoạn sáng lên và dòng chữ tự gõ dưới tiêu đề đổi sang kiểu đó; thẻ "Bấm vào ảnh để xem video có tiếng" có sóng âm nhấp nhô; dừng theo nút dừng và chế độ giảm chuyển động |
+| 17/11/2026 | Tối ưu cho máy yếu | Chế độ máy yếu (RAM ≤ 4 GB, CPU ≤ 4 nhân, tiết kiệm dữ liệu) tắt hiệu ứng nặng và không tự tải YouTube; tường ảnh chỉ dựng cho màn hình đang xem, bỏ lớp viền trùng, bộ lọc màu, bóng đổ; dừng hiệu ứng ở phần khuất; `content-visibility` cho phần dưới; sửa 4 quy tắc CSS sai cú pháp (phần tử giả trong `:is()`) khiến nút dừng không dừng được vạch quét |
 | 17/11/2026 | Bỏ REC và đồng hồ | Tiêu đề màn hình đầu bỏ chấm "● REC" và đồng hồ giờ:phút:giây:khung (trông như đồng hồ báo giờ); giữ bốn góc khung ngắm và vạch quét |
 | 17/11/2026 | Tiêu đề thư viện, Blog cân đối | Tiêu đề thư viện "Dịch vụ sản xuất Video AI" một dòng (cỡ chữ co theo màn hình). Blog: tiêu đề "Có ý tưởng. Có hướng bắt đầu." một dòng trên máy tính; hai bài thành hai ô trắng đều nhau trên nền đá, viền trên mực, các hàng nhãn/tiêu đề/mô tả/đường dẫn thẳng nhau, nhấc nhẹ khi rê chuột |
 | 17/11/2026 | Nút tư vấn cuối thư viện | Nút đổi chữ thành "Nhờ chúng tôi tư vấn →", đặt bên phải, cách đầu mút đường kẻ phía trên một khoảng nhỏ (trên máy tính), cỡ to hơn một chút (cao 56px) |

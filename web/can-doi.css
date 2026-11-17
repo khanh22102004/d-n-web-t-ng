@@ -414,7 +414,7 @@ body.parent-brand .san-khau .ma-vach::after { content: ""; position: absolute; t
   body.parent-brand .tia-quet::before { animation: bp-dai-sang 7s cubic-bezier(.55,.1,.35,1) 1.6s infinite; }
   body.parent-brand .tia-quet::after { animation: bp-vach-quet 7s cubic-bezier(.55,.1,.35,1) 1.6s infinite; }
   body.parent-brand .san-khau .ma-vach::after { animation: bp-quet-ma 7s cubic-bezier(.45,0,.55,1) 1.6s infinite; }
-  body.dung-chuyen-dong :is(.khung-rec b, .tia-quet, .tia-quet::before, .tia-quet::after, .san-khau .ma-vach::after) { animation-play-state: paused !important; }
+  body.dung-chuyen-dong .tia-quet, body.dung-chuyen-dong .tia-quet::before, body.dung-chuyen-dong .tia-quet::after, body.dung-chuyen-dong .san-khau .ma-vach::after { animation-play-state: paused !important; }
   body.parent-brand .khung-ngam:hover .tia-quet { animation-duration: 7s; }
 }
 @keyframes bp-goc-vao { from { opacity: 0; scale: 1.9; } to { opacity: 1; scale: 1; } }
@@ -425,7 +425,7 @@ body.parent-brand .san-khau .ma-vach::after { content: ""; position: absolute; t
 @keyframes bp-vach-quet { 0%, 9% { left: 0; } 30%, 100% { left: 100%; } }
 @keyframes bp-dai-sang { 0%, 9% { left: 0; translate: -110% 0; } 30%, 100% { left: 100%; translate: -100% 0; } }
 @media (prefers-reduced-motion: reduce) { body.parent-brand .khung-rec b { opacity: 1; } }
-@media (forced-colors: active) { body.parent-brand :is(.tia-quet, .san-khau .ma-vach::after) { display: none; } body.parent-brand .khung-goc i { border-color: CanvasText; } body.parent-brand .khung-rec b { background: CanvasText; } }
+@media (forced-colors: active) { body.parent-brand .tia-quet, body.parent-brand .san-khau .ma-vach::after { display: none; } body.parent-brand .khung-goc i { border-color: CanvasText; } }
 @media print { body.parent-brand :is(.khung-goc, .khung-rec, .tia-quet) { display: none; } }
 /* chừa chỗ cho góc dưới của khung ngắm trước mã vạch */
 body.parent-brand .san-khau .khung-ngam + .ma-vach { margin-top: clamp(26px, 3.6svh, 36px); }
@@ -517,7 +517,7 @@ body.parent-brand .mau-toi .ghi-chu-mau { max-width: none; margin-top: 18px; pad
   body.parent-brand .mau-toi .mau-duoi { display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
   body.parent-brand .mau-toi .mau-duoi .nut-chu { justify-content: center; }
 }
-@media (prefers-reduced-motion: reduce) { body.parent-brand .mau-toi .ray .khung :is(img, ::before) { transition: none; } }
+@media (prefers-reduced-motion: reduce) { body.parent-brand .mau-toi .ray .khung img, body.parent-brand .mau-toi .ray .khung::before { transition: none; } }
 body.parent-brand .mau-toi .ray .nhan-nganh { white-space: nowrap; border-radius: 99px; padding: 2px 8px; font-size: .78rem; letter-spacing: -.005em; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 16px); }
 
 /* ======================================================================
@@ -529,7 +529,7 @@ body.parent-brand .mau-toi .muc-dau h2 { font-size: clamp(2.4rem, 5.2vw, 5rem); 
 body.parent-brand .mau-toi .muc-dau h2 .tu-net {
   display: inline-block; padding-bottom: .08em; margin-bottom: -.08em;
   background: linear-gradient(100deg, #ffffff 0%, #ffffff 38%, #b9b5ae 46%, #ffffff 54%, #ffffff 62%, #d8d4cd 100%);
-  background-size: 300% 100%; background-position: 100% 0; background-attachment: fixed;
+  background-size: 300% 100%; background-position: 100% 0;
   -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
 body.parent-brand .mau-toi .muc-dau h2 { filter: drop-shadow(0 12px 28px rgb(0 0 0 / .5)); }
 
@@ -648,3 +648,29 @@ body.parent-brand .bai-viet p { max-width: none; margin-top: 10px; }
 body.parent-brand .bai-viet .bai-viet-xem { margin-top: 22px; }
 body.parent-brand .goc-chia-se { background: var(--bp-da-1); }
 @media (max-width: 1100px) { body.parent-brand .mau-toi .muc-dau { flex-wrap: wrap; } body.parent-brand .mau-toi .mau-dau-ben { justify-items: start; } }
+
+/* ======================================================================
+   HIỆU NĂNG — cho máy yếu không bị giật
+   ====================================================================== */
+/* Phần khuất khỏi màn hình: dừng mọi hiệu ứng CSS bên trong */
+main > section.khuat *, main > section.khuat *::before, main > section.khuat *::after { animation-play-state: paused !important; }
+/* Các phần ở dưới: trình duyệt bỏ qua việc dựng/vẽ cho tới khi khách cuộn gần tới */
+@supports (content-visibility: auto) {
+  body.parent-brand main > :is(#ve-b-productions, #tu-van, #goc-chia-se) { content-visibility: auto; contain-intrinsic-size: auto 900px; }
+}
+/* Máy yếu: tường ảnh đứng yên, bỏ làm mờ nền, bỏ hiệu ứng lấy nét bằng làm mờ, bỏ ánh kim và vạch quét lặp */
+html.may-yeu body.parent-brand .tuong-chay { animation: none !important; will-change: auto; }
+html.may-yeu body.parent-brand * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html.may-yeu body.parent-brand .dt-thanh { background: rgb(255 255 255 / .95); }
+html.may-yeu body.parent-brand .mau-toi .goi-y-tieng { background: #2d3033; }
+html.may-yeu body.parent-brand .dt-man .dt-ray-nut svg { filter: none; }
+html.may-yeu body.parent-brand .mau-toi .muc-dau h2 { filter: none; }
+html.may-yeu.hieu-ung body.parent-brand .mau-toi .muc-dau h2:not(.da-net) .tu-net { filter: none !important; scale: 1 !important; }
+html.may-yeu body.parent-brand .mau-toi .muc-dau h2 .tu-net { animation: none !important; transition: opacity .5s ease !important; }
+html.may-yeu body.parent-brand .tia-quet, html.may-yeu body.parent-brand .tia-quet::before, html.may-yeu body.parent-brand .tia-quet::after,
+html.may-yeu body.parent-brand .san-khau .ma-vach::after { animation: none !important; opacity: 0 !important; }
+html.may-yeu body.parent-brand .mau-nut .khung img { animation: none !important; }
+html.may-yeu body.parent-brand .san-khau .dien-thoai { will-change: auto; }
+/* Tường ảnh nền nhẹ hơn cho mọi máy: bỏ bộ lọc màu và bóng đổ từng ô (rất tốn khi tường trôi), viền mảnh vẽ thẳng trên ô */
+body.parent-brand .san-khau > .tuong-nen { filter: none; }
+body.parent-brand .tuong-nen .o-tuong .khung { box-shadow: none; border-color: rgb(0 0 0 / .14); }
