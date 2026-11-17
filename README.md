@@ -46,7 +46,6 @@ Màn hình đầu  →  Thư viện 13 video mẫu  →  Tư vấn nhanh (2 ô) 
 | Khách | Xem mẫu, gửi tư vấn nhanh hoặc phiếu chi tiết | `/` |
 | Nhân viên studio | Xem, tìm, lọc, đánh dấu đã liên hệ, xuất Excel, xóa phiếu | `/nhan-vien` |
 | Mọi người | Đọc cách dùng thông tin | `/chinh-sach` |
-| Mọi người | Đọc bài blog "Tự làm, hay để chúng tôi làm?" | `/blog/tu-lam-hay-de-chung-toi-lam` |
 
 **Giọng văn:** tiếng Việt, xưng "chúng tôi", gọi khách là "Quý khách hàng" (viết hoa chữ Q), lịch sự, không dùng "ạ"; câu đã có "Quý khách hàng" thì câu ngay sau không lặp lại (ví dụ "Vui lòng thử lại sau."). Trang nhân viên giữ cách gọi nội bộ. Không đưa lời chứng thực, số liệu, giá hay khách hàng chưa được studio xác nhận.
 
@@ -59,7 +58,7 @@ Màn hình đầu  →  Thư viện 13 video mẫu  →  Tư vấn nhanh (2 ô) 
 - **Thư viện mẫu:** 13 mẫu, lọc "Tất cả / Mẫu nổi bật / Ngành hàng". Bấm ảnh mở khung xem video có tiếng, lướt qua các mẫu, và có nút "Nhận báo giá làm video kiểu này" mở form ngay dưới video.
 - **Tư vấn nhanh:** chỉ cần tên sản phẩm và số điện thoại, chọn Zalo hoặc gọi điện, đánh dấu đồng ý. Gửi xong có thể trả lời thêm (tên, thời hạn, ngân sách, nơi đăng), không bắt buộc, trong 24 giờ.
 - **Phiếu chi tiết:** 20 câu chia 6 phần, lưu nháp sau khi khách đồng ý, Back/Forward của trình duyệt dùng được, khôi phục khi tải lại hoặc mất mạng, gửi kèm tối đa 3 ảnh.
-- Cam kết, giới thiệu B PRODUCTIONS, Góc chia sẻ gồm bài blog trên trang "Tự làm, hay để chúng tôi làm?" (bảng so sánh 6 điểm) và hai bài đọc thêm từ blog công ty.
+- Cam kết, giới thiệu B PRODUCTIONS, Góc chia sẻ gồm hai bài đọc thêm từ blog công ty.
 - **Gộp yêu cầu:** khách gửi tư vấn nhanh rồi gửi phiếu chi tiết với cùng số điện thoại thì hai yêu cầu thành một.
 - **Nguồn khách:** đọc `?nguon=tiktok|facebook|zalo` hoặc `utm_source`.
 
@@ -147,7 +146,6 @@ web-b-productions/
 └── web/
     ├── index.html          # Trang khách
     ├── chinh-sach.html     # Cách dùng thông tin
-    ├── blog-tu-lam.html    # Bài blog "Tự làm, hay để chúng tôi làm?" (/blog/tu-lam-hay-de-chung-toi-lam)
     ├── nhan-vien.html/.js  # Trang nhân viên
     ├── app.js              # Toàn bộ tương tác phía khách
     ├── style.css, brand.css, desktop.css, can-doi.css, nhan-vien.css
@@ -324,6 +322,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 |---|---|---|
 | 17/11/2026 | Đầu thư viện nổi | Tiêu đề "Anh chị muốn sản phẩm xuất hiện như thế nào?" đặt trong khung ngắm trắng, nổi lên và có vạch sáng quét qua một lần khi cuộn tới; dòng "Bấm vào ảnh để xem video có tiếng" thành thẻ kính mờ có biểu tượng sóng âm nhấp nhô |
 | 17/11/2026 | Đầu thư viện: dòng thời gian | Bên phải tiêu đề thư viện là dòng thời gian dựng phim thu nhỏ: rãnh hình gồm các đoạn clip mang tên kiểu video có trong thư viện (dài theo số mẫu), rãnh tiếng có sóng âm, kim phát chạy ngang; kim tới đoạn nào thì đoạn sáng lên và dòng chữ tự gõ dưới tiêu đề đổi sang kiểu đó; thẻ "Bấm vào ảnh để xem video có tiếng" có sóng âm nhấp nhô; dừng theo nút dừng và chế độ giảm chuyển động |
+| 17/11/2026 | Bỏ phần so sánh, căn giữa thẻ | Bỏ hẳn phần "Tự làm, hay để chúng tôi làm?" (cả khung trong Góc chia sẻ và trang blog); thẻ B Productions căn giữa logo, câu giới thiệu và nút |
 | 17/11/2026 | Quý khách hàng, Thực phẩm, blog | Gọi khách là "Quý khách hàng" ở mọi phần khách đọc (trang, phiếu 20 câu, thông báo máy chủ, chính sách); ngành "Đồ ăn, thức uống" thành "Thực phẩm"; thư viện và cụm điện thoại xếp theo nhóm (ST025, ST033 rồi Làm đẹp, Ứng dụng, Trường học, Tuyển dụng, Nhân vật AI); phần so sánh chuyển thành bài blog `/blog/tu-lam-hay-de-chung-toi-lam` với khung dẫn trong Góc chia sẻ; bỏ phần hỏi đáp, menu "Hỏi đáp" thành "Góc chia sẻ"; số gọn ghi kiểu 10,1K |
 | 17/11/2026 | Tiêu đề thư viện "lấy nét" | Tiêu đề "Anh chị muốn sản phẩm xuất hiện như thế nào?" to hơn, chữ ánh kim trắng bạc có vệt sáng lướt qua mỗi 6 giây; khi cuộn tới, từng chữ hiện từ mờ nhòe sang sắc nét như ống kính xoay nét; dòng "Ví dụ" tự gõ lần lượt các kiểu video có trong thư viện, gõ xong có gạch chân trắng vẽ dần; thẻ "Bấm vào ảnh để xem video có tiếng" có sóng âm nhấp nhô |
 | 17/11/2026 | Thư viện cân đối | Thẻ mẫu chia hàng chung với cả lưới (CSS subgrid) nên tên, kiểu video, đường kẻ và nút "Tư vấn kiểu này" thẳng hàng; rê chuột hiện bốn góc khung ngắm trên ảnh, ảnh phóng nhẹ, gạch chân trắng chạy dưới nút; nhãn ngành luôn một dòng; hàng cuối: số mẫu bên trái, nút trắng "Chưa biết chọn? Nhờ chúng tôi tư vấn" bên phải, ghi chú trải ngang |

@@ -901,10 +901,6 @@ async def trang_chinh_sach(request):
     return HTMLResponse(trang, headers={"Cache-Control": TRANG_CONG_KHAI})
 
 
-async def trang_blog_tu_lam(request):
-    return FileResponse(WEB / "blog-tu-lam.html", headers={"Cache-Control": TRANG_CONG_KHAI})
-
-
 async def trang_nhan_vien(request):
     return FileResponse(WEB / "nhan-vien.html", headers={"Cache-Control": "no-store"})
 
@@ -977,7 +973,6 @@ app = BaoVe(GZipMiddleware(Starlette(routes=[
     Route("/nhan-vien", trang_nhan_vien),
     Route("/chinh-sach", trang_chinh_sach),
     Route("/chinh-sach.html", trang_chinh_sach),
-    Route("/blog/tu-lam-hay-de-chung-toi-lam", trang_blog_tu_lam),
     Route("/api/suc-khoe", suc_khoe),
     Route("/api/cau-hinh", cau_hinh),
     Route("/api/luot-xem", ghi_luot_xem, methods=["POST"]),
