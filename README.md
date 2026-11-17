@@ -1,4 +1,37 @@
-# B Productions — video sản phẩm bằng AI
+# B PRODUCTIONS — video sản phẩm bằng AI
+
+## Bản hoàn thiện giao diện máy tính — 16/11/2026
+
+Thống nhất trang chủ, thư viện và trình xem video, tư vấn nhanh, phiếu chi tiết sáu phần, trang xác nhận, chính sách và khu vực nhân viên theo nhận diện trắng–xám–đen của công ty mẹ.
+
+- Trình xem trên máy tính chia hai cột: video bên trái, thông tin/form bên phải. Tiêu đề và nút đóng luôn nằm trong màn hình; có ảnh mẫu, thử lại và liên kết YouTube khi video chưa tải được.
+- Phiếu chi tiết có tiến độ và danh sách các phần trên màn hình rộng; trang xác nhận có bản tóm tắt, in/lưu và liên kết về trang chủ.
+- Trang chính sách có mục lục; khu vực nhân viên ưu tiên danh sách yêu cầu, có tìm/lọc, xóa bộ lọc, trạng thái tải/lỗi và cùng logo gốc.
+- Điện thoại dùng bốn cột poster nhỏ xếp so le như nền máy tính, trôi dọc xuống và mờ từ trên xuống dưới. Đủ 13 mẫu được chia vào các cột, lặp liền mạch. Header/cụm điện thoại gọn; các phần dùng chung mép, không có khoảng hở giữa khối nền khi cuộn.
+- Kiểm tra Chromium ở 1024, 1280, 1440 và 1920 px; kiểm tra bản điện thoại gọn ở 320, 360, 390, 430, 600 và 760 px. 26 kiểm thử máy chủ và bài Back/Forward hiện có đạt trên dữ liệu thử riêng. Xem phạm vi và giới hạn trong [KIEM_TRA_GIAO_DIEN.md](KIEM_TRA_GIAO_DIEN.md).
+
+Trong gói bàn giao, mở **XEM_TRUOC/index.html** để xem ảnh các trang và trạng thái. Đây là bộ ảnh xem trước ngoại tuyến; chạy ứng dụng theo hướng dẫn bên dưới để tương tác. Các phiếu trong ảnh nhân viên đều là dữ liệu thử, không có cơ sở dữ liệu hoặc dữ liệu khách trong gói. Ảnh và báo cáo ghi nhận lần kiểm tra cục bộ trước khi đưa mã lên GitHub; trạng thái triển khai cần đối chiếu riêng trên hệ thống đang chạy.
+
+## Tiêu đề và logo B PRODUCTIONS
+
+- Tiêu đề: “Video AI chân thật chất lượng cao”, chia ba dòng và căn cỡ chữ theo màn hình.
+- Logo là file gốc của công ty mẹ, gồm biểu tượng thanh đen, tên B PRODUCTIONS viết hoa và tagline trong ảnh tham chiếu. Được phục vụ tại chỗ bằng `web/logo-b-productions.png`; favicon ở `web/bieu-tuong.png`.
+- Áp dụng logo trên trang chủ, trang chính sách và khu vực nhân viên; nhãn thương hiệu ở phần giới thiệu/chân trang viết hoa.
+
+## Bản nhận diện theo B Productions — nền mẫu có chiều sâu
+
+- Màn hình đầu dùng nền trắng/xám, chữ đen và tường mẫu chuyển động phủ phía sau. Cả nền và ba điện thoại dùng cùng thư viện mẫu, giữ sắc màu của nội dung để hai lớp đồng điệu.
+- Nền trắng sáng; máy tính giữ ảnh và viền rõ ở bên phải, mờ dần sang trái. Trên điện thoại, ảnh và viền nền đậm ở trên và mờ dần xuống dưới. Viền có lớp riêng phía trên lớp phủ sáng và dùng chung hướng mờ với ảnh. Màu ảnh tự nhiên, poster nhỏ và vùng chữ có lớp phủ sáng để dễ đọc.
+- Nút dừng chuyển động điều khiển cả nền; nền dừng khi focus cụm điện thoại, mở hộp thoại, ẩn tab, giảm chuyển động hoặc tiết kiệm dữ liệu. Hover cụm điện thoại cũng dừng nền trên thiết bị có chuột.
+- Trên điện thoại, hai nút xem mẫu và gửi yêu cầu nằm trước khối video. Phần chú thích giữ chỗ khi đổi mẫu để tiêu đề và nút không nhảy.
+- Thêm phần nền tảng B Productions và hai liên kết bài video được tuyển từ blog công ty.
+- Giữ form, consent, mẫu và luồng làm việc hiện tại. Không tự thay thông tin liên hệ hoặc thêm cam kết hiệu quả.
+- Skin ở `web/brand.css`, nạp sau `style.css` trên `body.parent-brand`. `web/desktop.css` bổ sung bố cục các màn hình công khai; `web/nhan-vien.css` dành cho nhân viên.
+
+Đọc [nguồn và quyết định nhận diện](BRAND_SOURCES.md) và [kết quả kiểm tra](KIEM_TRA_GIAO_DIEN.md). Khi cập nhật hệ thống đang dùng, giữ `.env`, `du-lieu/` và asset riêng theo hướng dẫn bên dưới.
+
+Các mục lịch sử phiên bản và hiệu ứng cũ bên dưới được giữ để tra cứu; phần mô tả giao diện hiện tại ở đầu tài liệu và KIEM_TRA_GIAO_DIEN.md được ưu tiên. Ví dụ tường nền trôi ngang, tiêu đề nhiều màu và chữ nổi khối thuộc phiên bản trước.
+
 
 Trang giới thiệu dịch vụ, thư viện video mẫu, form tư vấn nhanh và phiếu yêu cầu chi tiết. Khách không cần đăng nhập; nhân viên làm việc tại `/nhan-vien`.
 
@@ -177,7 +210,7 @@ python -m pip install -r requirements-test.txt
 python -m unittest discover -s tests -v
 ```
 
-24 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: bao gồm tải ảnh đồng thời, tệp giả/hỏng, quyền xóa, lưu đến muộn, phân trang, Excel và các trường hợp của tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn gửi, gửi lại và gửi đồng thời, cách liên hệ, trả lời bổ sung, gộp với phiếu chi tiết).
+26 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: bao gồm tải ảnh đồng thời, tệp giả/hỏng, quyền xóa, lưu đến muộn, phân trang, Excel và các trường hợp của tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn gửi, gửi lại và gửi đồng thời, cách liên hệ, trả lời bổ sung, gộp với phiếu chi tiết).
 
 Đã kiểm tra Chromium: trang đầu không tự tạo phiếu; lọc mẫu; chuyển mẫu; mở/đóng trình xem; chọn mẫu vào tư vấn nhanh; không gửi khi nhập; lỗi số điện thoại; mất phản hồi sau khi máy chủ đã lưu rồi gửi lại không trùng; hiển thị ở trang nhân viên; đồng ý khi mở phiếu chi tiết; lưu khi có mạng trở lại; phục hồi sau tải lại; gửi đủ 20 câu. Tải và phát video từ YouTube thực tế cần kiểm tra trên mạng của khách; trong phiên này chỉ xác minh URL nhúng, mở/đóng khung và ảnh dự phòng khi tài nguyên ngoài không tải được.
 

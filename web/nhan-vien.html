@@ -4,51 +4,59 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Nhân viên | B Productions</title>
-<link rel="icon" href="/bieu-tuong.svg" type="image/svg+xml">
+<title>Quản lý yêu cầu | B PRODUCTIONS</title>
+<link rel="icon" href="/bieu-tuong.png" type="image/png">
 <link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/brand.css">
 <link rel="stylesheet" href="/nhan-vien.css">
 </head>
-<body>
+<body class="parent-brand staff-page">
+<a class="bo-qua" href="#noi-dung-nhan-vien">Đến nội dung chính</a>
 <header class="dau-trang">
-  <a class="ten-studio" href="/">B Productions</a>
-  <nav><button type="button" class="nut-chu" id="dang-xuat" hidden>Đăng xuất</button></nav>
+  <a class="ten-studio" href="/" aria-label="B PRODUCTIONS — trang chủ"><img class="brand-logo" src="/logo-b-productions.png" alt="B PRODUCTIONS — Borderless Video Production Company" width="768" height="508"></a>
+  <nav aria-label="Khu vực nhân viên"><a href="/">Xem trang khách ↗</a><button type="button" class="nut-chu" id="dang-xuat" hidden>Đăng xuất</button></nav>
 </header>
 
-<main class="nv">
+<main class="nv" id="noi-dung-nhan-vien">
+  <p class="nv-trang-thai" id="nv-trang-thai" role="status">Đang tải khu vực nhân viên…</p>
   <form id="form-dang-nhap" class="dang-nhap" hidden>
+    <span class="nv-dang-nhap-dau" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
     <h1>Đăng nhập nhân viên</h1>
+    <p class="dan">Theo dõi yêu cầu làm video và thông tin khách đã gửi.</p>
     <label class="nhan" for="mat-khau">Mật khẩu</label>
     <input type="password" id="mat-khau" autocomplete="current-password" required>
     <p class="bao-loi" id="loi-dang-nhap" role="alert" hidden></p>
-    <div class="hang-nut"><button type="submit" class="nut">Đăng nhập</button></div>
+    <div class="hang-nut"><button type="submit" class="nut" id="nv-dang-nhap-nut">Đăng nhập</button></div>
+    <a class="nv-ve-trang-chu" href="/">← Về trang chủ</a>
   </form>
 
   <div id="bang" hidden>
     <div class="nv-dau">
-      <h1>Phiếu của khách</h1>
-      <a class="nut" href="/api/nhan-vien/xuat-excel">Tải file Excel</a>
+      <div><h1>Quản lý yêu cầu</h1><p class="dan">Xem thông tin, theo dõi liên hệ và chuẩn bị phương án video.</p></div>
+      <a class="nut" href="/api/nhan-vien/xuat-excel">Tải file Excel ↓</a>
     </div>
 
-    <ul class="so-lieu" id="so-lieu"></ul>
+    <ul class="so-lieu" id="so-lieu" aria-label="Tổng quan yêu cầu"></ul>
 
-    <div class="hai-cot">
-      <section><h2>Khách dừng ở phần nào</h2><table id="bang-dung"><thead><tr><th>Phần</th><th>Số phiếu dở</th></tr></thead><tbody></tbody></table></section>
-      <section><h2>Theo nguồn</h2><table id="bang-nguon"><thead><tr><th>Nguồn</th><th>Mở trang</th><th>Gửi phiếu</th></tr></thead><tbody></tbody></table></section>
-    </div>
-
-    <h2>Danh sách phiếu</h2>
+    <section class="nv-danh-sach" aria-labelledby="nv-danh-sach-tieu-de">
+    <h2 id="nv-danh-sach-tieu-de">Danh sách phiếu</h2>
     <form id="loc-phieu" class="hang-nut">
       <div><label class="nhan" for="tim-phieu">Tìm trong phiếu</label><input type="text" id="tim-phieu" maxlength="100" placeholder="Tên, sản phẩm, số điện thoại…"></div>
       <div><label class="nhan" for="trang-thai">Trạng thái</label><select id="trang-thai"><option value="">Tất cả</option><option value="dang-do">Đang dở</option><option value="cho-lien-he">Chờ liên hệ</option><option value="da-lien-he">Đã liên hệ</option></select></div>
-      <button type="submit" class="nut nho">Tìm phiếu</button>
+      <div class="loc-thao-tac"><button type="submit" class="nut nho">Tìm phiếu</button><button type="button" class="nut-chu" id="dat-lai-loc">Xóa bộ lọc</button></div>
     </form>
     <p id="loi-tai" class="bao-loi" role="alert" hidden></p>
-    <nav class="hang-nut" aria-label="Trang danh sách phiếu"><button type="button" class="nut nho" id="trang-truoc">Trang trước</button><span id="phan-trang" aria-live="polite"></span><button type="button" class="nut nho" id="trang-sau">Trang sau</button></nav>
-    <p class="dan" id="trong" hidden>Không có phiếu phù hợp.</p>
+    <nav class="nv-phan-trang" aria-label="Trang danh sách phiếu"><span id="phan-trang" aria-live="polite"></span><div><button type="button" class="nut nho" id="trang-truoc">← Trang trước</button><button type="button" class="nut nho" id="trang-sau">Trang sau →</button></div></nav>
+    <div class="nv-trong" id="trong" hidden><h3>Không có phiếu phù hợp</h3><p>Thử đổi từ khóa hoặc trạng thái để xem các yêu cầu khác.</p></div>
     <div id="ds-phieu"></div>
+    </section>
+    <div class="hai-cot">
+      <section class="nv-phan"><h2>Khách dừng ở phần nào</h2><table id="bang-dung"><caption class="an-di">Số phiếu đang dở theo từng phần</caption><thead><tr><th scope="col">Phần</th><th scope="col">Số phiếu dở</th></tr></thead><tbody></tbody></table></section>
+      <section class="nv-phan"><h2>Theo nguồn</h2><table id="bang-nguon"><caption class="an-di">Lượt mở trang và gửi phiếu theo nguồn</caption><thead><tr><th scope="col">Nguồn</th><th scope="col">Mở trang</th><th scope="col">Gửi phiếu</th></tr></thead><tbody></tbody></table></section>
+    </div>
   </div>
 </main>
+<footer class="nv-chan-trang"><span>B PRODUCTIONS · Khu vực nhân viên</span><a href="/chinh-sach">Cách dùng thông tin</a></footer>
 <script src="/nhan-vien.js" defer></script>
 </body>
 </html>

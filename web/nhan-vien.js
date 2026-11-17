@@ -5,7 +5,9 @@
   const tao = (the, lop, chu) => { const e = document.createElement(the); if (lop) e.className = lop; if (chu != null) e.textContent = chu; return e; };
 
   async function goi(duong, tuy = {}) {
-    const r = await fetch(duong, { cache: "no-store", credentials: "same-origin", ...tuy, headers: tuy.body ? { "Content-Type": "application/json" } : undefined });
+    let r;
+    try { r = await fetch(duong, { cache: "no-store", credentials: "same-origin", ...tuy, headers: tuy.body ? { "Content-Type": "application/json" } : undefined }); }
+    catch { throw new Error("Chưa kết nối được máy chủ. Anh chị vui lòng kiểm tra mạng rồi thử lại."); }
     let du = {};
     try { du = await r.json(); } catch { /* không có nội dung */ }
     if (!r.ok) { const loi = new Error(du.loi?.thong_bao || "Chưa kết nối được máy chủ."); loi.ma = r.status; throw loi; }
@@ -14,16 +16,18 @@
 
   let trang = 1, luotTai = 0;
   const phanTram = (a, b) => b ? `${Math.round(a / b * 100)}%` : "chưa có";
+  const ngayGio = chu => { const d = new Date(chu); return Number.isNaN(d.getTime()) ? chu : new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(d); };
 
   function ve(du) {
+    const dangMo = new Set([...$("ds-phieu").querySelectorAll("details[open]")].map(d => d.dataset.phieu));
     trang = du.trang;
     $("phan-trang").textContent = `Trang ${du.trang}/${du.so_trang} · ${du.tong} phiếu`;
     $("trang-truoc").disabled = du.trang <= 1; $("trang-sau").disabled = du.trang >= du.so_trang;
     const tk = du.thong_ke;
     $("so-lieu").replaceChildren(...[
-      [tk.mo_trang, "lượt mở trang"], [tk.bat_dau, "phiếu đã bắt đầu"], [`${tk.da_gui} (${phanTram(tk.da_gui, tk.bat_dau)})`, "phiếu đã gửi"],
+      [tk.mo_trang, "lượt mở trang"], [tk.bat_dau, "phiếu đã bắt đầu"], [tk.da_gui, "phiếu đã gửi", tk.bat_dau ? `${phanTram(tk.da_gui, tk.bat_dau)} số phiếu đã bắt đầu` : "Chưa có phiếu đã bắt đầu"],
       [tk.cho_lien_he, "phiếu chờ liên hệ"],
-    ].map(([so, nhan]) => { const li = tao("li"); li.append(tao("strong", "", String(so)), tao("span", "", nhan)); return li; }));
+    ].map(([so, nhan, ghiChu]) => { const li = tao("li"); li.append(tao("strong", "", new Intl.NumberFormat("vi-VN").format(so)), tao("span", "", nhan)); if (ghiChu) li.append(tao("small", "", ghiChu)); return li; }));
 
     $("bang-dung").tBodies[0].replaceChildren(...tk.dung_o_nhom.map(d => { const tr = tao("tr"); tr.append(tao("td", "", d.nhom), tao("td", "", String(d.so))); return tr; }));
     $("bang-nguon").tBodies[0].replaceChildren(...(tk.theo_nguon.length ? tk.theo_nguon : [{ nguon: "Chưa có dữ liệu", xem: 0, gui: 0 }]).map(d => { const tr = tao("tr"); tr.append(tao("td", "", d.nguon), tao("td", "", String(d.xem)), tao("td", "", String(d.gui))); return tr; }));
@@ -31,9 +35,10 @@
     $("trong").hidden = du.phieu.length > 0;
     $("ds-phieu").replaceChildren(...du.phieu.map(p => {
       const d = tao("details"), s = tao("summary");
+      d.dataset.phieu = p.id;
       const c1 = tao("span"); c1.append(tao("b", "", p.san_pham || "Chưa ghi tên sản phẩm"), tao("small", "", p.loai === "tu-van-nhanh" ? "Yêu cầu tư vấn nhanh" : p.thuong_hieu || ""));
       const c2 = tao("span", "phu"); c2.append(tao("span", "", p.ten || "Chưa có tên"), tao("small", "", [p.kenh, p.lien_he].filter(Boolean).join(": ")));
-      const c3 = tao("span", "phu"); c3.append(tao("span", "", p.gui_luc || p.tao_luc), tao("small", "", `Nguồn: ${p.nguon}`));
+      const c3 = tao("span", "phu"), luc = p.gui_luc || p.tao_luc; c3.append(tao("span", "", ngayGio(luc)), tao("small", "", `Nguồn: ${p.nguon}`)); c3.title = luc;
       const nhanTt = tao("span");
       const veNhan = () => { nhanTt.className = `nhan-tt ${!p.gui_luc ? "do" : p.lien_he_luc ? "xong" : "gui"}`; nhanTt.textContent = !p.gui_luc ? "Đang dở" : p.lien_he_luc ? "Đã liên hệ" : "Chờ liên hệ"; };
       veNhan(); s.append(c1, c2, c3, nhanTt);
@@ -41,17 +46,17 @@
       p.tom_tat.forEach(t => { const hop = tao("div"); hop.append(tao("dt", "", `${t.so == null ? "" : t.so + ". "}${t.cau}`), tao("dd", "", t.tra_loi)); dl.append(hop); });
       if (p.gui_luc) {
         const nut = tao("button", "nut nho"), ghiChu = tao("span", "ghi-chu"), hang = tao("div", "hang-nut lien-he"); nut.type = "button";
-        const veNut = () => { nut.textContent = p.lien_he_luc ? "Bỏ đánh dấu đã liên hệ" : "Đánh dấu đã liên hệ"; ghiChu.textContent = p.lien_he_luc ? `Đã liên hệ lúc ${p.lien_he_luc}` : ""; };
+        const veNut = () => { nut.textContent = p.lien_he_luc ? "Bỏ đánh dấu đã liên hệ" : "Đánh dấu đã liên hệ"; ghiChu.textContent = p.lien_he_luc ? `Đã liên hệ lúc ${ngayGio(p.lien_he_luc)}` : ""; };
         nut.addEventListener("click", async () => {
           nut.disabled = true;
-          try { p.lien_he_luc = (await goi(`/api/nhan-vien/phieu/${p.id}/lien-he`, { method: "POST", body: JSON.stringify({ da_lien_he: !p.lien_he_luc }) })).lien_he_luc; veNut(); veNhan(); await tai(); }
+          try { p.lien_he_luc = (await goi(`/api/nhan-vien/phieu/${p.id}/lien-he`, { method: "POST", body: JSON.stringify({ da_lien_he: !p.lien_he_luc }) })).lien_he_luc; veNut(); veNhan(); await tai(); document.querySelector(`[data-phieu="${CSS.escape(p.id)}"] .lien-he button`)?.focus({ preventScroll: true }); }
           catch (e) { ghiChu.textContent = e.message; }
           nut.disabled = false;
         });
         veNut(); hang.append(nut, ghiChu); ct.append(hang);
       }
       ct.append(dl);
-      const xoa = tao("button", "nut-chu", "Xóa phiếu và ảnh đính kèm"); xoa.type = "button";
+      const xoa = tao("button", "nut-chu nut-nguy-hiem", "Xóa phiếu và ảnh đính kèm"); xoa.type = "button";
       xoa.addEventListener("click", async () => {
         if (!confirm("Xóa vĩnh viễn phiếu này và toàn bộ ảnh đính kèm? Anh chị nên tải Excel trước nếu cần giữ thông tin.")) return;
         xoa.disabled = true;
@@ -67,12 +72,14 @@
           try { (await goi(`/api/nhan-vien/phieu/${p.id}/anh`)).anh.forEach(a => { const lk = tao("a"), i = tao("img"); lk.href = `/api/nhan-vien/anh/${a.id}`; lk.target = "_blank"; lk.rel = "noopener"; i.src = lk.href; i.alt = a.ten; i.loading = "lazy"; lk.append(i); khu.append(lk); }); } catch { /* bỏ qua */ }
         });
       }
-      d.append(s, ct); return d;
+      d.append(s, ct); d.open = dangMo.has(p.id); return d;
     }));
   }
 
   async function tai() {
     const lan = ++luotTai;
+    $("nv-trang-thai").hidden = false; $("nv-trang-thai").textContent = $("bang").hidden ? "Đang tải khu vực nhân viên…" : "Đang cập nhật danh sách…";
+    $("bang").setAttribute("aria-busy", "true");
     const q = new URLSearchParams({ trang: String(trang), tim: $("tim-phieu").value.trim(), trang_thai: $("trang-thai").value });
     $("loi-tai").hidden = true;
     try {
@@ -87,16 +94,19 @@
         const loi = $("bang").hidden ? $("loi-dang-nhap") : $("loi-tai"); loi.textContent = e.message; loi.hidden = false;
         if ($("bang").hidden) $("form-dang-nhap").hidden = false;
       }
-    }
+    } finally { if (lan === luotTai) { $("nv-trang-thai").hidden = true; $("bang").removeAttribute("aria-busy"); } }
   }
   $("loc-phieu").addEventListener("submit", e => { e.preventDefault(); trang = 1; tai(); });
+  $("dat-lai-loc").addEventListener("click", () => { $("tim-phieu").value = ""; $("trang-thai").value = ""; trang = 1; tai(); });
   $("trang-truoc").addEventListener("click", () => { trang = Math.max(1, trang - 1); tai(); });
   $("trang-sau").addEventListener("click", () => { trang += 1; tai(); });
 
   $("form-dang-nhap").addEventListener("submit", async ev => {
     ev.preventDefault(); $("loi-dang-nhap").hidden = true;
+    $("nv-dang-nhap-nut").disabled = true; $("nv-dang-nhap-nut").textContent = "Đang đăng nhập…"; $("mat-khau").removeAttribute("aria-invalid");
     try { await goi("/api/nhan-vien/dang-nhap", { method: "POST", body: JSON.stringify({ mat_khau: $("mat-khau").value }) }); $("mat-khau").value = ""; await tai(); }
-    catch (e) { $("loi-dang-nhap").textContent = e.message; $("loi-dang-nhap").hidden = false; }
+    catch (e) { $("loi-dang-nhap").textContent = e.message; $("loi-dang-nhap").hidden = false; $("mat-khau").setAttribute("aria-invalid", "true"); $("mat-khau").focus(); }
+    finally { $("nv-dang-nhap-nut").disabled = false; $("nv-dang-nhap-nut").textContent = "Đăng nhập"; }
   });
   $("dang-xuat").addEventListener("click", async () => { try { await goi("/api/nhan-vien/dang-xuat", { method: "POST", body: "{}" }); } finally { tai(); } });
   tai();

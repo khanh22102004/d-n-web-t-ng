@@ -8,6 +8,8 @@
 
   const itChuyenDong = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const tietKiem = !!(navigator.connection && navigator.connection.saveData);
+  document.body.classList.toggle("tiet-kiem-du-lieu", tietKiem);
+  document.body.classList.toggle("tam-dung-nen", document.hidden);
   let cauHinh = null, nhom = [], cau = [], mau = {};
   let maPhieu = "", traLoi = {}, anh = [], viTri = 0, henLuu = 0, dangLuu = Promise.resolve();
   let lanSua = 0, canLuu = false, dangGuiLuu = false, dangGui = false, daGui = false, choThu = 1500, canTaiPhieu = false;
@@ -197,8 +199,8 @@
   }
 
   // Màn hình đầu: tường mẫu đang chạy để khách thấy ngay nhiều kiểu video, không phải một mẫu duy nhất.
-  // Máy tính: ba cột trôi dọc ngược chiều nhau. Điện thoại: một hàng trôi ngang.
-  // Mỗi cột hoặc hàng được lặp hai lần để chạy liền mạch; bản lặp ẩn với trình đọc màn hình và phím Tab.
+  // Máy tính: năm cột. Điện thoại: bốn cột ô nhỏ so le, trôi dọc xuống.
+  // Mỗi cột được lặp hai lần để chạy liền mạch; nền ẩn với trình đọc màn hình và phím Tab.
   // Tường mẫu giờ là nền trôi phía sau điện thoại: chỉ để trang trí, nên ẩn với trình đọc màn hình và phím Tab
   // (thư viện mẫu bên dưới và chính chiếc điện thoại vẫn mở được từng mẫu).
   function oTuong(m) {
@@ -211,19 +213,39 @@
     return the;
   }
   function veTuong() {
-    const ds = cauHinh.mau, soCot = 3;
+    const ds = cauHinh.mau, soCot = 5;
     for (let c = 0; c < soCot; c += 1) {
       const cot = tao("div", "tuong-cot"), chay = tao("div", "tuong-chay");
       const cua = ds.filter((_, i) => i % soCot === c);
-      [0, 1].forEach(() => cua.forEach(m => chay.append(oTuong(m))));
+      if (!cua.length) continue;
+      // A full loop must be taller than its viewport, even with smaller film-strip posters.
+      const vong = Array.from({ length: Math.max(6, cua.length) }, (_, i) => cua[i % cua.length]);
+      [0, 1].forEach(() => vong.forEach(m => chay.append(oTuong(m))));
       cot.append(chay); $("tuong-doc").append(cot);
     }
-    // Điện thoại: hai hàng trôi ngược chiều nhau, chéo phía sau máy.
-    [ds, [...ds].reverse()].forEach(thuTu => {
-      const hang = tao("div", "tuong-chay");
-      [0, 1].forEach(() => thuTu.forEach(m => hang.append(oTuong(m))));
-      $("tuong-ngang").append(hang);
-    });
+    // Distribute every sample over four mobile columns; repeat each half for a seamless loop.
+    for (let c = 0; c < 4; c += 1) {
+      const cot = tao("div", "tuong-cot"), chay = tao("div", "tuong-chay");
+      const cua = ds.filter((_, i) => i % 4 === c);
+      if (!cua.length) continue;
+      const vong = Array.from({ length: Math.max(8, cua.length) }, (_, i) => cua[i % cua.length]);
+      [0, 1].forEach(() => vong.forEach(m => chay.append(oTuong(m))));
+      cot.append(chay); $("tuong-ngang").append(cot);
+    }
+    // Keep the decorative poster outlines above the white scrim, while images stay faded.
+    // Copy only layout elements: no media, controls, IDs or event listeners.
+    const chiVien = e => {
+      const ban = e.cloneNode(false);
+      ban.removeAttribute("id");
+      if (!e.classList.contains("khung")) {
+        [...e.children].filter(c => !["IMG", "VIDEO", "IFRAME", "BUTTON"].includes(c.tagName))
+          .forEach(c => ban.append(chiVien(c)));
+      }
+      return ban;
+    };
+    const vien = chiVien(document.querySelector(".san-khau > .tuong-nen"));
+    vien.classList.add("tuong-vien");
+    $("mo-dau").append(vien);
     document.querySelectorAll("[data-so-mau]").forEach(e => { e.textContent = ds.length; });
     document.querySelectorAll("[data-so-nganh]").forEach(e => { e.textContent = new Set(ds.map(m => m.nhom)).size; });
     $("tuong-dung").addEventListener("click", () => {
@@ -582,6 +604,7 @@
   // Tên nền tảng trong tiêu đề đổi lần lượt; nhãn nền tảng cạnh điện thoại sáng lên cùng lúc.
   function ganXoay() {
     const chu = [...document.querySelectorAll("#xoay > span")], nhan = [...document.querySelectorAll(".dt-nen-tang li")];
+    if (!chu.length) return;
     let dang = 0;
     const dat = moi => {
       chu.forEach((c, k) => { c.classList.toggle("hien", k === moi); c.classList.toggle("ra", k === dang && k !== moi); });
@@ -729,7 +752,10 @@
 
   function veMau() {
     veTuong();
-    document.addEventListener("visibilitychange", () => { if (document.hidden) dungTatCa(); else chayLaiDoan(); });
+    document.addEventListener("visibilitychange", () => {
+      document.body.classList.toggle("tam-dung-nen", document.hidden);
+      if (document.hidden) dungTatCa(); else chayLaiDoan();
+    });
     const cacNhom = [...new Set(cauHinh.mau.map(m => m.nhom))];
     const them = tao("button", "loc-them", "Ngành hàng"); them.type = "button"; them.id = "loc-them";
     them.setAttribute("aria-expanded", "false"); them.setAttribute("aria-controls", "loc-nganh");
@@ -786,15 +812,61 @@
   }
 
   // ---------- Trình xem video ----------
-  let dsXem = [], viTriXem = 0, kieuCho = "";
+  let dsXem = [], viTriXem = 0, kieuCho = "", xemPlayer = null;
+  function xoaPlayerXem() {
+    if (!xemPlayer) return;
+    xemPlayer.hen.forEach(clearTimeout);
+    xemPlayer.frame.remove(); xemPlayer = null;
+  }
+  window.addEventListener("message", e => {
+    if (e.origin !== YT || !xemPlayer || e.source !== xemPlayer.frame.contentWindow) return;
+    let tin; try { tin = typeof e.data === "string" ? JSON.parse(e.data) : e.data; } catch { return; }
+    const p = xemPlayer;
+    if (tin?.event === "onError") {
+      p.khung.classList.remove("xem-san-sang");
+      p.trangThai.textContent = "Chưa phát được video. Anh chị có thể thử lại hoặc mở trên YouTube.";
+      p.phat.textContent = "Thử phát lại";
+      xoaPlayerXem(); return;
+    }
+    if (tin?.event === "onReady" || typeof tin?.info?.playerState === "number") {
+      p.hen.forEach(clearTimeout); p.sanSang = true;
+      p.khung.classList.add("xem-san-sang");
+      p.frame.tabIndex = 0; p.frame.removeAttribute("aria-hidden");
+      if (document.activeElement === p.phat) p.frame.focus({ preventScroll: true });
+    }
+  });
   function veXem() {
-    const m = dsXem[viTriXem], khung = $("xem-khung"), f = tao("iframe");
+    xoaPlayerXem();
+    const m = dsXem[viTriXem], khung = $("xem-khung");
     $("xem-ma").textContent = m.ma; $("xem-ten").textContent = m.ten;
     $("xem-dem").textContent = `Mẫu ${viTriXem + 1} trên ${dsXem.length}`;
-    f.referrerPolicy = "strict-origin-when-cross-origin";
-    f.src = `${YT}/embed/${encodeURIComponent(m.id)}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
-    f.title = `Video mẫu ${m.ma}: ${m.ten}`; f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen"; f.allowFullscreen = true;
-    khung.style.backgroundImage = `url("/anh-mau/${m.ma}.jpg")`; khung.replaceChildren(f);
+    $("xem-nganh").textContent = m.nhom || "Video mẫu";
+    $("xem-kieu").textContent = m.kieu || "";
+    $("xem-ngoai").href = `https://www.youtube.com/watch?v=${encodeURIComponent(m.id)}`;
+    khung.classList.remove("xem-san-sang"); khung.style.backgroundImage = "";
+    const bia = khungAnh(m), duPhong = tao("div", "xem-du-phong"), phat = tao("button", "xem-phat", "Phát video"), trangThai = tao("p");
+    bia.classList.add("xem-poster"); bia.querySelector("img").loading = "eager";
+    phat.type = "button"; trangThai.setAttribute("role", "status");
+    duPhong.append(phat, trangThai); khung.replaceChildren(bia, duPhong);
+    const nap = () => {
+      xoaPlayerXem(); khung.classList.remove("xem-san-sang");
+      trangThai.textContent = "Đang tải video…";
+      const f = tao("iframe");
+      f.tabIndex = -1; f.setAttribute("aria-hidden", "true");
+      f.referrerPolicy = "strict-origin-when-cross-origin";
+      f.src = `${YT}/embed/${encodeURIComponent(m.id)}?autoplay=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
+      f.title = `Video mẫu ${m.ma}: ${m.ten}`; f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen"; f.allowFullscreen = true;
+      const p = { frame: f, khung, trangThai, phat, sanSang: false, hen: [] }; xemPlayer = p;
+      const hoi = () => { if (xemPlayer !== p || !f.isConnected) return; try { f.contentWindow.postMessage(JSON.stringify({ event: "listening", id: "popup", channel: "widget" }), YT); } catch { /* frame closed */ } };
+      f.addEventListener("load", () => { hoi(); p.hen.push(setTimeout(hoi, 800), setTimeout(hoi, 2500)); }, { once: true });
+      p.hen.push(setTimeout(() => {
+        if (xemPlayer !== p || p.sanSang) return;
+        trangThai.textContent = "Video chưa tải được. Anh chị có thể thử lại hoặc mở trên YouTube.";
+        phat.textContent = "Thử phát lại";
+      }, 8000));
+      khung.append(f);
+    };
+    phat.addEventListener("click", nap); nap();
     $("xem-truoc").disabled = viTriXem === 0; $("xem-sau").disabled = viTriXem === dsXem.length - 1;
     $("xem-chon").hidden = !$("phieu").hidden || !$("cam-on").hidden || !$("xem-form").hidden;
     $("xem-chi-tiet").hidden = !m.kieu || !$("cam-on").hidden;
@@ -805,7 +877,7 @@
     const hop = $("xem"); let batDauX = null;
     $("xem-dong").addEventListener("click", () => hop.close());
     $("xem-truoc").addEventListener("click", () => chuyenXem(-1)); $("xem-sau").addEventListener("click", () => chuyenXem(1));
-    hop.addEventListener("close", () => { $("xem-khung").replaceChildren(); requestAnimationFrame(chayLaiDoan); });
+    hop.addEventListener("close", () => { xoaPlayerXem(); $("xem-khung").replaceChildren(); requestAnimationFrame(chayLaiDoan); });
     hop.addEventListener("click", e => { if (e.target === hop) hop.close(); });
     // Đang gõ trong form thì phím mũi tên và vuốt ngang là để sửa chữ, không phải để đổi mẫu.
     const trongForm = e => e.target.closest?.("#xem-form, input, textarea");
@@ -817,7 +889,11 @@
       if (!vung.hidden) { vung.querySelector("input, button")?.focus(); return; }
       vung.replaceChildren(formNhanh({ tieuDe: "Nhận phương án và báo giá theo mẫu này", nutGui: "Gửi cho tôi phương án và báo giá", layMau: () => dsXem[viTriXem] }));
       vung.hidden = false; $("xem-chon").hidden = true;
-      vung.scrollIntoView({ block: "start", behavior: itChuyenDong ? "instant" : "smooth" }); vung.querySelector("input")?.focus({ preventScroll: true });
+      if (matchMedia("(min-width: 761px)").matches) {
+        const ben = vung.closest(".xem-ben");
+        ben.scrollTo({ top: ben.scrollTop + vung.getBoundingClientRect().top - ben.getBoundingClientRect().top, behavior: itChuyenDong ? "instant" : "smooth" });
+      } else vung.scrollIntoView({ block: "start", behavior: itChuyenDong ? "instant" : "smooth" });
+      vung.querySelector("input")?.focus({ preventScroll: true });
     });
     hop.addEventListener("close", () => { $("xem-form").hidden = true; $("xem-form").replaceChildren(); });
     $("xem-chi-tiet").addEventListener("click", () => {
@@ -972,6 +1048,12 @@
     $("cac-cau").replaceChildren(...cuaNhom.map(veCau));
     $("tien-do-nhom").textContent = `Phần ${viTri + 1} trên ${nhom.length}, câu ${cuaNhom[0].so} đến ${cuaNhom[cuaNhom.length - 1].so}`;
     $("tien-do-day").style.width = `${Math.round((cuaNhom[0].so - 1) / cau.length * 100)}%`;
+    $("phieu-cac-buoc").replaceChildren(...nhom.map((buoc, i) => {
+      const li = tao("li", i < viTri ? "da-qua" : ""), so = tao("span", "", i < viTri ? "✓" : String(i + 1).padStart(2, "0"));
+      so.setAttribute("aria-hidden", "true");
+      if (i === viTri) li.setAttribute("aria-current", "step");
+      li.append(so, tao("span", "", buoc.ten)); return li;
+    }));
     $("ket-thuc").hidden = !cuoi; $("tiep-tuc").textContent = cuoi ? "Gửi phiếu" : "Lưu và tiếp tục";
     $("quay-lai").textContent = viTri === 0 ? "Về trang đầu" : "Quay lại"; $("loi-phieu").hidden = true;
     if (cuon) { window.scrollTo({ top: 0 }); $("ten-nhom").focus({ preventScroll: true }); }
@@ -1060,7 +1142,9 @@
 
   // ---------- Chuyển màn ----------
   function hien(man) {
-    ["mo-dau", "mau", "danh-gia", "so-sanh", "cam-ket", "tu-van", "hoi-dap", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
+    document.body.classList.toggle("man-phieu", man === "phieu");
+    document.body.classList.toggle("man-cam-on", man === "cam-on");
+    ["mo-dau", "mau", "ve-b-productions", "danh-gia", "so-sanh", "cam-ket", "tu-van", "goc-chia-se", "hoi-dap", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
     $("danh-gia").hidden = man !== "dau" || !(cauHinh.danh_gia || []).length;
     if (man !== "dau") dongMenu();
     document.querySelectorAll(".dau-trang nav").forEach(n => { n.hidden = man !== "dau"; });
