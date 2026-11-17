@@ -37,15 +37,19 @@ body.parent-brand {
 body.parent-brand ::selection { background: var(--bp-muc); color: #fff; }
 
 /* ---------- Điểm nhấn 1: vạch mã vạch của logo ---------- */
-.ma-vach { display: block; height: 30px; width: calc(30px * 365 / 205); margin-top: 26px; color: var(--bp-logo); background: var(--bp-ma-vach); }
+/* Mã vạch vẽ bằng tệp vector web/ma-vach.svg (đo từ logo) làm mặt nạ: giữ đúng độ dày từng vạch ở mọi cỡ, màu theo currentColor */
+.ma-vach { position: relative; display: block; height: 30px; width: calc(30px * 365 / 205); margin-top: 26px; color: var(--bp-logo); }
+.ma-vach::before { content: ""; position: absolute; inset: 0; background: currentColor;
+  -webkit-mask: url("/ma-vach.svg") 0 0 / 100% 100% no-repeat; mask: url("/ma-vach.svg") 0 0 / 100% 100% no-repeat; }
 body.parent-brand :is(.muc-dau h2, .so-sanh h2, .tu-van h2, .cau-hoi-thuong-gap h2, .thuong-hieu-goc h2)::before {
   content: "";
   display: block;
-  height: 20px;
-  width: calc(20px * 365 / 205);
+  height: 26px;
+  width: calc(26px * 365 / 205);
   margin-bottom: 18px;
   color: currentColor;
-  background: var(--bp-ma-vach);
+  background: currentColor;
+  -webkit-mask: url("/ma-vach.svg") 0 0 / 100% 100% no-repeat; mask: url("/ma-vach.svg") 0 0 / 100% 100% no-repeat;
 }
 
 /* ---------- Tiêu đề và chữ: một hệ, cùng mực than ---------- */
@@ -220,14 +224,14 @@ body.parent-brand .xem-ben .nut { background: var(--bp-muc); border-color: var(-
 
 @media (max-width: 760px) {
   .ma-vach { height: 24px; width: calc(24px * 365 / 205); margin-top: 16px; }
-  body.parent-brand :is(.muc-dau h2, .so-sanh h2, .tu-van h2, .cau-hoi-thuong-gap h2, .thuong-hieu-goc h2)::before { height: 17px; width: calc(17px * 365 / 205); margin-bottom: 12px; }
+  body.parent-brand :is(.muc-dau h2, .so-sanh h2, .tu-van h2, .cau-hoi-thuong-gap h2, .thuong-hieu-goc h2)::before { height: 21px; width: calc(21px * 365 / 205); margin-bottom: 12px; }
   body.parent-brand .thuong-hieu-dau::before { height: 26px; max-width: 160px; margin-bottom: 16px; }
   body.parent-brand .chan-trang { padding-bottom: 96px; }
   body.parent-brand .chan-trang .ct-logo { width: 104px; }
 }
 
 @media (forced-colors: active) {
-  .ma-vach, body.parent-brand .thuong-hieu-dau::before, body.parent-brand :is(.muc-dau h2, .so-sanh h2, .tu-van h2, .cau-hoi-thuong-gap h2, .thuong-hieu-goc h2)::before { forced-color-adjust: none; background: var(--bp-ma-vach); color: CanvasText; }
+  .ma-vach::before, body.parent-brand :is(.muc-dau h2, .so-sanh h2, .tu-van h2, .cau-hoi-thuong-gap h2, .thuong-hieu-goc h2)::before { forced-color-adjust: none; background: CanvasText; }
   body.parent-brand .chan-trang .ct-logo { filter: none; }
 }
 @media print {
@@ -463,3 +467,14 @@ body.parent-brand .thuong-hieu-nut:hover span { translate: 2px -2px; }
   html.hieu-ung body.parent-brand .thuong-hieu-dau[data-lo]:not(.lo) .khung-goc i { scale: 1.8; opacity: 0; }
 }
 @media (forced-colors: active) { body.parent-brand .thuong-hieu-dau { border: 1px solid CanvasText; } body.parent-brand .thuong-hieu-logo { mix-blend-mode: normal; background: #fff; } }
+
+/* ======================================================================
+   CHỮ TRÊN ĐIỆN THOẠI MẪU — gọn lại để sản phẩm lộ ra nhiều hơn
+   ====================================================================== */
+body.parent-brand .dt-man .dt-duoi { padding: 46px 52px 14px 12px; background: linear-gradient(to top, rgb(0 0 0 / .62), rgb(0 0 0 / .28) 55%, transparent); }
+body.parent-brand .dt-man .dt-nganh { font-size: .68rem; padding: 1px 8px; line-height: 1.5; }
+body.parent-brand .dt-man .dt-ten { font-size: .9rem; line-height: 1.25; margin-top: 5px; max-width: none;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+body.parent-brand .dt-man .dt-kieu { font-size: .72rem; line-height: 1.3; margin-top: 2px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.parent-brand .dt-man .dt-nghe { margin-top: 8px; padding: 3px 10px 3px 3px; gap: 6px; font-size: .7rem; line-height: 1; }
+body.parent-brand .dt-man .dt-nghe .dt-loa { width: 20px; height: 20px; }

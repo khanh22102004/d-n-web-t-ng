@@ -151,6 +151,7 @@ web-b-productions/
     ├── app.js              # Toàn bộ tương tác phía khách
     ├── style.css, brand.css, desktop.css, can-doi.css, nhan-vien.css
     ├── logo-b-productions.png, bieu-tuong.png
+    ├── ma-vach.svg            # Mã vạch đo từ logo, dùng làm họa tiết điểm nhấn
     ├── fonts/              # Inter, Inter Display (OFL)
     ├── anh-mau/            # Ảnh bìa mẫu (và nho/ bản nhỏ .webp)
     └── video-mau/          # Đặt video gốc .mp4/.webm của studio vào đây
@@ -320,6 +321,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 17/11/2026 | Gọn chữ điện thoại, mã vạch vector | Chữ trên điện thoại mẫu gọn lại (ngành, tên 2 dòng, kiểu 1 dòng, nút "Bật tiếng" / "Tắt tiếng" một dòng, lớp tối nhạt hơn) để sản phẩm lộ ra; mã vạch vẽ bằng tệp vector `web/ma-vach.svg` làm mặt nạ nên giữ đúng độ dày từng vạch ở cỡ nhỏ; tiêu đề phần cam kết đổi thành "Cảm ơn Anh Chị đã tin tưởng." |
 | 17/11/2026 | Mã vạch đúng logo | Họa tiết mã vạch ở dưới tiêu đề lớn và trên tiêu đề các phần được dựng lại theo đúng mã vạch trong logo (11 vạch cách đều, dày dần 10 → 31 trên khung 365 × 205), thay cho mẫu sọc tự vẽ sai nhịp và sai tỉ lệ |
 | 17/11/2026 | Thẻ công ty mẹ | Khối B Productions ở mục "Về B Productions" thành thẻ nền giấy trắng với logo thật chữ đen (thay chữ gõ và mã vạch vẽ bằng CSS), bốn góc khung ngắm như màn hình đầu, nút "Khám phá B Productions" nền mực; logo luôn giữ chữ đen gốc, ở chân trang nền tối đặt trên ô trắng |
 | 17/11/2026 | Tiêu đề khung ngắm | Tiêu đề màn hình đầu đặt trong khung ngắm máy quay: bốn góc bật ra sau khi chữ lên, chấm REC nhấp nháy và đồng hồ quay giờ:phút:giây:khung; cứ 7 giây một vạch quét chạy qua mã vạch logo rồi lướt qua tiêu đề kèm dải sáng; dừng theo nút dừng và chế độ giảm chuyển động; cú vuốt trong lúc máy đang xoay được thực hiện ngay sau đó |

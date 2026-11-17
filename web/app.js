@@ -386,7 +386,7 @@
     dtVeTieng(); dtCapNhat();
   }
   function dtVeTieng() {
-    $("dt-nghe-chu").textContent = dt.tieng ? "Đang phát có tiếng · bấm để tắt" : dt.yt?.dangPhat ? "Đang phát không tiếng · chạm để nghe" : "Bấm để bật tiếng";
+    $("dt-nghe-chu").textContent = dt.tieng ? "Tắt tiếng" : "Bật tiếng";
     $("dt-man").classList.toggle("co-tieng", dt.tieng);
     $("dt-mo").setAttribute("aria-label", `${dt.tieng ? "Tắt tiếng" : "Bật tiếng"} video mẫu ${dt.ds[dt.i].ma}: ${dt.ds[dt.i].ten}`);
     $("dt-mo").setAttribute("aria-pressed", String(dt.tieng));
