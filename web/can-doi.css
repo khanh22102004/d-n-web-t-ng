@@ -621,3 +621,7 @@ body.parent-brand .menu-dt-dau-ds { margin: 0 0 18px; }
 /* Hàng cuối thư viện chỉ còn nút tư vấn (dòng đếm mẫu chỉ dành cho trình đọc màn hình) */
 body.parent-brand .mau-toi .mau-duoi { justify-content: center; }
 @media (max-width: 760px) { body.parent-brand .mau-toi .mau-duoi { align-items: stretch; } }
+/* nút tư vấn cuối thư viện: về phía phải, cách đầu mút đường kẻ phía trên một khoảng nhỏ (máy tính) */
+@media (min-width: 761px) { body.parent-brand .mau-toi .mau-duoi { justify-content: flex-end; padding-right: clamp(16px, 2vw, 28px); } }
+/* nút tư vấn cuối thư viện to hơn một chút */
+body.parent-brand .mau-toi .mau-duoi .nut-chu { min-height: 56px; padding: 14px 28px; font-size: 1.08rem; gap: 12px; }
