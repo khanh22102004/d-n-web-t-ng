@@ -49,17 +49,18 @@
   // ---------- Trang mở đầu và mẫu ----------
   // Hiện ảnh tại chỗ ngay; nâng lên ảnh dọc nét hơn khi tải được.
   function khungAnh(m, net = false) {
-    const k = tao("div", "khung"), i = tao("img"), taiCho = `/anh-mau/${m.ma}.jpg`;
+    const k = tao("div", "khung"), i = tao("img"), taiCho = `/anh-mau/${m.ma}.webp`, duPhongJpg = `/anh-mau/${m.ma}.jpg`;   // WebP nhẹ hơn ~56%; JPG dự phòng
     i.alt = `Mẫu ${m.ma}: ${m.ten}`; i.loading = "lazy"; i.decoding = "async"; i.width = 360; i.height = 640;
     const anhRieng = typeof m.anh_bia === "string" && m.anh_bia.startsWith("/anh-mau/") && !m.anh_bia.includes("..") && !/[?#]/.test(m.anh_bia) ? m.anh_bia : "";
-    let daDuPhong = false;
+    let daDuPhong = false, daJpg = false;
     i.addEventListener("error", () => {
       if (!daDuPhong && i.getAttribute("src") !== taiCho) { daDuPhong = true; i.src = taiCho; }
+      else if (!daJpg) { daJpg = true; i.src = duPhongJpg; }
       else { i.hidden = true; k.classList.add("thieu-anh"); }
     });
     i.addEventListener("load", () => { i.hidden = false; k.classList.remove("thieu-anh"); });
     i.src = anhRieng || (net === "nho" ? `/anh-mau/nho/${m.ma}.webp` : taiCho);
-    if (!anhRieng && net === true && m.id && !tietKiem) {
+    if (!anhRieng && net === true && m.id && !tietKiem && !mayYeu) {   // máy yếu: không tải thêm ảnh bìa YouTube độ nét cao
       const netHon = new Image();
       netHon.addEventListener("load", () => {
         if (i.isConnected && netHon.naturalWidth >= 480 && netHon.naturalHeight / netHon.naturalWidth >= 1.2) i.src = netHon.src;

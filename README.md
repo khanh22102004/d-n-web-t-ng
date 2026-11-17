@@ -149,7 +149,7 @@ web-b-productions/
     ├── nhan-vien.html/.js  # Trang nhân viên
     ├── app.js              # Toàn bộ tương tác phía khách
     ├── style.css, brand.css, desktop.css, can-doi.css, nhan-vien.css
-    ├── logo-b-productions.png, bieu-tuong.png
+    ├── logo-b-productions.png/.webp, bieu-tuong.png
     ├── ma-vach.svg            # Mã vạch đo từ logo, dùng làm họa tiết điểm nhấn
     ├── fonts/              # Inter, Inter Display (OFL)
     ├── anh-mau/            # Ảnh bìa mẫu (và nho/ bản nhỏ .webp)
@@ -169,6 +169,8 @@ web-b-productions/
 
 - **Nhận biết máy yếu** (`app.js`, biến `mayYeu`, lớp `html.may-yeu`): RAM từ 4 GB trở xuống, CPU từ 4 nhân trở xuống, hoặc bật tiết kiệm dữ liệu. Khi đó: tường ảnh nền đứng yên, không làm mờ nền (`backdrop-filter`), tiêu đề thư viện không dùng làm mờ khi lấy nét, không có ánh kim và vạch quét lặp, ảnh mẫu không trôi kiểu Ken Burns, không có tim/bình luận bay lên, không nghiêng 3D theo chuột, và **không tự tải trình phát YouTube**: khách bấm vào điện thoại thì video mới tải và phát có tiếng.
 - **Mọi máy:** tường ảnh nền chỉ dựng cho loại màn hình đang xem (máy tính cột dọc, điện thoại hàng ngang), tự dựng lại khi đổi khổ qua 760px; số ảnh lặp vừa đủ cho vòng trôi liền mạch; bỏ lớp tường thứ hai chỉ để vẽ viền, bỏ bộ lọc màu và bóng đổ trên tường. Phần nào khuất khỏi màn hình thì dừng mọi hiệu ứng CSS bên trong (lớp `.khuat`); các phần phía dưới dùng `content-visibility: auto`.
+- **Tải về nhẹ hơn:** ảnh mẫu dùng WebP 360×640 (13 ảnh từ 464KB còn 205KB, JPG giữ làm dự phòng); logo dùng `logo-b-productions.webp` 560px (8,7KB thay vì PNG 54KB); máy yếu không tải ảnh bìa YouTube độ nét cao.
+- **Lưu đệm:** máy chủ gắn mã phiên bản (băm nội dung) vào đường dẫn CSS, JS, logo trong trang (`/style.css?v=…`, hàm `gan_phien_ban` trong `may_chu.py`); tệp có mã được giữ 1 năm (`immutable`), tệp đổi thì mã đổi. Phông chữ và ảnh mẫu giữ 30 ngày như trước.
 - **Số đo** (Chromium, CPU chậm 4 lần): máy yếu từ 17 lên 60 khung/giây khi cuộn trên máy tính, 0 khung giật; số phần tử trên trang từ 1.728 còn khoảng 850–980; ảnh từ 160 còn 62–84. Máy mạnh từ 17 lên 43 khung/giây (máy tính), 46 lên 58 (điện thoại).
 
 ## 6. Chạy trên máy
@@ -328,6 +330,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 |---|---|---|
 | 17/11/2026 | Đầu thư viện nổi | Tiêu đề "Anh chị muốn sản phẩm xuất hiện như thế nào?" đặt trong khung ngắm trắng, nổi lên và có vạch sáng quét qua một lần khi cuộn tới; dòng "Bấm vào ảnh để xem video có tiếng" thành thẻ kính mờ có biểu tượng sóng âm nhấp nhô |
 | 17/11/2026 | Đầu thư viện: dòng thời gian | Bên phải tiêu đề thư viện là dòng thời gian dựng phim thu nhỏ: rãnh hình gồm các đoạn clip mang tên kiểu video có trong thư viện (dài theo số mẫu), rãnh tiếng có sóng âm, kim phát chạy ngang; kim tới đoạn nào thì đoạn sáng lên và dòng chữ tự gõ dưới tiêu đề đổi sang kiểu đó; thẻ "Bấm vào ảnh để xem video có tiếng" có sóng âm nhấp nhô; dừng theo nút dừng và chế độ giảm chuyển động |
+| 17/11/2026 | Tối ưu tải về | Ảnh mẫu WebP (−56%), logo WebP (54KB → 8,7KB), máy yếu không tải ảnh bìa YouTube độ nét cao; CSS/JS/logo có mã phiên bản và lưu đệm 1 năm nên lần quay lại không phải hỏi lại máy chủ |
 | 17/11/2026 | Tối ưu cho máy yếu | Chế độ máy yếu (RAM ≤ 4 GB, CPU ≤ 4 nhân, tiết kiệm dữ liệu) tắt hiệu ứng nặng và không tự tải YouTube; tường ảnh chỉ dựng cho màn hình đang xem, bỏ lớp viền trùng, bộ lọc màu, bóng đổ; dừng hiệu ứng ở phần khuất; `content-visibility` cho phần dưới; sửa 4 quy tắc CSS sai cú pháp (phần tử giả trong `:is()`) khiến nút dừng không dừng được vạch quét |
 | 17/11/2026 | Bỏ REC và đồng hồ | Tiêu đề màn hình đầu bỏ chấm "● REC" và đồng hồ giờ:phút:giây:khung (trông như đồng hồ báo giờ); giữ bốn góc khung ngắm và vạch quét |
 | 17/11/2026 | Tiêu đề thư viện, Blog cân đối | Tiêu đề thư viện "Dịch vụ sản xuất Video AI" một dòng (cỡ chữ co theo màn hình). Blog: tiêu đề "Có ý tưởng. Có hướng bắt đầu." một dòng trên máy tính; hai bài thành hai ô trắng đều nhau trên nền đá, viền trên mực, các hàng nhãn/tiêu đề/mô tả/đường dẫn thẳng nhau, nhấc nhẹ khi rê chuột |

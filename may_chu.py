@@ -884,16 +884,42 @@ async def nv_excel(request):
 # Trang công khai không chứa dữ liệu riêng của ai: trình duyệt luôn hỏi lại, CDN Vercel giữ bản sao tới lần triển khai sau.
 TRANG_CONG_KHAI = "public, max-age=0, must-revalidate, s-maxage=86400"
 
+# Gắn mã phiên bản (băm nội dung) vào đường dẫn CSS, JS, ảnh logo trong trang, ví dụ /style.css?v=1a2b3c4d5e.
+# Nhờ vậy trình duyệt giữ các tệp này 1 năm không cần hỏi lại; tệp đổi thì mã đổi, khách nhận bản mới ngay.
+# Chỉ áp dụng cho tệp nằm ngay trong web/ (không đụng phông chữ và ảnh mẫu, vì CSS và JS gọi chúng bằng đường dẫn không có mã).
+_BAM = {}
+
+
+def _ma_phien_ban(duong):
+    tep = WEB / duong.lstrip("/")
+    try:
+        moc = tep.stat().st_mtime_ns
+    except OSError:
+        return ""
+    cu = _BAM.get(duong)
+    if cu and cu[0] == moc:
+        return cu[1]
+    ma = hashlib.md5(tep.read_bytes()).hexdigest()[:10]
+    _BAM[duong] = (moc, ma)
+    return ma
+
+
+def gan_phien_ban(trang):
+    def thay(m):
+        ma = _ma_phien_ban(m.group(2))
+        return f'{m.group(1)}{m.group(2)}?v={ma}"' if ma else m.group(0)
+    return re.sub(r'((?:href|src)=")(/[\w.-]+\.(?:css|js|webp|png|svg))"', thay, trang)
+
 
 async def trang_chu(request):
     # Gắn sẵn bộ câu hỏi và danh sách mẫu vào trang để trình duyệt không phải gọi thêm một lượt.
     du_lieu = json.dumps(du_lieu_cau_hinh(), ensure_ascii=False).replace("</", "<\\/")
-    trang = (WEB / "index.html").read_text(encoding="utf-8").replace("__CAU_HINH__", du_lieu)
+    trang = gan_phien_ban((WEB / "index.html").read_text(encoding="utf-8")).replace("__CAU_HINH__", du_lieu)
     return HTMLResponse(trang, headers={"Cache-Control": TRANG_CONG_KHAI})
 
 
 async def trang_chinh_sach(request):
-    trang = (WEB / "chinh-sach.html").read_text(encoding="utf-8")
+    trang = gan_phien_ban((WEB / "chinh-sach.html").read_text(encoding="utf-8"))
     lien_he = html.escape(LIEN_HE_HIEN_THI)
     if LINK_LIEN_HE:
         lien_he = f'<a href="{html.escape(LINK_LIEN_HE, quote=True)}">{lien_he}</a>'
@@ -952,7 +978,9 @@ class BaoVe:
                     lau = duong.startswith(("/fonts/", "/anh-mau/", "/video-mau/")) or duong.endswith(".svg")
                     cong_khai = (tin.get("status") == 200 and scope.get("method") in ("GET", "HEAD")
                                  and not duong.startswith(("/api/", "/nhan-vien")))
+                    co_ma = cong_khai and re.search(rb"(^|&)v=[0-9a-f]{10}($|&)", scope.get("query_string", b"")) is not None
                     tieu_de.append((b"cache-control", b"no-store" if duong.startswith("/api/")
+                                    else b"public, max-age=31536000, immutable" if co_ma
                                     else b"public, max-age=2592000, s-maxage=2592000" if lau and cong_khai
                                     else b"public, max-age=0, must-revalidate, s-maxage=86400" if cong_khai
                                     else b"no-cache"))
