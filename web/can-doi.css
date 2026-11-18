@@ -864,15 +864,29 @@ body.parent-brand .chan-lien-ket li:has(> a[hidden]) { display: none; }
    ĐỔI NGÔN NGỮ — VI · JA · EN
    ====================================================================== */
 body.parent-brand .doi-nn { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--bp-vien); border-radius: 999px; background: #fff; }
-body.parent-brand .doi-nn button { min-width: 36px; min-height: 32px; padding: 0 8px; border: 0; border-radius: 999px; background: transparent; color: var(--bp-muc-2);
+body.parent-brand .doi-nn button { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 10px 0 7px; border: 0; border-radius: 999px; background: transparent; color: var(--bp-muc-2);
   font: 700 var(--c-13)/1 "Inter", system-ui, sans-serif; letter-spacing: .02em; cursor: pointer; }
+body.parent-brand .doi-nn .co { flex: none; width: 21px; height: 14px; border-radius: 2px; box-shadow: 0 0 0 1px rgb(0 0 0 / .14); }
 body.parent-brand .doi-nn button:hover { color: var(--bp-muc); background: var(--bp-da-1); }
 body.parent-brand .doi-nn button[aria-pressed="true"] { background: var(--bp-logo); color: #fff; }
+body.parent-brand .doi-nn button[aria-pressed="true"] .co { box-shadow: 0 0 0 1.5px #fff; }
 body.parent-brand .doi-nn button:focus-visible { outline: 2px solid var(--bp-logo); outline-offset: 2px; }
-body.parent-brand .doi-nn-menu { margin-top: 18px; align-self: flex-start; }
+/* trong menu điện thoại: mỗi ngôn ngữ một hàng, cờ + tên đầy đủ */
+body.parent-brand .doi-nn-menu { display: grid; gap: 4px; width: 100%; margin-top: 18px; padding: 4px; border-radius: 14px; }
+body.parent-brand .doi-nn-menu button { justify-content: flex-start; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 10px; font-size: var(--c-15); }
+body.parent-brand .doi-nn-menu .co { width: 27px; height: 18px; }
+body.parent-brand .doi-nn-menu .doi-nn-ma { display: none; }
+body.parent-brand .doi-nn-menu .doi-nn-ten { font-weight: 600; }
 body.parent-brand .cs-dieu-huong { display: flex; align-items: center; gap: 16px; }
 @media (max-width: 760px) { body.parent-brand .dau-trang .doi-nn:not(.doi-nn-menu) { display: none; } body.parent-brand .cs-dieu-huong .doi-nn { display: inline-flex !important; } }
-@media (max-width: 380px) { body.parent-brand .cs-dieu-huong > a { display: none; } }
+@media (max-width: 440px) { body.parent-brand .cs-dieu-huong > a { display: none; } }
 /* chữ Nhật: dùng phông hệ thống có chữ kanji, ngắt dòng theo luật tiếng Nhật */
 html:lang(ja) body { font-family: "Inter", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif; line-break: strict; }
 html:lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; letter-spacing: 0; }
+/* màn hình vừa: chỉ còn cờ để đầu trang không bị xuống dòng (tên ngôn ngữ vẫn có trong title/aria-label) */
+@media (max-width: 1180px) {
+  body.parent-brand .dau-trang .doi-nn:not(.doi-nn-menu) .doi-nn-ma { display: none; }
+  body.parent-brand .dau-trang .doi-nn:not(.doi-nn-menu) button { padding: 0 8px; }
+}
+body.parent-brand .dau-trang nav a, body.parent-brand .dau-trang .nut.nho, body.parent-brand .cs-dieu-huong > a { white-space: nowrap; }
+@media (max-width: 760px) { body.parent-brand .cs-dieu-huong .doi-nn-ma { display: none; } body.parent-brand .cs-dieu-huong .doi-nn button { padding: 0 8px; } }
