@@ -686,8 +686,8 @@ html.may-yeu .dt-tien { display: none; }
   -webkit-mask: url("/ma-vach.svg") 0 0 / 100% 100% no-repeat; mask: url("/ma-vach.svg") 0 0 / 100% 100% no-repeat; }
 /* Tên và dòng phụ: chữ thật trong SVG, ép đúng khổ đo từ logo gốc (tên 631×80, dòng phụ 535×38 trên mã vạch 365×205) nên giống biển hiệu ở mọi cỡ */
 .logo-ten, .logo-phu { display: block; height: auto; overflow: visible; fill: currentColor; stroke-linejoin: round; font-family: "Inter", system-ui, sans-serif; }
-.logo-ten { width: 8.47em; margin-top: .85em; }
-.logo-phu { width: 7.18em; margin-top: .36em; }
+.logo-ten { width: 8.47em; height: 1.074em; margin-top: .85em; }
+.logo-phu { width: 7.18em; height: .51em; margin-top: .36em; }
 /* Đầu trang: mã vạch và tên; dòng phụ quá nhỏ để đọc ở cỡ này nên ẩn (tên đầy đủ có trong nhãn của liên kết) */
 .ten-studio .logo-dau { font-size: .9375rem; }
 .ten-studio .logo-dau .logo-phu { display: none; }
@@ -700,7 +700,10 @@ body.parent-brand .chan-trang > span.logo-chan { color: #111111; font-weight: 40
 .logo-chan { font-size: min(1.5rem, 7vw); padding: .55em .7em; background: #fff; border-radius: 4px; align-self: flex-start; }
 body.parent-brand .chan-trang .logo-chan + span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 /* Ảnh đại diện tròn trong khung điện thoại: chỉ mã vạch */
-body.parent-brand .dt-kenh .logo-vach { width: 62%; color: #111111; }
+/* Ảnh đại diện tròn trong khung điện thoại: logo đầy đủ thu nhỏ (mã vạch và tên), cỡ theo vòng tròn */
+body.parent-brand .dt-kenh { container-type: inline-size; }
+body.parent-brand .dt-kenh .logo-kenh { font-size: 9.4cqi; color: #111111; }
+body.parent-brand .dt-ray .dt-kenh .logo-kenh .logo-ten { width: 8.47em; height: 1.074em; margin-top: .6em; fill: currentColor; filter: none; animation: none; }
 @media (forced-colors: active) { .logo-vach { background: CanvasText; } .logo-chan { border: 1px solid CanvasText; } }
 
 /* ---------- Cỡ chữ lớn: không cắt, không tràn ---------- */
