@@ -724,13 +724,13 @@ body.parent-brand .mau-toi .muc-dau h2 { min-width: 0; max-width: 100%; }
    ====================================================================== */
 body.parent-brand {
   --c-12: .75rem; --c-13: .8125rem; --c-14: .875rem; --c-15: .9375rem; --c-16: 1rem; --c-18: 1.125rem;
-  --c-tieu-de-phu: clamp(1.25rem, 1rem + .9vw, 1.625rem);
+  --c-tieu-de-phu: clamp(1.125rem, 1rem + .45vw, 1.375rem);
   --c-tieu-de-muc: clamp(1.625rem, 1rem + 2.9vw, 3rem);
 }
 /* Tiêu đề mục: cùng một cỡ ở mọi phần (trừ tiêu đề thư viện) */
 body.parent-brand :is(.goc-chia-se, .tu-van, .thuong-hieu-goc, .so-sanh, .cau-hoi-thuong-gap) h2 { font-size: var(--c-tieu-de-muc); line-height: 1.1; }
 /* Tiêu đề phụ: cùng kiểu chữ, độ đậm và cỡ */
-body.parent-brand :is(.goc-chia-se, .tu-van) h3 { font-family: var(--tieu-de); font-weight: 800; font-size: var(--c-tieu-de-phu); line-height: 1.2; letter-spacing: -.015em; }
+body.parent-brand :is(.goc-chia-se, .tu-van) h3 { font-family: "Inter", system-ui, sans-serif; font-weight: 700; font-size: var(--c-tieu-de-phu); line-height: 1.3; letter-spacing: -.01em; }
 
 /* Đoạn dẫn đầu trang */
 body.parent-brand .san-khau :is(.hero-description, .ma-vach + .hero-description) { font-size: var(--c-16); line-height: 1.6; }
@@ -765,3 +765,6 @@ body.parent-brand .ray .ten-mau { font-size: var(--c-16); }
 body.parent-brand .san-khau .nut-chu, body.parent-brand .tu-van .chon-nho span { font-size: var(--c-15); }
 body.parent-brand .tu-van-goi a { font-size: var(--c-16); }
 body.parent-brand :is(.dt-man, .dien-thoai) .dt-ten { font-size: var(--c-14); }
+/* Thẻ góc chia sẻ: tiêu đề chừa chỗ hai dòng trên máy tính để đoạn văn hai thẻ thẳng hàng và không sát tiêu đề */
+body.parent-brand .goc-chia-se h3 { margin-bottom: 12px; }
+@media (min-width: 761px) { body.parent-brand .goc-chia-se h3 { min-height: 2.6em; } }
