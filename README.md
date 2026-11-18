@@ -329,6 +329,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 18/11/2026 | Logo bằng chữ thật, kiểm mọi cỡ chữ | Logo không còn là ảnh: mã vạch vẽ vector, “B PRODUCTIONS” và dòng phụ là chữ SVG ép đúng khổ đo từ logo gốc nên giống biển hiệu, chọn và đọc được, phóng to không vỡ; nhãn ngành xuống dòng thay vì cắt “…”; tiêu đề thư viện xuống dòng trên điện thoại khi chữ lớn; chân trang chừa chỗ cho thanh nút đáy. Kiểm 3 trang × 4 khổ (320–1366) × cỡ chữ trình duyệt 100/125/150% và phóng to 200%: không tràn, không cắt, không chữ dưới 11px |
 | 17/11/2026 | Đầu thư viện nổi | Tiêu đề "Anh chị muốn sản phẩm xuất hiện như thế nào?" đặt trong khung ngắm trắng, nổi lên và có vạch sáng quét qua một lần khi cuộn tới; dòng "Bấm vào ảnh để xem video có tiếng" thành thẻ kính mờ có biểu tượng sóng âm nhấp nhô |
 | 17/11/2026 | Đầu thư viện: dòng thời gian | Bên phải tiêu đề thư viện là dòng thời gian dựng phim thu nhỏ: rãnh hình gồm các đoạn clip mang tên kiểu video có trong thư viện (dài theo số mẫu), rãnh tiếng có sóng âm, kim phát chạy ngang; kim tới đoạn nào thì đoạn sáng lên và dòng chữ tự gõ dưới tiêu đề đổi sang kiểu đó; thẻ "Bấm vào ảnh để xem video có tiếng" có sóng âm nhấp nhô; dừng theo nút dừng và chế độ giảm chuyển động |
 | 17/11/2026 | Tối ưu thêm cho máy yếu | Thẻ thư viện không tự phát YouTube trên máy yếu; điện thoại đổi mẫu thưa hơn, bỏ thanh đếm giờ; sóng âm và con trỏ đứng yên; ảnh khung tư vấn chuyển sang WebP |

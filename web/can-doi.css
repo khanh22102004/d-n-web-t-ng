@@ -679,3 +679,40 @@ body.parent-brand .tuong-nen .o-tuong .khung { box-shadow: none; border-color: r
 
 /* Máy yếu: bỏ thanh đếm giờ trên điện thoại (chạy liên tục bắt máy vẽ lại mỗi khung hình); điện thoại vẫn tự đổi mẫu */
 html.may-yeu .dt-tien { display: none; }
+
+/* ---------- Logo bằng chữ thật (thay ảnh logo): mã vạch vẽ vector, tên và dòng phụ là chữ, phóng theo cỡ chữ của người xem ---------- */
+.logo-b { display: inline-flex; flex-direction: column; align-items: center; max-width: 100%; color: #111111; line-height: 1.1; text-align: center; letter-spacing: 0; }
+.logo-vach { display: block; width: 4.9em; aspect-ratio: 365 / 205; background: currentColor;
+  -webkit-mask: url("/ma-vach.svg") 0 0 / 100% 100% no-repeat; mask: url("/ma-vach.svg") 0 0 / 100% 100% no-repeat; }
+/* Tên và dòng phụ: chữ thật trong SVG, ép đúng khổ đo từ logo gốc (tên 631×80, dòng phụ 535×38 trên mã vạch 365×205) nên giống biển hiệu ở mọi cỡ */
+.logo-ten, .logo-phu { display: block; height: auto; overflow: visible; fill: currentColor; stroke-linejoin: round; font-family: "Inter", system-ui, sans-serif; }
+.logo-ten { width: 8.47em; margin-top: .85em; }
+.logo-phu { width: 7.18em; margin-top: .36em; }
+/* Đầu trang: mã vạch và tên; dòng phụ quá nhỏ để đọc ở cỡ này nên ẩn (tên đầy đủ có trong nhãn của liên kết) */
+.ten-studio .logo-dau { font-size: .9375rem; }
+.ten-studio .logo-dau .logo-phu { display: none; }
+@media (max-width: 760px) { .ten-studio .logo-dau { font-size: .8125rem; } }
+/* Thẻ thương hiệu */
+body.parent-brand .thuong-hieu-dau { container-type: inline-size; }
+.logo-the { font-size: min(2.25rem, 9.4cqi); margin: 0 auto 4px; }
+/* Chân trang: chữ đen trên ô trắng như logo gốc */
+body.parent-brand .chan-trang > span.logo-chan { color: #111111; font-weight: 400; }
+.logo-chan { font-size: min(1.5rem, 7vw); padding: .55em .7em; background: #fff; border-radius: 4px; align-self: flex-start; }
+body.parent-brand .chan-trang .logo-chan + span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Ảnh đại diện tròn trong khung điện thoại: chỉ mã vạch */
+body.parent-brand .dt-kenh .logo-vach { width: 62%; color: #111111; }
+@media (forced-colors: active) { .logo-vach { background: CanvasText; } .logo-chan { border: 1px solid CanvasText; } }
+
+/* ---------- Cỡ chữ lớn: không cắt, không tràn ---------- */
+/* Nhãn ngành trên thẻ mẫu: xuống dòng thay vì cắt bằng dấu ba chấm */
+body.parent-brand .mau-toi .ray .nhan-nganh, .nhan-nganh { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.25; border-radius: 10px; }
+/* Tiêu đề thư viện: không rộng hơn màn hình khi người xem tăng cỡ chữ trên điện thoại hẹp */
+body.parent-brand .mau-toi .muc-dau h2 { min-width: 0; max-width: 100%; }
+@media (max-width: 760px) { body.parent-brand .mau-toi .muc-dau h2 { white-space: normal; overflow-wrap: break-word; } }
+/* Chân trang: chừa chỗ cho thanh nút cố định ở đáy, thanh này cao lên khi chữ lớn */
+@media (max-width: 760px) { body.parent-brand .chan-trang { padding-bottom: max(96px, 7.5rem); } }
+/* Màn hình hẹp so với cỡ chữ người xem chọn (đo bằng em): đầu trang chỉ giữ mã vạch, nút không xuống ba dòng */
+@media (max-width: 17em) {
+  .ten-studio .logo-dau .logo-ten { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  body.parent-brand .dau-trang .nut.nho { white-space: nowrap; }
+}
