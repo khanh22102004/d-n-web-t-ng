@@ -704,6 +704,7 @@ body.parent-brand .chan-trang .logo-chan + span { position: absolute; width: 1px
 body.parent-brand .dt-kenh { container-type: inline-size; }
 body.parent-brand .dt-kenh .logo-kenh { font-size: 9.4cqi; color: #111111; }
 body.parent-brand .dt-ray .dt-kenh .logo-kenh .logo-ten { width: 8.47em; height: 1.074em; margin-top: .6em; fill: currentColor; filter: none; animation: none; }
+body.parent-brand .dt-ray .dt-kenh .logo-kenh .logo-phu { width: 7.18em; height: .51em; margin-top: .3em; fill: currentColor; filter: none; animation: none; }
 @media (forced-colors: active) { .logo-vach { background: CanvasText; } .logo-chan { border: 1px solid CanvasText; } }
 
 /* ---------- Cỡ chữ lớn: không cắt, không tràn ---------- */
