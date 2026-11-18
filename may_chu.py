@@ -1240,7 +1240,7 @@ class BaoVe:
                 tieu_de += [(b"x-content-type-options", b"nosniff"), (b"x-frame-options", b"DENY"),
                             (b"referrer-policy", b"strict-origin-when-cross-origin"),
                             (b"content-security-policy", b"default-src 'self'; img-src 'self' data: blob: https://i.ytimg.com; style-src 'self'; "
-                                                         b"script-src 'self'; frame-src https://www.youtube-nocookie.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")]
+                                                         b"script-src 'self'; frame-src https://www.youtube-nocookie.com https://www.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")]
                 tin = {**tin, "headers": tieu_de}
             await send(tin)
 
