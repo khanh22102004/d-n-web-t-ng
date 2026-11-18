@@ -772,3 +772,28 @@ body.parent-brand :is(.dt-man, .dien-thoai) .dt-ten { font-size: var(--c-14); }
 /* Thẻ góc chia sẻ: tiêu đề chừa chỗ hai dòng trên máy tính để đoạn văn hai thẻ thẳng hàng và không sát tiêu đề */
 body.parent-brand .goc-chia-se h3 { margin-bottom: 12px; }
 @media (min-width: 761px) { body.parent-brand .goc-chia-se h3 { min-height: 2.6em; } }
+
+/* ======================================================================
+   CỘT NÚT BÊN PHẢI CỦA KHUNG ĐIỆN THOẠI — gọn như ứng dụng video dọc:
+   ảnh đại diện có nút +, biểu tượng cùng cỡ, chữ hoặc số ngay dưới, đĩa nhạc ở cuối
+   ====================================================================== */
+body.parent-brand .dt-man .dt-ray { right: 5px; bottom: 6%; gap: 7px; justify-items: center; }
+body.parent-brand .dt-dai-dien { position: relative; display: block; margin-bottom: 9px; }
+body.parent-brand .dt-dai-dien .dt-kenh { width: 36px; height: 36px; margin: 0; border: 1.5px solid #fff; }
+body.parent-brand .dt-theo { position: absolute; left: 50%; bottom: -8px; translate: -50% 0; width: 16px; height: 16px; border-radius: 50%;
+  background: #111111; box-shadow: 0 0 0 1.5px #fff; }
+body.parent-brand .dt-theo::before, body.parent-brand .dt-theo::after { content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 1.6px; translate: -50% -50%; border-radius: 1px; background: #fff; }
+body.parent-brand .dt-theo::after { rotate: 90deg; }
+/* Biểu tượng: cùng cỡ, cùng bóng; nút phóng to cùng hàng lối */
+body.parent-brand .dt-man .dt-ray-nut { width: 44px; min-width: 44px; min-height: 0; gap: 2px; }
+body.parent-brand .dt-man .dt-ray-nut svg, body.parent-brand .dt-man .dt-ray-lon svg { width: 25px; height: 25px; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .45)); }
+body.parent-brand .dt-man .dt-ray-lon svg { width: 20px; height: 20px; margin: 2px 0; }
+body.parent-brand .dt-man .dt-ray-lon .dt-so { display: none !important; }
+/* Dưới mỗi biểu tượng: số thật nếu có, không có thì tên nút */
+body.parent-brand .dt-man .dt-ray .dt-so { display: block; min-height: 0; font-size: .6875rem; font-weight: 600; line-height: 1.15; letter-spacing: 0; color: #fff; text-shadow: 0 1px 2px rgb(0 0 0 / .7); white-space: nowrap; }
+body.parent-brand .dt-man .dt-ray .dt-so:empty { display: block; }
+body.parent-brand .dt-man .dt-ray .dt-so:empty::after { content: attr(data-nhan); }
+/* Đĩa nhạc: tròn tối, nhãn giữa là mã vạch; đứng yên để nhẹ máy */
+body.parent-brand .dt-dia { display: grid; place-items: center; width: 30px; height: 30px; margin-top: 2px; border-radius: 50%;
+  background: radial-gradient(circle, #3a3a3a 0 30%, #161616 31% 100%); box-shadow: 0 0 0 1px rgb(255 255 255 / .18), 0 2px 6px rgb(0 0 0 / .45); }
+body.parent-brand .dt-dia .logo-vach { width: 14px; color: #fff; }
