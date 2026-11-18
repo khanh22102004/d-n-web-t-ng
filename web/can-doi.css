@@ -716,3 +716,52 @@ body.parent-brand .mau-toi .muc-dau h2 { min-width: 0; max-width: 100%; }
   .ten-studio .logo-dau .logo-ten { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   body.parent-brand .dau-trang .nut.nho { white-space: nowrap; }
 }
+
+/* ======================================================================
+   THANG CỠ CHỮ CHUNG (18/11/2026) — gom 23 cỡ lẻ về một thang:
+   12 / 13 / 14 / 15 / 16 / 18px cho chữ thường, một cỡ cho tiêu đề phụ, một cỡ cho tiêu đề mục.
+   Dùng rem nên phóng theo cỡ chữ người xem chọn. Tiêu đề thư viện giữ cỡ riêng (một dòng).
+   ====================================================================== */
+body.parent-brand {
+  --c-12: .75rem; --c-13: .8125rem; --c-14: .875rem; --c-15: .9375rem; --c-16: 1rem; --c-18: 1.125rem;
+  --c-tieu-de-phu: clamp(1.25rem, 1rem + .9vw, 1.625rem);
+  --c-tieu-de-muc: clamp(1.625rem, 1rem + 2.9vw, 3rem);
+}
+/* Tiêu đề mục: cùng một cỡ ở mọi phần (trừ tiêu đề thư viện) */
+body.parent-brand :is(.goc-chia-se, .tu-van, .thuong-hieu-goc, .so-sanh, .cau-hoi-thuong-gap) h2 { font-size: var(--c-tieu-de-muc); line-height: 1.1; }
+/* Tiêu đề phụ: cùng kiểu chữ, độ đậm và cỡ */
+body.parent-brand :is(.goc-chia-se, .tu-van) h3 { font-family: var(--tieu-de); font-weight: 800; font-size: var(--c-tieu-de-phu); line-height: 1.2; letter-spacing: -.015em; }
+
+/* Đoạn dẫn đầu trang */
+body.parent-brand .san-khau :is(.hero-description, .ma-vach + .hero-description) { font-size: var(--c-16); line-height: 1.6; }
+@media (min-width: 761px) { body.parent-brand .san-khau :is(.hero-description, .ma-vach + .hero-description) { font-size: var(--c-18); } }
+/* Hai nút đầu trang: 14px trên điện thoại để hai nút nằm cạnh nhau trên một dòng, 16px trên máy tính */
+body.parent-brand .san-khau .hang-nut :is(.nut, .nut-phu) { font-size: var(--c-14); }
+@media (min-width: 761px) { body.parent-brand .san-khau .hang-nut :is(.nut, .nut-phu) { font-size: var(--c-16); } }
+body.parent-brand .thuong-hieu-goc a { font-size: var(--c-16); }
+/* Chữ nội dung: 16px */
+body.parent-brand :is(.thuong-hieu-goc p, .thuong-hieu-goc li, .tu-van .dan, .tu-van-hen, .tu-van-chi-tiet, .goc-chia-se p:not(.bai-viet-chuyen-muc)) { font-size: var(--c-16); line-height: 1.6; }
+/* Chữ phụ, ghi chú: 14px */
+body.parent-brand :is(.hero-note, .bai-viet-chuyen-muc, .phong-cach-mau, .chan-trang, .tu-van .dong-y, .tu-van label:has(input[type="checkbox"])) { font-size: var(--c-14); }
+body.parent-brand .mau-toi .dan { font-size: var(--c-15); }
+/* Nhãn trong biểu mẫu, nút lọc, menu: 15px */
+body.parent-brand :is(.tu-van .nhan, .loc-them, .loc button, .menu > li > a, .menu-nut) { font-size: var(--c-15); }
+/* Nút: nút chính 16px, nút ở đầu trang 14px, nút chữ 15px */
+body.parent-brand :is(.nut, .nut-phu, .thuong-hieu-nut, .tu-van button.nut) { font-size: var(--c-16); }
+body.parent-brand .dau-trang .nut.nho { font-size: var(--c-14); }
+body.parent-brand :is(.nut-chu, .tu-van-mau, .bai-viet-xem) { font-size: var(--c-15); }
+body.parent-brand .mau-toi .mau-duoi .nut-chu { font-size: var(--c-16); }
+/* Thẻ mẫu: tên 16px (18px trên máy tính), nhãn ngành và mã mẫu 13px */
+body.parent-brand .ten-mau { font-size: var(--c-16); line-height: 1.3; }
+@media (min-width: 761px) { body.parent-brand .ten-mau { font-size: var(--c-18); } }
+body.parent-brand :is(.nhan-nganh, .mau-toi .ray .nhan-nganh, .ma-mau) { font-size: var(--c-13); }
+/* Chữ trong khung điện thoại mô phỏng: không dưới 12px */
+body.parent-brand :is(.dt-man, .dien-thoai) :is(.dt-nganh, .dt-ma, .dt-dem, .dt-nghe, .dt-kieu), body.parent-brand .tv-man :is(.tv-xt-nhan, .tv-xt-chu) { font-size: var(--c-12); }
+body.parent-brand :is(.dt-man, .dien-thoai) .dt-kieu { font-size: var(--c-13); }
+body.parent-brand .kieu-chay .kieu-chay-nhan { font-size: var(--c-13); }
+@media (min-width: 761px) { body.parent-brand .kieu-chay .kieu-chay-nhan { font-size: var(--c-14); } }
+body.parent-brand .ray .ten-mau { font-size: var(--c-16); }
+@media (min-width: 761px) { body.parent-brand .ray .ten-mau { font-size: var(--c-18); } }
+body.parent-brand .san-khau .nut-chu, body.parent-brand .tu-van .chon-nho span { font-size: var(--c-15); }
+body.parent-brand .tu-van-goi a { font-size: var(--c-16); }
+body.parent-brand :is(.dt-man, .dien-thoai) .dt-ten { font-size: var(--c-14); }
