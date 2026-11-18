@@ -126,7 +126,7 @@
         "lua_chon": ["Zalo", "Điện thoại", "Email", "Messenger"]},
        {"id": "dia_chi", "kieu": "chu", "nhan": "Số điện thoại, email hoặc link Messenger", "vi_du": "0901 234 567", "bat_buoc": true, "kiem_tra": "lien_he"}
      ]},
-    {"so": 20, "nhom": "lien-he", "cau": "Quý khách hàng biết đến B Productions qua đâu?",
+    {"so": 20, "nhom": "lien-he", "cau": "Quý khách hàng biết đến B PRODUCTIONS qua đâu?",
      "truong": [
        {"id": "nguon", "kieu": "mot", "bat_buoc": true, "tu_dien": true,
         "lua_chon": ["TikTok", "Facebook", "YouTube", "Người quen giới thiệu"]}

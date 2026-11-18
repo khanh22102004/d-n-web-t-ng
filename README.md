@@ -201,7 +201,7 @@ python -m uvicorn may_chu:app --host 127.0.0.1 --port 8000
 | `STUDIO_CONTACT` | Không | Số điện thoại/email hiển thị; mặc định `0941761768`, số điện thoại có nút bấm gọi |
 | `ZALO_LINK` | Không | Liên kết Zalo thật của studio |
 | `REPLY_WITHIN` | Không | Thời gian phản hồi hiển thị; mặc định "một ngày làm việc" |
-| `STUDIO_NAME` | Không | Tên studio trong nội dung; mặc định "B Productions" |
+| `STUDIO_NAME` | Không | Tên studio trong nội dung; mặc định "B PRODUCTIONS" (in hoa như logo) |
 | `DATA_DIR` | Không | Thư mục dữ liệu SQLite và ảnh; mặc định `du-lieu/` |
 | `COOKIE_SECURE`, `TRUST_PROXY` | Khi chạy HTTPS sau proxy | Đặt `true` trên Vercel/Render |
 
