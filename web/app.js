@@ -264,13 +264,15 @@
       dtCapNhat();
     });
     veDienThoai(); ganXoay(); quetTieuDe(); ganMenuDangXem(); ganDungKhiKhuat();
+    // Máy yếu: mở trang ở trạng thái đứng yên (máy minh họa không tự đổi mẫu); khách bấm nút phát để chạy tiếp.
+    if (mayYeu && !itChuyenDong && !tamDung) $("tuong-dung").click();
   }
   // Đầu thư viện: tiêu đề "lấy nét" từng chữ khi cuộn tới; dòng "Ví dụ" tự gõ lần lượt các kiểu video có trong thư viện.
   function quetTieuDe() {
     const h2 = $("mau-tieu-de"), chu = $("kieu-chay-chu");
     if (!h2 || !chu) return;
-    // tách tiêu đề thành từng chữ (giữ nguyên dấu xuống dòng) để làm hiệu ứng lấy nét lần lượt
-    if (!h2.querySelector(".tu-net")) {
+    // tách tiêu đề thành từng chữ (giữ nguyên dấu xuống dòng) để làm hiệu ứng lấy nét lần lượt — máy yếu thì bỏ hiệu ứng này
+    if (!mayYeu && !h2.querySelector(".tu-net")) {
       let k = 0;
       [...h2.childNodes].forEach(n => {
         if (n.nodeType !== 3) return;
@@ -305,7 +307,8 @@
   }
   // Phần nào khuất khỏi màn hình thì dừng mọi hiệu ứng CSS bên trong (tường trôi, sóng âm, ánh kim…) để máy đỡ phải vẽ.
   function ganDungKhiKhuat() {
-    if (!("IntersectionObserver" in window)) return;
+    // Máy yếu đã tắt hầu hết hiệu ứng; bật/tắt lớp "khuat" lại bắt trình duyệt tính lại kiểu cho cả phần trang khi cuộn, nên bỏ qua.
+    if (!("IntersectionObserver" in window) || mayYeu) return;
     const io = new IntersectionObserver(ds => ds.forEach(d => d.target.classList.toggle("khuat", !d.isIntersecting)), { rootMargin: "120px 0px" });
     document.querySelectorAll("main > section").forEach(s => io.observe(s));
   }
@@ -756,7 +759,8 @@
     });
   }
   function ganHieuUng() {
-    if (itChuyenDong || !("IntersectionObserver" in window)) return;
+    // Máy yếu: nội dung hiện sẵn, không chạy hiệu ứng trượt/hiện dần khi cuộn (đây là nguồn giật chính khi cuộn trên máy yếu).
+    if (itChuyenDong || mayYeu || !("IntersectionObserver" in window)) return;
     document.documentElement.classList.add("hieu-ung");
     // Tiêu đề lớn: tách từng chữ (giữ cho các lớp hiệu ứng cũ); màn mở đầu hiện nay do can-doi.css điều khiển theo từng dòng.
     let thuTu = 0;
@@ -832,10 +836,10 @@
     };
     o.addEventListener("input", () => { clearTimeout(xtHen); xtHen = setTimeout(dat, 60); });
     $("form-tu-van").addEventListener("reset", () => setTimeout(dat, 0));
-    if (itChuyenDong) return;
-    // Chưa chọn mẫu nào thì khung đổi lần lượt vài mẫu nổi bật.
+    if (itChuyenDong || mayYeu) return;   // máy yếu: khung minh họa đứng yên, không tự đổi ảnh
+    // Chưa chọn mẫu nào thì khung đổi lần lượt vài mẫu nổi bật — chỉ khi phần tư vấn đang hiện trên màn hình.
     const ds = maNoiBat.map(ma => mau[ma]).filter(Boolean); let i = 0;
-    if (ds.length > 1) xtVong = setInterval(() => { if (tamDung || document.hidden || mauTuVan) return; i = (i + 1) % ds.length;
+    if (ds.length > 1) xtVong = setInterval(() => { if (tamDung || document.hidden || mauTuVan || $("tu-van")?.classList.contains("khuat")) return; i = (i + 1) % ds.length;
       document.querySelectorAll(".tv-xt-anh").forEach(a => { a.src = a.closest(".tv-mini") ? `/anh-mau/nho/${ds[i].ma}.webp` : `/anh-mau/${ds[i].ma}.webp`; }); }, mayYeu ? 7000 : 4200);
   }
 
