@@ -690,7 +690,7 @@ html.may-yeu .dt-tien { display: none; }
 .logo-phu { width: 7.18em; height: .51em; margin-top: .36em; }
 /* Đầu trang: mã vạch và tên; dòng phụ quá nhỏ để đọc ở cỡ này nên ẩn (tên đầy đủ có trong nhãn của liên kết) */
 .ten-studio .logo-dau { font-size: .9375rem; }
-.ten-studio .logo-dau .logo-phu { display: none; }
+/* Logo đầu trang giữ đủ dòng phụ "Borderless Video Production Company" như biển hiệu. */
 @media (max-width: 760px) { .ten-studio .logo-dau { font-size: .8125rem; } }
 /* Thẻ thương hiệu */
 body.parent-brand .thuong-hieu-dau { container-type: inline-size; }
@@ -717,6 +717,7 @@ body.parent-brand .mau-toi .muc-dau h2 { min-width: 0; max-width: 100%; }
 @media (max-width: 760px) { body.parent-brand .chan-trang { padding-bottom: max(96px, 7.5rem); } }
 /* Màn hình hẹp so với cỡ chữ người xem chọn (đo bằng em): đầu trang chỉ giữ mã vạch, nút không xuống ba dòng */
 @media (max-width: 17em) {
+  .ten-studio .logo-dau .logo-phu { display: none; }
   .ten-studio .logo-dau .logo-ten { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   body.parent-brand .dau-trang .nut.nho { white-space: nowrap; }
 }

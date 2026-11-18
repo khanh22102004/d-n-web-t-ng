@@ -24,7 +24,7 @@ from pathlib import Path
 
 from PIL import Image, ImageOps, UnidentifiedImageError
 from openpyxl import Workbook
-from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from starlette.applications import Starlette
 from starlette.concurrency import run_in_threadpool
 from starlette.middleware.gzip import GZipMiddleware
@@ -828,31 +828,259 @@ def an_toan_excel(chu):
     return "'" + chu if chu[:1] in ("=", "+", "-", "@", "\t", "\r") else chu
 
 
+# ---------- File Excel cho nhân viên ----------
+# Thiết kế theo khuôn "YÊU CẦU THỰC HIỆN VIDEO" của studio (17 mục) và phong cách web:
+# logo mã vạch đầy đủ chữ, đầu bảng nền đen chữ trắng, nền phụ màu kem, viền xám nhạt, chữ Arial.
+XL_DEN, XL_KEM, XL_VIEN, XL_XAM = "111111", "F4F2EE", "D6D2CB", "6B6762"
+XL_CHU = "Arial"
+
+# Khuôn 17 mục của studio. Mỗi mục lấy câu trả lời tương ứng từ phiếu web (nhãn: khóa);
+# mục nào web không hỏi thì để trống để nhân viên điền khi gọi cho khách.
+KHUON_YEU_CAU = [
+    ("Mục đích của video là gì?", None, [("Dùng để", "4.muc_dich"), ("Sau khi xem, người xem cần", "5.hanh_dong"),
+                                         ("Điều muốn người xem nhớ nhất", "3.diem_nho"), ("Người xem: độ tuổi", "6.tuoi"), ("Người xem: giới tính", "6.gioi_tinh")]),
+    ("Thể loại video là gì?", "Giới thiệu doanh nghiệp, sản phẩm, dịch vụ, sự kiện, đào tạo, tuyên truyền,…",
+     [("Sản phẩm", "1.san_pham"), ("Thương hiệu", "1.thuong_hieu"), ("Nhóm sản phẩm", "2.nhom"), ("Link sản phẩm", "1.link")]),
+    ("Loại hình video là gì?", "Quay dựng, Animation, Graphic,… hoặc kết hợp giữa các thể loại", [("Đồng ý dùng AI tạo hình ảnh", "16.ai")]),
+    ("Phong cách, nhịp điệu của video như thế nào?", "Nhanh, mạnh mẽ hay chậm rãi, nhẹ nhàng? Phong cách business, travel hay tình cảm,…",
+     [("Kiểu video thích", "11.kieu"), ("Tốc độ đọc", "15.toc_do")]),
+    ("Video mẫu mong muốn?", "Nếu có", [("Mẫu tham khảo trên web", "_mau")]),
+    ("Khách hàng cung cấp cho Bpro những gì? Cần Bpro thực hiện những gì?", "Kịch bản, tư liệu, hình ảnh, video, thông tin sản phẩm,…",
+     [("Đã có sẵn", "12.da_co"), ("Ảnh gửi kèm phiếu", "_so_anh")]),
+    ("Cần quay bao nhiêu địa điểm? Vị trí, diện tích, số lượng người tại địa điểm quay?", "Đối với video quay dựng", []),
+    ("Thời gian quay kéo dài mấy ngày? Cách di chuyển? Ngày quay dự kiến?", "Đối với video quay dựng", []),
+    ("Video có cần diễn viên không?", "Nêu rõ giới tính, độ tuổi, quốc tịch và các yêu cầu khác", []),
+    ("Video có cần cảnh quay flycam không?", None, []),
+    ("Thời lượng video mong muốn", None, [("Mỗi video dài", "10.do_dai"), ("Số video", "9.so_video")]),
+    ("Video có cần voice không?", "Ngôn ngữ nào, nam hay nữ, vùng miền nào", [("Ngôn ngữ", "14.ngon_ngu"), ("Giọng đọc", "15.giong"), ("Giọng vùng", "15.vung")]),
+    ("Chất lượng video như thế nào?", "Full HD, 2K, 4K,…", []),
+    ("Tỷ lệ khung hình video", "16:9, 9:16, 1:1,…", [("Nơi đăng", "7.noi_dang"), ("Chạy quảng cáo trả phí", "8.quang_cao")]),
+    ("Thời gian cần hoàn thiện video là lúc nào?", None, [("Cần có video", "17.han")]),
+    ("Dự trù kinh phí", "Nếu có", [("Dự định chi", "18.ngan_sach")]),
+    ("Các yêu cầu khác", "Nếu có", [("Thông tin cần hiện đúng từng chữ", "5.hien_dung"), ("Điều cần tránh", "13.can_tranh"),
+                                    ("Câu chữ cần giữ nguyên", "13.giu_nguyen"), ("Biết đến B PRODUCTIONS qua", "20.nguon")]),
+]
+
+
+def _xl_logo(rong):
+    """Logo đầy đủ (mã vạch, B PRODUCTIONS, dòng phụ) từ web/logo-b-productions.png, thu về rộng `rong` điểm ảnh."""
+    from openpyxl.drawing.image import Image as AnhXL
+    with Image.open(WEB / "logo-b-productions.png") as goc:
+        anh = goc.convert("RGBA")
+        anh = anh.resize((rong, round(anh.height * rong / anh.width)), Image.LANCZOS)
+        tep = io.BytesIO(); anh.save(tep, format="PNG"); tep.seek(0)
+    hinh = AnhXL(tep); hinh.width, hinh.height = anh.width, anh.height
+    return hinh
+
+
+def _xl_kieu():
+    vien = Side(style="thin", color=XL_VIEN)
+    return {
+        "khung": Border(left=vien, right=vien, top=vien, bottom=vien),
+        "dau": Font(name=XL_CHU, size=11, bold=True, color="FFFFFF"),
+        "nen_dau": PatternFill("solid", fgColor=XL_DEN),
+        "nen_kem": PatternFill("solid", fgColor=XL_KEM),
+        "chu": Font(name=XL_CHU, size=10.5, color="1A1A1A"),
+        "dam": Font(name=XL_CHU, size=10.5, bold=True, color="1A1A1A"),
+        "phu": Font(name=XL_CHU, size=9.5, italic=True, color=XL_XAM),
+        "tieu_de": Font(name=XL_CHU, size=18, bold=True, color=XL_DEN),
+        "nho": Font(name=XL_CHU, size=9.5, color=XL_XAM),
+        "giua": Alignment(horizontal="center", vertical="center", wrap_text=True),
+        "trai": Alignment(horizontal="left", vertical="top", wrap_text=True),
+        "trai_giua": Alignment(horizontal="left", vertical="center", wrap_text=True),
+    }
+
+
+def _xl_gia_tri(p, khoa):
+    if khoa == "_mau":
+        return p["tra_loi"].get("_mau", "")
+    if khoa == "_so_anh":
+        return f'{p["so_anh"]} ảnh' if p["so_anh"] else ""
+    return gop(p["tra_loi"], khoa)
+
+
+def _xl_ten_trang(da_dung, so, ten):
+    goc = re.sub(r"[\[\]:*?/\\]", " ", f"{so:02d}. {ten or 'Khách hàng'}").strip()[:31]
+    ten_trang, i = goc, 2
+    while ten_trang in da_dung:
+        ten_trang = f"{goc[:28]} {i}"; i += 1
+    da_dung.add(ten_trang)
+    return ten_trang
+
+
+def _xl_dau_trang(trang, k, tieu_de, dong_phu, so_cot_gop):
+    """Logo bên phải, tiêu đề bên trái, vạch đen mảnh như mã vạch dưới tiêu đề."""
+    trang.sheet_view.showGridLines = False
+    trang.row_dimensions[1].height = 30
+    trang.row_dimensions[2].height = 34
+    trang.row_dimensions[3].height = 20
+    trang.row_dimensions[4].height = 30
+    cot_cuoi = trang.cell(row=1, column=so_cot_gop).column_letter
+    trang.merge_cells(f"A2:{trang.cell(row=2, column=max(1, so_cot_gop - 1)).column_letter}2")
+    trang["A2"] = tieu_de; trang["A2"].font = k["tieu_de"]; trang["A2"].alignment = k["trai_giua"]
+    trang.merge_cells(f"A3:{trang.cell(row=3, column=max(1, so_cot_gop - 1)).column_letter}3")
+    trang["A3"] = dong_phu; trang["A3"].font = k["nho"]; trang["A3"].alignment = k["trai_giua"]
+    for c in range(1, so_cot_gop + 1):
+        trang.cell(row=4, column=c).border = Border(bottom=Side(style="thick", color=XL_DEN))
+    # Đặt logo sát lề phải cột cuối (độ rộng cột tính ra điểm ảnh ≈ số ký tự × 7 + 5).
+    from openpyxl.drawing.spreadsheet_drawing import AnchorMarker, OneCellAnchor
+    from openpyxl.drawing.xdr import XDRPositiveSize2D
+    from openpyxl.utils.units import pixels_to_EMU
+    logo = _xl_logo(190)
+    rong_cot = round((trang.column_dimensions[cot_cuoi].width or 13) * 7 + 5)
+    lech = max(0, rong_cot - logo.width - 6)
+    logo.anchor = OneCellAnchor(_from=AnchorMarker(col=so_cot_gop - 1, colOff=pixels_to_EMU(lech), row=0, rowOff=pixels_to_EMU(6)),
+                                ext=XDRPositiveSize2D(pixels_to_EMU(logo.width), pixels_to_EMU(logo.height)))
+    trang.add_image(logo)
+
+
+def _xl_in(trang, vung_tieu_de=None):
+    trang.page_setup.orientation = "portrait"; trang.page_setup.paperSize = trang.PAPERSIZE_A4
+    trang.page_setup.fitToWidth = 1; trang.page_setup.fitToHeight = 0
+    trang.sheet_properties.pageSetUpPr.fitToPage = True
+    trang.page_margins.left = trang.page_margins.right = 0.45
+    trang.page_margins.top = trang.page_margins.bottom = 0.55
+    trang.print_options.horizontalCentered = True
+    if vung_tieu_de:
+        trang.print_title_rows = vung_tieu_de
+    trang.oddFooter.center.text = "B PRODUCTIONS · Trang &P/&N"
+    trang.oddFooter.center.size = 8
+
+
+def _xl_trang_phieu(trang, p, k):
+    tl = p["tra_loi"]
+    trang.column_dimensions["A"].width = 6
+    trang.column_dimensions["B"].width = 46
+    trang.column_dimensions["C"].width = 58
+    _xl_dau_trang(trang, k, "YÊU CẦU THỰC HIỆN VIDEO",
+                  f'Phiếu từ web · gửi lúc {p["gui_luc"]} · mã {p["id"][:8]}', 3)
+    # Khối thông tin khách
+    thong_tin = [("Khách hàng", tl.get("19.ten", "")), ("Liên hệ", " · ".join(x for x in (gop(tl, "19.kenh"), tl.get("19.dia_chi", "")) if x)),
+                 ("Loại yêu cầu", "Tư vấn nhanh" if tl.get("_loai") == "tu-van-nhanh" else "Phiếu chi tiết"),
+                 ("Nguồn", p["nguon"] or "trực tiếp"), ("Đã liên hệ", p["lien_he_luc"] or "Chưa liên hệ")]
+    d = 6
+    for nhan, gia_tri in thong_tin:
+        trang.merge_cells(f"A{d}:B{d}")
+        o = trang.cell(row=d, column=1, value=nhan); o.font = k["dam"]; o.fill = k["nen_kem"]; o.alignment = k["trai_giua"]
+        v = trang.cell(row=d, column=3, value=an_toan_excel(gia_tri)); v.font = k["chu"]; v.alignment = k["trai_giua"]
+        for c in (1, 2, 3):
+            trang.cell(row=d, column=c).border = k["khung"]
+        trang.row_dimensions[d].height = 20
+        d += 1
+    d += 1
+    # Bảng 17 mục theo khuôn của studio
+    for c, chu in enumerate(("STT", "Nội dung", "Thông tin từ khách hàng"), start=1):
+        o = trang.cell(row=d, column=c, value=chu); o.font = k["dau"]; o.fill = k["nen_dau"]; o.alignment = k["giua"]; o.border = k["khung"]
+    trang.row_dimensions[d].height = 26
+    dong_dau_bang = d
+    from openpyxl.cell.rich_text import CellRichText, TextBlock
+    from openpyxl.cell.text import InlineFont
+    dam_rt = InlineFont(rFont=XL_CHU, sz=10.5, b=True, color="1A1A1A")
+    phu_rt = InlineFont(rFont=XL_CHU, sz=9.5, i=True, color=XL_XAM)
+    for so, (cau, goi_y, nguon) in enumerate(KHUON_YEU_CAU, start=1):
+        d += 1
+        o = trang.cell(row=d, column=1, value=so); o.font = k["chu"]; o.alignment = k["giua"]
+        noi_dung = CellRichText([TextBlock(dam_rt, cau)] + ([TextBlock(phu_rt, f"\n({goi_y})")] if goi_y else []))
+        o = trang.cell(row=d, column=2, value=noi_dung); o.alignment = k["trai_giua"]
+        dong = [f"{nhan}: {gia}" for nhan, khoa in nguon if (gia := _xl_gia_tri(p, khoa))]
+        o = trang.cell(row=d, column=3, value=an_toan_excel("\n".join(dong))); o.font = k["chu"]; o.alignment = k["trai_giua"]
+        if (so % 2) == 0:
+            for c in (1, 2, 3):
+                trang.cell(row=d, column=c).fill = k["nen_kem"]
+        for c in (1, 2, 3):
+            trang.cell(row=d, column=c).border = k["khung"]
+        so_dong = max(len(dong), 1 + (1 if goi_y else 0) + (len(cau) > 48) + (len(goi_y or "") > 52))
+        trang.row_dimensions[d].height = max(42, 15 * so_dong + 14)
+    # Toàn bộ câu trả lời gốc từ web, để không thiếu thông tin nào
+    d += 2
+    trang.merge_cells(f"A{d}:C{d}")
+    o = trang.cell(row=d, column=1, value="CHI TIẾT PHIẾU TRÊN WEB"); o.font = Font(name=XL_CHU, size=12, bold=True, color=XL_DEN)
+    trang.row_dimensions[d].height = 24
+    d += 1
+    for c, chu in enumerate(("Câu", "Câu hỏi trên web", "Câu trả lời của khách"), start=1):
+        o = trang.cell(row=d, column=c, value=chu); o.font = k["dau"]; o.fill = k["nen_dau"]; o.alignment = k["giua"]; o.border = k["khung"]
+    trang.row_dimensions[d].height = 22
+    for cau in CAU:
+        for tr in cau["truong"]:
+            gia = gop(tl, f'{cau["so"]}.{tr["id"]}')
+            d += 1
+            nhan = cau["cau"] + (f' — {tr["nhan"]}' if tr.get("nhan") else "")
+            o = trang.cell(row=d, column=1, value=cau["so"]); o.font = k["nho"]; o.alignment = k["giua"]
+            o = trang.cell(row=d, column=2, value=nhan); o.font = k["nho"]; o.alignment = k["trai_giua"]
+            o = trang.cell(row=d, column=3, value=an_toan_excel(gia) if gia else "—"); o.font = k["chu"] if gia else k["nho"]; o.alignment = k["trai_giua"]
+            for c in (1, 2, 3):
+                trang.cell(row=d, column=c).border = k["khung"]
+            trang.row_dimensions[d].height = max(20, 14 * (1 + len(nhan) // 52 + str(gia).count("\n")) + 6)
+    _xl_in(trang, f"{dong_dau_bang}:{dong_dau_bang}")
+
+
 def tao_excel(danh_sach):
+    k = _xl_kieu()
     so = Workbook()
-    trang = so.active
-    trang.title = "Phiếu đã gửi"
+    da_gui = [p for p in danh_sach if p["gui_luc"]]
+    da_gui.sort(key=lambda p: p["gui_luc"], reverse=True)
+
+    # 1) Tổng hợp
+    tong = so.active
+    tong.title = "Tổng hợp"
+    cot_tong = [("STT", 6), ("Khách hàng", 22), ("Liên hệ", 24), ("Sản phẩm", 24), ("Loại yêu cầu", 15),
+                ("Cần có video", 18), ("Kinh phí", 18), ("Gửi lúc", 19), ("Trạng thái", 16)]
+    for i, (_, rong) in enumerate(cot_tong, start=1):
+        tong.column_dimensions[tong.cell(row=1, column=i).column_letter].width = rong
+    cho = sum(1 for p in da_gui if not p["lien_he_luc"])
+    _xl_dau_trang(tong, k, "DANH SÁCH YÊU CẦU VIDEO",
+                  f"Xuất lúc {bay_gio()} · {len(da_gui)} phiếu đã gửi · {cho} phiếu chờ liên hệ", len(cot_tong))
+    d = 6
+    for c, (chu, _) in enumerate(cot_tong, start=1):
+        o = tong.cell(row=d, column=c, value=chu); o.font = k["dau"]; o.fill = k["nen_dau"]; o.alignment = k["giua"]; o.border = k["khung"]
+    tong.row_dimensions[d].height = 26
+    da_dung = {"Tổng hợp", "Phiếu đã gửi", "Phiếu đang dở"}
+    trang_khach = []
+    for i, p in enumerate(da_gui, start=1):
+        tl = p["tra_loi"]
+        ten_trang = _xl_ten_trang(da_dung, i, tl.get("19.ten", ""))
+        trang_khach.append((ten_trang, p))
+        d += 1
+        hang = [i, tl.get("19.ten", "") or "(chưa có tên)", " · ".join(x for x in (gop(tl, "19.kenh"), tl.get("19.dia_chi", "")) if x),
+                tl.get("1.san_pham", ""), "Tư vấn nhanh" if tl.get("_loai") == "tu-van-nhanh" else "Phiếu chi tiết",
+                gop(tl, "17.han"), gop(tl, "18.ngan_sach"), p["gui_luc"], "Đã liên hệ" if p["lien_he_luc"] else "Chờ liên hệ"]
+        for c, gia in enumerate(hang, start=1):
+            o = tong.cell(row=d, column=c, value=an_toan_excel(gia) if isinstance(gia, str) else gia)
+            o.font = k["chu"]; o.alignment = k["giua"] if c in (1, 5, 8, 9) else k["trai_giua"]; o.border = k["khung"]
+            if i % 2 == 0:
+                o.fill = k["nen_kem"]
+        o = tong.cell(row=d, column=2)
+        o.hyperlink = f"#'{ten_trang}'!A1"; o.font = Font(name=XL_CHU, size=10.5, bold=True, color=XL_DEN, underline="single")
+        if not p["lien_he_luc"]:
+            tong.cell(row=d, column=9).font = Font(name=XL_CHU, size=10.5, bold=True, color="B42318")
+        tong.row_dimensions[d].height = 22
+    if not da_gui:
+        d += 1
+        tong.merge_cells(f"A{d}:I{d}")
+        o = tong.cell(row=d, column=1, value="Chưa có phiếu nào được gửi."); o.font = k["phu"]; o.alignment = k["giua"]
+    tong.cell(row=d + 2, column=1, value="Bấm tên khách hàng để mở trang yêu cầu của khách đó.").font = k["phu"]
+    tong.freeze_panes = "A7"
+    _xl_in(tong, "6:6")
+    tong.page_setup.orientation = "landscape"
+
+    # 2) Mỗi khách một trang theo khuôn 17 mục
+    for ten_trang, p in trang_khach:
+        _xl_trang_phieu(so.create_sheet(ten_trang), p, k)
+
+    # 3) Dữ liệu thô để lọc và tìm
+    trang = so.create_sheet("Phiếu đã gửi")
     cot = [("Gửi lúc", None), ("Đã liên hệ lúc", None), ("Nguồn", None), ("Số ảnh", None)]
     for cau in CAU:
         for tr in cau["truong"]:
             nhan = f'{cau["so"]}. {tr.get("nhan") or cau["cau"]}'
             cot.append((nhan, f'{cau["so"]}.{tr["id"]}'))
     trang.append([c[0] for c in cot] + ["Loại yêu cầu", "Mẫu tham khảo"])
-    for o in trang[1]:
-        o.font = Font(bold=True)
-        o.fill = PatternFill("solid", fgColor="FFE9B8")
-        o.alignment = Alignment(wrap_text=True, vertical="top")
     for p in danh_sach:
         if not p["gui_luc"]:
             continue
         trang.append([p["gui_luc"], p["lien_he_luc"] or "Chưa liên hệ", p["nguon"] or "trực tiếp", p["so_anh"]] +
                      [an_toan_excel(gop(p["tra_loi"], khoa)) for _, khoa in cot[4:]] +
                      ["Tư vấn nhanh" if p["tra_loi"].get("_loai") == "tu-van-nhanh" else "Phiếu chi tiết", an_toan_excel(p["tra_loi"].get("_mau", ""))])
-    for i, _ in enumerate(cot, start=1):
-        trang.column_dimensions[trang.cell(row=1, column=i).column_letter].width = 18 if i <= 4 else 30
-    trang.freeze_panes = "E2"
-    trang.row_dimensions[1].height = 60
-
     dang_do = so.create_sheet("Phiếu đang dở")
     dang_do.append(["Mở lúc", "Sửa lúc", "Nguồn", "Dừng ở nhóm", "Sản phẩm", "Tên", "Liên hệ"])
     ten_nhom = {n["id"]: n["ten"] for n in BO_CAU_HOI["nhom"]}
@@ -862,8 +1090,20 @@ def tao_excel(danh_sach):
         dang_do.append([p["tao_luc"], p["sua_luc"], p["nguon"] or "trực tiếp", ten_nhom.get(p["nhom_dang_dung"], ""),
                         an_toan_excel(p["tra_loi"].get("1.san_pham", "")), an_toan_excel(p["tra_loi"].get("19.ten", "")),
                         an_toan_excel(gop(p["tra_loi"], "19.dia_chi"))])
-    for o in dang_do[1]:
-        o.font = Font(bold=True)
+    for t, rong_dau in ((trang, 4), (dang_do, 0)):
+        t.sheet_view.showGridLines = True
+        for o in t[1]:
+            o.font = k["dau"]; o.fill = k["nen_dau"]; o.alignment = Alignment(wrap_text=True, vertical="center"); o.border = k["khung"]
+        for hang in t.iter_rows(min_row=2):
+            for o in hang:
+                o.font = k["chu"]; o.alignment = Alignment(wrap_text=True, vertical="top"); o.border = k["khung"]
+        for i in range(1, t.max_column + 1):
+            t.column_dimensions[t.cell(row=1, column=i).column_letter].width = 18 if i <= max(rong_dau, 1) or rong_dau == 0 else 30
+        t.row_dimensions[1].height = 48
+        if t.max_row > 1:
+            t.auto_filter.ref = t.dimensions
+    trang.freeze_panes = "E2"
+    dang_do.freeze_panes = "A2"
     tep = io.BytesIO()
     so.save(tep)
     return tep.getvalue()
