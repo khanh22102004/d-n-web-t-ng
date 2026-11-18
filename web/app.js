@@ -283,7 +283,8 @@
     if (itChuyenDong || !("IntersectionObserver" in window)) vao();
     else { const io = new IntersectionObserver(ds => { if (ds.some(d => d.isIntersecting)) { vao(); io.disconnect(); } }, { threshold: .5 }); io.observe(h2); }
 
-    const ds = [...new Set(dauTien(cauHinh.mau).map(m => m.kieu).filter(Boolean))];
+    const dichKieu = window.dichChu || (x => x);   // dòng "Ví dụ" gõ theo ngôn ngữ khách chọn
+    const ds = [...new Set(dauTien(cauHinh.mau).map(m => m.kieu).filter(Boolean))].map(dichKieu);
     if (!ds.length) return;
     chu.textContent = ds[0];
     if (itChuyenDong || ds.length < 2) return;
@@ -1564,9 +1565,7 @@
     document.querySelectorAll("[data-studio]").forEach(e => { e.textContent = cauHinh.studio; });
     document.querySelectorAll("[data-hen]").forEach(e => { e.textContent = cauHinh.hen_phan_hoi; });
     if (cauHinh.lien_he) {
-      $("lien-he-studio").textContent = cauHinh.lien_he; $("lien-he-studio").hidden = false;
       if (cauHinh.lien_he_url?.startsWith("tel:")) {
-        $("lien-he-studio").href = cauHinh.lien_he_url;
         $("goi-studio").href = cauHinh.lien_he_url; $("goi-studio").textContent = `Gọi trực tiếp ${cauHinh.lien_he}`; $("goi-studio").hidden = false;
       }
     }

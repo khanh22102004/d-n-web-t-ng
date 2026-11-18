@@ -331,7 +331,7 @@ body.parent-brand .dt-cham i { display: block; width: 5px; height: 5px; border-r
   transition: width .35s var(--bp-mem), opacity .35s ease; }
 body.parent-brand .dt-cham i.hien { width: 20px; opacity: 1; }
 body.parent-brand .dt-goi-y { justify-self: start; font-size: .78rem; letter-spacing: .01em; color: var(--bp-muc-3); }
-@media (hover: hover) and (pointer: fine) { body.parent-brand .dt-goi-y { font-size: 0; } body.parent-brand .dt-goi-y::after { content: "Kéo ngang để xem mẫu khác"; font-size: .8rem; } }
+@media (hover: hover) and (pointer: fine) { body.parent-brand .dt-goi-y { font-size: 0; } body.parent-brand .dt-goi-y::after { content: attr(data-goi-y); font-size: .8rem; } }
 body.parent-brand .san-khau .dt-thanh .tuong-dung { position: relative; display: grid; place-items: center; width: 32px; height: 32px; min-height: 32px; padding: 0; border-radius: 50%;
   background: var(--bp-muc); border: 0; color: #fff; cursor: pointer; transition: background .2s ease, scale .2s var(--bp-mem); }
 body.parent-brand .san-khau .dt-thanh .tuong-dung::before { content: ""; position: absolute; inset: -8px; }   /* vùng chạm 48px */
@@ -802,13 +802,6 @@ body.parent-brand .dt-dia .logo-vach { width: 14px; color: #fff; }
 /* ======================================================================
    THÔNG TIN CÔNG TY VÀ QUY TRÌNH — gọn: 3 con số, 1 dòng giới thiệu, 4 bước
    ====================================================================== */
-body.parent-brand .cong-ty { grid-column: 1 / -1; padding-top: 36px; border-top: 1px solid var(--bp-vien); }
-body.parent-brand .cong-ty-so { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
-body.parent-brand .thuong-hieu-goc .cong-ty-so li { display: grid; gap: 6px; margin: 0; padding: 0 24px 0 0; border: 0; }
-body.parent-brand .thuong-hieu-goc .cong-ty-so li + li { padding-left: 24px; border-left: 1px solid var(--bp-vien); }
-body.parent-brand .cong-ty-so strong { font-family: var(--tieu-de); font-size: clamp(2.2rem, 3.6vw, 3.2rem); font-weight: 800; line-height: 1; letter-spacing: -.03em; color: var(--bp-logo); }
-body.parent-brand .thuong-hieu-goc .cong-ty-so span { font-size: var(--c-15); line-height: 1.4; color: var(--bp-muc-2); }
-body.parent-brand .thuong-hieu-goc .cong-ty-dong { max-width: none; margin-top: 24px; font-size: var(--c-15); color: var(--bp-muc-2); }
 
 body.parent-brand .quy-trinh { padding: 72px var(--brand-edge); background: #fff; }
 body.parent-brand .quy-trinh h2 { font-size: var(--c-tieu-de-muc); line-height: 1.1; color: var(--bp-muc); }
@@ -818,21 +811,53 @@ body.parent-brand .quy-trinh-ds li + li { padding-left: 22px; border-left: 1px s
 body.parent-brand .quy-trinh-ds li::before { content: counter(buoc, decimal-leading-zero); display: block; margin-bottom: 8px; font-family: var(--tieu-de); font-weight: 800; font-size: 1.25rem; color: var(--bp-logo); }
 body.parent-brand .quy-trinh-ds h3 { margin: 0 0 6px; font-family: "Inter", system-ui, sans-serif; font-size: var(--c-tieu-de-phu); font-weight: 700; line-height: 1.3; color: var(--bp-muc); }
 body.parent-brand .quy-trinh-ds p { margin: 0; font-size: var(--c-15); line-height: 1.55; color: var(--bp-muc-2); }
-body.parent-brand .chan-trang .chan-cong-ty { flex-basis: 100%; font-size: var(--c-14); line-height: 1.5; }
 @media (max-width: 900px) {
   body.parent-brand .quy-trinh-ds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.parent-brand .quy-trinh-ds li:nth-child(odd) { padding-left: 0; border-left: 0; }
   body.parent-brand .quy-trinh-ds li { padding-bottom: 20px; border-bottom: 1px solid var(--bp-vien); }
 }
 @media (max-width: 760px) {
-  body.parent-brand .cong-ty { padding-top: 24px; }
-  body.parent-brand .thuong-hieu-goc .cong-ty-so li, body.parent-brand .thuong-hieu-goc .cong-ty-so li + li { padding: 0 10px; }
-  body.parent-brand .thuong-hieu-goc .cong-ty-so li:first-child { padding-left: 0; }
-  body.parent-brand .cong-ty-so strong { font-size: 1.75rem; }
-  body.parent-brand .thuong-hieu-goc .cong-ty-so span { font-size: var(--c-13); }
-  body.parent-brand .quy-trinh { padding: 34px var(--brand-edge); }
+      body.parent-brand .quy-trinh { padding: 34px var(--brand-edge); }
   body.parent-brand .quy-trinh-ds { grid-template-columns: 1fr; margin-top: 18px; }
   body.parent-brand .quy-trinh-ds li, body.parent-brand .quy-trinh-ds li + li { display: grid; grid-template-columns: 2.4em 1fr; column-gap: 8px; padding: 14px 0; border-left: 0; }
   body.parent-brand .quy-trinh-ds li::before { grid-row: span 2; margin: 0; font-size: 1.125rem; line-height: 1.4; }
 }
-@media (min-width: 761px) { body.parent-brand .thuong-hieu-goc { row-gap: 48px; } }
+
+/* ======================================================================
+   CHÂN TRANG — 3 cột: thương hiệu · liên hệ · thông tin
+   ====================================================================== */
+body.parent-brand .chan-trang { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, .8fr); gap: 32px 6vw; align-items: start; padding-top: 48px; padding-bottom: 28px; }
+body.parent-brand .chan-thuong-hieu { display: grid; justify-items: start; gap: 14px; }
+body.parent-brand .chan-trang .chan-thuong-hieu .logo-chan { font-size: min(1.25rem, 6vw); }
+body.parent-brand .chan-trang :is(.chan-khau-hieu, .chan-nam) { margin: 0; font-size: var(--c-15); line-height: 1.5; color: #c9c5be; }
+body.parent-brand .chan-nam strong { color: #fff; font-weight: 700; }
+body.parent-brand .chan-trang .chan-tieu-de { margin: 0 0 14px; font-size: var(--c-14); font-weight: 700; color: #fff; }
+body.parent-brand :is(.chan-lien-he, .chan-lien-ket) { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+body.parent-brand .chan-lien-he li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 12px; align-items: start; }
+body.parent-brand .chan-icon { width: 18px; height: 18px; margin-top: 2px; fill: #a9a59e; }
+body.parent-brand .chan-trang :is(.chan-lien-he, .chan-lien-ket) a { font-size: var(--c-15); line-height: 1.5; overflow-wrap: anywhere; text-decoration: none; }
+body.parent-brand .chan-trang :is(.chan-lien-he, .chan-lien-ket) a:hover { text-decoration: underline; text-underline-offset: 3px; }
+body.parent-brand .chan-lien-ket li:has(> a[hidden]) { display: none; }
+body.parent-brand .chan-trang .chan-day { grid-column: 1 / -1; margin: 8px 0 0; padding-top: 20px; border-top: 1px solid rgb(255 255 255 / .14); font-size: var(--c-13); color: #8f8b84; }
+@media (max-width: 760px) {
+  body.parent-brand .chan-trang { grid-template-columns: 1fr; gap: 28px; padding-top: 36px; }
+}
+body.parent-brand .chan-thuong-hieu .logo-chan { color: #111111; font-weight: 400; align-self: start; }
+body.parent-brand .chan-trang :is(.chan-lien-he, .chan-lien-ket) a { min-height: 0; display: inline; }
+
+/* ======================================================================
+   ĐỔI NGÔN NGỮ — VI · JA · EN
+   ====================================================================== */
+body.parent-brand .doi-nn { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--bp-vien); border-radius: 999px; background: #fff; }
+body.parent-brand .doi-nn button { min-width: 36px; min-height: 32px; padding: 0 8px; border: 0; border-radius: 999px; background: transparent; color: var(--bp-muc-2);
+  font: 700 var(--c-13)/1 "Inter", system-ui, sans-serif; letter-spacing: .02em; cursor: pointer; }
+body.parent-brand .doi-nn button:hover { color: var(--bp-muc); background: var(--bp-da-1); }
+body.parent-brand .doi-nn button[aria-pressed="true"] { background: var(--bp-logo); color: #fff; }
+body.parent-brand .doi-nn button:focus-visible { outline: 2px solid var(--bp-logo); outline-offset: 2px; }
+body.parent-brand .doi-nn-menu { margin-top: 18px; align-self: flex-start; }
+body.parent-brand .cs-dieu-huong { display: flex; align-items: center; gap: 16px; }
+@media (max-width: 760px) { body.parent-brand .dau-trang .doi-nn:not(.doi-nn-menu) { display: none; } body.parent-brand .cs-dieu-huong .doi-nn { display: inline-flex !important; } }
+@media (max-width: 380px) { body.parent-brand .cs-dieu-huong > a { display: none; } }
+/* chữ Nhật: dùng phông hệ thống có chữ kanji, ngắt dòng theo luật tiếng Nhật */
+html:lang(ja) body { font-family: "Inter", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", "Meiryo", system-ui, sans-serif; line-break: strict; }
+html:lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; letter-spacing: 0; }
