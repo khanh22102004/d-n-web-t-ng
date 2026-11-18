@@ -179,7 +179,7 @@ web-b-productions/
 ### Windows
 
 1. Cài Python 3.12, bấm đúp `CHAY-WEB.bat`. Lần đầu cần mạng để cài thư viện.
-2. Mở `.env`, đặt `ADMIN_PASSWORD` và `SECRET_KEY` (chuỗi ngẫu nhiên dài). `STUDIO_CONTACT` đã có sẵn 0941761768.
+2. Mở `.env`, đặt `ADMIN_PASSWORD` và `SECRET_KEY` (chuỗi ngẫu nhiên dài). `STUDIO_CONTACT` đã có sẵn 0938248891.
 3. Chạy lại `CHAY-WEB.bat`. Trang khách: http://localhost:8000 · Nhân viên: http://localhost:8000/nhan-vien
 
 ### Dòng lệnh
@@ -198,7 +198,7 @@ python -m uvicorn may_chu:app --host 127.0.0.1 --port 8000
 | `ADMIN_PASSWORD` | Có | Mật khẩu trang nhân viên |
 | `SECRET_KEY` | Có (khi triển khai) | Ký phiên đăng nhập; dùng giá trị cố định, ngẫu nhiên, dài |
 | `DATABASE_URL` | Có trên Vercel/Render | Chuỗi kết nối PostgreSQL. Để trống khi chạy trên máy (SQLite) |
-| `STUDIO_CONTACT` | Không | Số điện thoại/email hiển thị; mặc định `0941761768`, số điện thoại có nút bấm gọi |
+| `STUDIO_CONTACT` | Không | Số điện thoại/email hiển thị; mặc định `0938248891`, số điện thoại có nút bấm gọi |
 | `ZALO_LINK` | Không | Liên kết Zalo thật của studio |
 | `REPLY_WITHIN` | Không | Thời gian phản hồi hiển thị; mặc định "một ngày làm việc" |
 | `STUDIO_NAME` | Không | Tên studio trong nội dung; mặc định "B PRODUCTIONS" (in hoa như logo) |

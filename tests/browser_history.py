@@ -52,7 +52,7 @@ with sync_playwright() as p:
 
     root=base+'/?nguon=history-test#tu-van'
     page.goto(root,wait_until='networkidle')
-    expect(page.locator('#goi-studio')).to_have_text('Gọi trực tiếp 0941 761 768')
+    expect(page.locator('#goi-studio')).to_have_text('Gọi trực tiếp 0938 248 891')
     expect(page.locator('#goi-studio')).to_have_attribute('href','tel:+84941761768')
     expect(page.locator('#lien-he-studio')).to_have_attribute('href','tel:+84941761768')
     assert 'tel:+84941761768' in httpx.get(base+'/chinh-sach').text
