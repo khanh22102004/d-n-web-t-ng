@@ -59,7 +59,7 @@
       else { i.hidden = true; k.classList.add("thieu-anh"); }
     });
     i.addEventListener("load", () => { i.hidden = false; k.classList.remove("thieu-anh"); });
-    i.src = anhRieng || (net === "nho" ? `/anh-mau/nho/${m.ma}.webp` : taiCho);
+    i.src = anhRieng || (net === "nho" ? `/anh-mau/nho/${m.ma}.webp` : net === "tuong" ? `/anh-mau/tuong/${m.ma}.webp` : taiCho);   // "tuong": ảnh 180×320 chỉ cho tường nền
     if (!anhRieng && net === true && m.id && !tietKiem && !mayYeu) {   // máy yếu: không tải thêm ảnh bìa YouTube độ nét cao
       const netHon = new Image();
       netHon.addEventListener("load", () => {
@@ -210,12 +210,14 @@
   // Mỗi cột được lặp hai lần để chạy liền mạch; nền ẩn với trình đọc màn hình và phím Tab.
   // Tường mẫu giờ là nền trôi phía sau điện thoại: chỉ để trang trí, nên ẩn với trình đọc màn hình và phím Tab
   // (thư viện mẫu bên dưới và chính chiếc điện thoại vẫn mở được từng mẫu).
-  function oTuong(m) {
-    const the = nutMau(m, () => cauHinh.mau, false, false, "nho");
+  // nhe: điện thoại hoặc máy yếu dùng ảnh tường 180×320 (giải nén ~0,22MB thay vì ~0,5MB mỗi ô);
+  // som: chỉ vài ô đầu mỗi cột tải ngay, các ô còn lại để trình duyệt tải khi gần tới.
+  function oTuong(m, nhe = false, som = true) {
+    const the = nutMau(m, () => cauHinh.mau, false, false, nhe ? "tuong" : "nho");
     the.classList.add("o-tuong");
     the.querySelector(".khung").append(tao("span", "nhan-nganh", m.nhom));
     the.querySelector("button").tabIndex = -1;
-    const anh = the.querySelector("img"); anh.loading = "eager"; anh.decoding = "async";
+    const anh = the.querySelector("img"); anh.loading = som ? "eager" : "lazy"; anh.decoding = "async";
     ganDoan(the);
     return the;
   }
@@ -225,14 +227,16 @@
     const dungTuong = () => {
       $("tuong-doc").replaceChildren(); $("tuong-ngang").replaceChildren();
       // Chỉ dựng tường cho loại màn hình đang xem (máy tính: cột dọc; điện thoại: hàng ngang) để không tải ảnh thừa.
-      const laDt = mqDt.matches;
+      const laDt = mqDt.matches, nhe = laDt || mayYeu;
+      // Tường đứng yên (máy yếu hoặc người xem chọn giảm chuyển động): không cần bản sao thứ hai để trôi liền mạch.
+      const lanLap = (mayYeu || itChuyenDong) ? [0] : [0, 1];
       for (let c = 0; c < (laDt ? 0 : soCot); c += 1) {
         const cot = tao("div", "tuong-cot"), chay = tao("div", "tuong-chay");
         const cua = ds.filter((_, i) => i % soCot === c);
         if (!cua.length) continue;
         // A full loop must be taller than its viewport, even with smaller film-strip posters.
-        const vong = Array.from({ length: Math.max(mayYeu ? 2 : 3, cua.length) }, (_, i) => cua[i % cua.length]);   // nửa vòng chỉ cần cao hơn khung
-        [0, 1].forEach(() => vong.forEach(m => chay.append(oTuong(m))));
+        const vong = Array.from({ length: Math.max(3, cua.length) }, (_, i) => cua[i % cua.length]);   // nửa vòng chỉ cần cao hơn khung
+        lanLap.forEach(lan => vong.forEach((m, i) => chay.append(oTuong(m, nhe, lan === 0 && i < 3))));
         cot.append(chay); $("tuong-doc").append(cot);
       }
       // Distribute every sample over four mobile columns; repeat each half for a seamless loop.
@@ -240,8 +244,8 @@
         const cot = tao("div", "tuong-cot"), chay = tao("div", "tuong-chay");
         const cua = ds.filter((_, i) => i % 4 === c);
         if (!cua.length) continue;
-        const vong = Array.from({ length: Math.max(mayYeu ? 4 : 6, cua.length) }, (_, i) => cua[i % cua.length]);
-        [0, 1].forEach(() => vong.forEach(m => chay.append(oTuong(m))));
+        const vong = Array.from({ length: Math.max(6, cua.length) }, (_, i) => cua[i % cua.length]);
+        lanLap.forEach(lan => vong.forEach((m, i) => chay.append(oTuong(m, nhe, lan === 0 && i < 5))));
         cot.append(chay); $("tuong-ngang").append(cot);
       }
       // (Bỏ lớp tường thứ hai chỉ để vẽ viền: nó nhân đôi việc vẽ khi tường trôi. Viền giờ vẽ thẳng trên ô ảnh.)
@@ -506,7 +510,11 @@
     }
     moi.classList.add("hien");
     dt.i = viTri;
-    dtCanh(dt.ds[(viTri + 1) % n]);                            // tải sẵn ảnh mẫu kế tiếp
+    const ke = dt.ds[(viTri + 1) % n];
+    dtCanh(ke);                                                // tải sẵn ảnh mẫu kế tiếp
+    // Chỉ giữ 3 cảnh: mẫu vừa trôi ra, mẫu đang xem, mẫu kế tiếp. Gỡ cảnh cũ hơn để trả bộ nhớ ảnh (nhất là máy yếu).
+    const giu = new Set([cu && dt.ds.find(x => dt.canh.get(x.ma) === cu)?.ma, m.ma, ke.ma]);
+    for (const [ma, c] of dt.canh) if (!giu.has(ma)) { const a = c.querySelector("img"); if (a) a.removeAttribute("src"); c.remove(); dt.canh.delete(ma); }
     $("dt-ma").textContent = m.ma; $("dt-dem").textContent = `${viTri + 1}/${n}`;
     const cham = $("dt-cham");
     if (cham) {
