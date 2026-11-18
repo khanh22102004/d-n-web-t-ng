@@ -891,6 +891,17 @@ def _xl_kieu():
     }
 
 
+def _xl_cao(o_rong, toi_thieu=20, dong=15):
+    """Chiều cao hàng đủ hiện hết chữ: ước số dòng mỗi ô theo độ rộng cột (ký tự), lấy ô cao nhất."""
+    import math
+    nhat = 1
+    for chu, rong in o_rong:
+        rong = max(4, (rong or 10) - 1.5)
+        so = sum(max(1, math.ceil(len(d) * 1.12 / rong)) for d in str(chu or "").split("\n"))
+        nhat = max(nhat, so)
+    return max(toi_thieu, dong * nhat + 8)
+
+
 def _xl_gia_tri(p, khoa):
     if khoa == "_mau":
         return p["tra_loi"].get("_mau", "")
@@ -965,7 +976,7 @@ def _xl_trang_phieu(trang, p, k):
         v = trang.cell(row=d, column=3, value=an_toan_excel(gia_tri)); v.font = k["chu"]; v.alignment = k["trai_giua"]
         for c in (1, 2, 3):
             trang.cell(row=d, column=c).border = k["khung"]
-        trang.row_dimensions[d].height = 20
+        trang.row_dimensions[d].height = _xl_cao([(gia_tri, 58)])
         d += 1
     d += 1
     # Bảng 17 mục theo khuôn của studio
@@ -989,8 +1000,7 @@ def _xl_trang_phieu(trang, p, k):
                 trang.cell(row=d, column=c).fill = k["nen_kem"]
         for c in (1, 2, 3):
             trang.cell(row=d, column=c).border = k["khung"]
-        so_dong = max(len(dong), 1 + (1 if goi_y else 0) + (len(cau) > 48) + (len(goi_y or "") > 52))
-        trang.row_dimensions[d].height = max(42, 15 * so_dong + 14)
+        trang.row_dimensions[d].height = _xl_cao([("\n".join(dong), 58), (cau + (f"\n({goi_y})" if goi_y else ""), 46)], 42)
     # Toàn bộ câu trả lời gốc từ web, để không thiếu thông tin nào
     d += 2
     trang.merge_cells(f"A{d}:C{d}")
@@ -1010,7 +1020,7 @@ def _xl_trang_phieu(trang, p, k):
             o = trang.cell(row=d, column=3, value=an_toan_excel(gia) if gia else "—"); o.font = k["chu"] if gia else k["nho"]; o.alignment = k["trai_giua"]
             for c in (1, 2, 3):
                 trang.cell(row=d, column=c).border = k["khung"]
-            trang.row_dimensions[d].height = max(20, 14 * (1 + len(nhan) // 52 + str(gia).count("\n")) + 6)
+            trang.row_dimensions[d].height = _xl_cao([(nhan, 46), (gia, 58)], 20, 14)
     _xl_in(trang, f"{dong_dau_bang}:{dong_dau_bang}")
 
 
@@ -1024,7 +1034,7 @@ def tao_excel(danh_sach):
     tong = so.active
     tong.title = "Tổng hợp"
     cot_tong = [("STT", 6), ("Khách hàng", 22), ("Liên hệ", 24), ("Sản phẩm", 24), ("Loại yêu cầu", 15),
-                ("Cần có video", 18), ("Kinh phí", 18), ("Gửi lúc", 19), ("Trạng thái", 16)]
+                ("Cần có video", 18), ("Kinh phí", 18), ("Gửi lúc", 21), ("Trạng thái", 16)]
     for i, (_, rong) in enumerate(cot_tong, start=1):
         tong.column_dimensions[tong.cell(row=1, column=i).column_letter].width = rong
     cho = sum(1 for p in da_gui if not p["lien_he_luc"])
@@ -1053,7 +1063,7 @@ def tao_excel(danh_sach):
         o.hyperlink = f"#'{ten_trang}'!A1"; o.font = Font(name=XL_CHU, size=10.5, bold=True, color=XL_DEN, underline="single")
         if not p["lien_he_luc"]:
             tong.cell(row=d, column=9).font = Font(name=XL_CHU, size=10.5, bold=True, color="B42318")
-        tong.row_dimensions[d].height = 22
+        tong.row_dimensions[d].height = _xl_cao(list(zip([str(x) for x in hang], [r for _, r in cot_tong])), 22)
     if not da_gui:
         d += 1
         tong.merge_cells(f"A{d}:I{d}")
@@ -1100,6 +1110,9 @@ def tao_excel(danh_sach):
         for i in range(1, t.max_column + 1):
             t.column_dimensions[t.cell(row=1, column=i).column_letter].width = 18 if i <= max(rong_dau, 1) or rong_dau == 0 else 30
         t.row_dimensions[1].height = 48
+        rong_cot = [t.column_dimensions[t.cell(row=1, column=i).column_letter].width for i in range(1, t.max_column + 1)]
+        for r in range(2, t.max_row + 1):
+            t.row_dimensions[r].height = _xl_cao([(t.cell(row=r, column=i + 1).value, w) for i, w in enumerate(rong_cot)], 20)
         if t.max_row > 1:
             t.auto_filter.ref = t.dimensions
     trang.freeze_panes = "E2"
