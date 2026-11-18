@@ -890,3 +890,13 @@ html:lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; letter-spacing: 0; }
 }
 body.parent-brand .dau-trang nav a, body.parent-brand .dau-trang .nut.nho, body.parent-brand .cs-dieu-huong > a { white-space: nowrap; }
 @media (max-width: 760px) { body.parent-brand .cs-dieu-huong .doi-nn-ma { display: none; } body.parent-brand .cs-dieu-huong .doi-nn button { padding: 0 8px; } }
+
+/* Lối vào phiếu chi tiết ở phần tư vấn: thành một khung có nút trắng, nổi rõ trên nền tối */
+body.parent-brand .tu-van-them .tu-van-chi-tiet { display: grid; justify-items: start; gap: 6px; max-width: 30rem; margin-top: 26px; padding: 18px 20px 20px;
+  border: 1px solid rgb(255 255 255 / .2); border-radius: 12px; background: rgb(255 255 255 / .06); }
+body.parent-brand .tu-van .tu-van-chi-tiet .tvct-hoi { margin: 0; font-size: var(--c-17, 1.0625rem); font-weight: 700; line-height: 1.35; color: #fff; }
+body.parent-brand .tu-van .tu-van-chi-tiet .tvct-mo { margin: 0 0 8px; font-size: var(--c-15); line-height: 1.5; color: #c4c0b9; }
+body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut { min-height: 46px; padding: 0 20px; border: 0; border-radius: 8px; background: #fff; color: #111; font-weight: 700; font-size: var(--c-15); cursor: pointer; }
+body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut:hover { background: #e9e6e0; }
+body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+@media (max-width: 760px) { body.parent-brand .tu-van-them .tu-van-chi-tiet { max-width: none; margin-top: 18px; } body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut { width: 100%; justify-content: center; } }

@@ -329,6 +329,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 19/11/2026 | Lối vào phiếu chi tiết nổi rõ hơn | Phần tư vấn: "Quý khách đã có yêu cầu rõ ràng?" thành một khung có viền, dòng giải thích (20 câu, khoảng 5–7 phút) và nút trắng "Gửi yêu cầu chi tiết →"; có bản dịch Nhật, Anh |
 | 19/11/2026 | Nút đổi ngôn ngữ có cờ | Mỗi nút có lá cờ vẽ bằng SVG (Việt Nam, Nhật Bản, Anh) cạnh chữ VI/JA/EN; màn hình dưới 1180px chỉ còn cờ; trong menu điện thoại mỗi ngôn ngữ một hàng: cờ + Tiếng Việt / 日本語 / English. Sửa "1 samples" thành "1 sample" |
 | 18/11/2026 | Chân trang gọn, có bản đồ | Chân trang 3 khối: thương hiệu + năm thành lập, liên hệ, bản đồ Google Maps định vị 134 đường 30/4 (máy mạnh tự tải khi cuộn tới, máy yếu bấm "Xem bản đồ" mới tải); hàng cuối gồm tên công ty và các liên kết. CSP cho phép khung www.google.com |
 | 18/11/2026 | Soát lại bản dịch Nhật, Anh | Viết lại khoảng 130 câu cho tự nhiên hơn: tiếng Nhật dùng kính ngữ kinh doanh (お見積もり依頼, ご依頼を承りました…), tiêu đề đầu trang theo đúng trật tự từng thứ tiếng (リアルで / 高品質な / AI動画; Realistic, / high-quality / AI videos), địa chỉ, chân trang, câu hỏi phiếu và tên mẫu. Bảng dịch sinh ra web/ngon-ngu.js |
