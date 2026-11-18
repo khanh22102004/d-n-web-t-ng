@@ -901,25 +901,34 @@ body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut:hover { background: #e9e6e0
 body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 @media (max-width: 760px) { body.parent-brand .tu-van-them .tu-van-chi-tiet { max-width: none; margin-top: 18px; } body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut { width: 100%; justify-content: center; } }
 
-/* Cân hai cột phần tư vấn trên máy tính: đầu và chân cột trái thẳng hàng với khung điền thông tin.
-   - "Phản hồi trong…" và "Gọi trực tiếp…" nằm chung một hàng; khung phiếu chi tiết gọn lại;
-   - điện thoại minh họa đứng thẳng đáy với khung phiếu chi tiết;
-   - hai cột kéo cao bằng nhau, phần dư (nếu có) dồn vào trước nút gửi của khung bên phải. */
+/* Phần tư vấn trên máy tính — gọn và cân:
+   cột trái chỉ còn tiêu đề, lời dẫn, một hàng thông tin (phản hồi · gọi trực tiếp) và khung phiếu chi tiết nằm ngang;
+   bỏ điện thoại minh họa (khung bên phải đã là nơi thao tác); hai cột thẳng đầu, thẳng đáy. */
 @media (min-width: 901px) {
   body.parent-brand .tu-van { align-items: stretch; align-content: center; }
   body.parent-brand .tu-van-chu { display: flex; flex-direction: column; }
-  body.parent-brand .tu-van-chu .tu-van-hang { margin-top: auto; padding-top: 22px; align-items: flex-end; }
-  body.parent-brand .tu-van-them { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 22px; }
+  body.parent-brand .tu-van-chu .tu-van-hang { display: block; margin-top: auto; padding-top: 28px; }
+  body.parent-brand .tu-van-chu .tv-xem-truoc { display: none; }
+  body.parent-brand .tu-van-them { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
   body.parent-brand .tu-van-them > .tu-van-hen, body.parent-brand .tu-van-them > .tu-van-goi { margin: 0; }
+  body.parent-brand .tu-van-them > .tu-van-goi:not(:empty)::before { content: ""; display: inline-block; width: 4px; height: 4px; margin: 0 14px 3px 0; border-radius: 50%; background: #6f6b65; vertical-align: middle; }
   body.parent-brand .tu-van-them .tu-van-goi a { min-height: 0; }
-  body.parent-brand .tu-van-them .tu-van-chi-tiet { flex-basis: 100%; max-width: none; margin-top: 16px; padding: 16px 18px 18px; gap: 4px; }
-  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-mo { margin-bottom: 10px; }
-  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut { min-height: 44px; }
+  body.parent-brand .tu-van-them .tu-van-chi-tiet { flex-basis: 100%; max-width: none; margin-top: 18px; padding: 20px 22px;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 20px; row-gap: 4px; align-items: center; }
+  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-hoi { grid-column: 1; }
+  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-mo { grid-column: 1; margin: 0; }
+  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut { grid-column: 2; grid-row: 1 / span 2; min-height: 46px; white-space: nowrap; }
 }
-/* màn rộng: khung bên phải kéo cao bằng cột trái; màn vừa (cột trái dài hơn nhiều) thì khung đứng giữa */
-@media (min-width: 1181px) {
+/* khung bên phải và cột trái cao bằng nhau; phần dư dồn trước nút gửi */
+@media (min-width: 901px) {
   body.parent-brand .tu-van-hop { display: flex; flex-direction: column; }
   body.parent-brand .tu-van-hop > form { flex: 1; display: flex; flex-direction: column; }
   body.parent-brand .tu-van-hop > form > button[type="submit"] { margin-top: auto; }
+  body.parent-brand .tu-van-hop > form > .tv-dong-y { margin-bottom: 22px; }
 }
-@media (min-width: 901px) and (max-width: 1180px) { body.parent-brand .tu-van-hop { align-self: center; } }
+@media (min-width: 901px) and (max-width: 1180px) {
+  body.parent-brand .tu-van-them > .tu-van-goi:not(:empty)::before { display: none; }
+  body.parent-brand .tu-van-them > .tu-van-goi { flex-basis: 100%; }
+  body.parent-brand .tu-van .tu-van-chi-tiet { grid-template-columns: 1fr; }
+  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut { grid-column: 1; grid-row: auto; justify-self: start; margin-top: 8px; }
+}
