@@ -355,6 +355,9 @@ def tom_tat(tra_loi):
 
 # ---------- Phần của khách ----------
 
+MAU_DAU = "ST025"   # phải trùng mẫu đầu của maNoiBat trong web/app.js
+
+
 def mau_kem_doan_ngan():
     """Mẫu nào có tệp web/video-mau/<mã>.mp4 hoặc .webm thì trang sẽ phát tệp đó thay cho YouTube."""
     ket_qua = []
@@ -1206,6 +1209,13 @@ async def trang_chu(request):
     # Gắn sẵn bộ câu hỏi và danh sách mẫu vào trang để trình duyệt không phải gọi thêm một lượt.
     du_lieu = json.dumps(du_lieu_cau_hinh(), ensure_ascii=False).replace("</", "<\\/")
     trang = gan_phien_ban((WEB / "index.html").read_text(encoding="utf-8")).replace("__CAU_HINH__", du_lieu)
+    # Ảnh hai điện thoại bên ở màn hình đầu ghi sẵn trong trang (trước đây app.js mới gắn), để trình duyệt tải ngay:
+    # PageSpeed tính một trong hai ảnh này là "nội dung lớn nhất". Thứ tự giống app.js: mẫu MAU_DAU đứng đầu.
+    ds = [m["ma"] for m in MAU]
+    if MAU_DAU in ds:
+        ds.remove(MAU_DAU); ds.insert(0, MAU_DAU)
+    if ds:
+        trang = trang.replace("__ANH_TRAI__", ds[-1]).replace("__ANH_PHAI__", ds[1 % len(ds)])
     return HTMLResponse(trang, headers={"Cache-Control": TRANG_CONG_KHAI})
 
 
