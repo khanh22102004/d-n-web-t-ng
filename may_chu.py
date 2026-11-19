@@ -250,14 +250,15 @@ def ten_lua_chon(lc):
 
 # ---------- Kiểm tra câu trả lời ----------
 
-DT = re.compile(r"^(0|\+?84)\d{9,10}$")
+# Số Việt Nam (0…, +84…) hoặc số nước ngoài có mã nước (+81…) cho khách Nhật và khách quốc tế.
+DT = re.compile(r"^(?:(0|\+?84)\d{9,10}|\+(?!84)[1-9]\d{7,13})$")
 EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$")
 
 
 def kiem_tra_lien_he(kenh, gia_tri):
     so = re.sub(r"[\s.\-()]", "", gia_tri)
     if kenh in ("Zalo", "Điện thoại"):
-        return None if DT.match(so) else "Số điện thoại chưa đúng. Quý khách hàng vui lòng nhập đủ 10 số, ví dụ 0901 234 567."
+        return None if DT.match(so) else "Số điện thoại chưa đúng. Quý khách hàng vui lòng nhập số Việt Nam, ví dụ 0901 234 567, hoặc số có mã nước, ví dụ +81 90 1234 5678."
     if kenh == "Email":
         return None if EMAIL.match(gia_tri) else "Địa chỉ email chưa đúng. Quý khách hàng vui lòng xem lại, ví dụ ten@gmail.com."
     return None if len(gia_tri) >= 3 else "Quý khách hàng vui lòng nhập tên hoặc link Messenger."
@@ -473,8 +474,8 @@ async def gui_tu_van(request):
     if not isinstance(lien_he, str) or len(lien_he) > 30:
         return loi("SAI_LIEN_HE", "Quý khách hàng vui lòng kiểm tra số điện thoại.")
     so = re.sub(r"[\s.\-()]", "", lien_he)
-    if not re.fullmatch(r"(?:0\d{9}|\+?84\d{9})", so):
-        return loi("SAI_LIEN_HE", "Quý khách hàng vui lòng kiểm tra số điện thoại, ví dụ 0901 234 567.")
+    if not re.fullmatch(r"(?:0\d{9}|\+?84\d{9}|\+(?!84)[1-9]\d{7,13})", so):
+        return loi("SAI_LIEN_HE", "Quý khách hàng vui lòng kiểm tra số điện thoại, ví dụ 0901 234 567 hoặc +81 90 1234 5678.")
     ma_gui = du_lieu.get("ma_gui")
     if not isinstance(ma_gui, str) or not re.fullmatch(r"[a-f0-9]{48}", ma_gui):
         return loi("SAI_MA_GUI", "Mã yêu cầu chưa đúng. Quý khách hàng vui lòng tải lại trang.")

@@ -1070,7 +1070,7 @@
         cac.push(b);
       }
       if (m.kieu) cac.push(tao("span", "", m.kieu));
-      cac.push(tao("span", "", "Video AI"));
+      cac.push(tao("span", "", "Làm bằng AI"));   // không dùng chữ "Video AI": bản dịch của chữ đó dành riêng cho tiêu đề màn hình đầu
       the.replaceChildren(...cac.map(x => { const li = tao("li"); li.append(x); return li; }));
     }
     $("xem-kieu").textContent = m.kieu || "";
@@ -1364,7 +1364,8 @@
     return dangLuu;
   }
 
-  const SDT = /^(0|\+?84)\d{9,10}$/, EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
+  // Số Việt Nam (0…, +84…) hoặc số nước ngoài có mã nước (+81…, +1…) cho khách Nhật và khách quốc tế.
+  const SDT = /^(?:(0|\+?84)\d{9,10}|\+(?!84)[1-9]\d{7,13})$/, EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
   function loiCuaCau(c) {
     for (const t of c.truong) {
       if (biBoQua(c, t)) continue;
@@ -1372,7 +1373,7 @@
       if (t.bat_buoc && !co) return t.nhan ? `Quý khách hàng vui lòng trả lời mục “${t.nhan}”.` : "Quý khách hàng vui lòng chọn hoặc điền một câu trả lời.";
       if (t.kiem_tra === "lien_he" && co) {
         const kenh = traLoi[`${c.so}.kenh`], v = traLoi[k];
-        if ((kenh === "Zalo" || kenh === "Điện thoại") && !SDT.test(v.replace(/[\s.\-()]/g, ""))) return "Số điện thoại chưa đúng. Quý khách hàng vui lòng nhập đủ 10 số, ví dụ 0901 234 567.";
+        if ((kenh === "Zalo" || kenh === "Điện thoại") && !SDT.test(v.replace(/[\s.\-()]/g, ""))) return "Số điện thoại chưa đúng. Quý khách hàng vui lòng nhập số Việt Nam, ví dụ 0901 234 567, hoặc số có mã nước, ví dụ +81 90 1234 5678.";
         if (kenh === "Email" && !EMAIL.test(v)) return "Địa chỉ email chưa đúng. Quý khách hàng vui lòng xem lại, ví dụ ten@gmail.com.";
       }
     }
@@ -1631,7 +1632,7 @@
   const taoMaGui = () => [...crypto.getRandomValues(new Uint8Array(24))].map(v => v.toString(16).padStart(2, "0")).join("");
   function loiNhanh(sanPham, lienHe, dongY) {
     if (!sanPham) return ["san-pham", "Quý khách hàng vui lòng cho biết tên sản phẩm."];
-    if (!/^(?:0\d{9}|\+?84\d{9})$/.test(lienHe.replace(/[\s.\-()]/g, ""))) return ["lien-he", "Quý khách hàng vui lòng kiểm tra số điện thoại, ví dụ 0901 234 567."];
+    if (!/^(?:0\d{9}|\+?84\d{9}|\+(?!84)[1-9]\d{7,13})$/.test(lienHe.replace(/[\s.\-()]/g, ""))) return ["lien-he", "Quý khách hàng vui lòng kiểm tra số điện thoại, ví dụ 0901 234 567 hoặc +81 90 1234 5678."];
     if (!dongY) return ["dong-y", "Quý khách hàng vui lòng đánh dấu ô đồng ý để chúng tôi liên hệ."];
     return null;
   }

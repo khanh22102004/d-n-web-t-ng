@@ -234,6 +234,17 @@ class RegressionTests(unittest.TestCase):
             self.assertEqual(self.client.post('/api/tu-van', json=data).status_code, 400, changes)
         self.assertEqual(m.sql('SELECT COUNT(*) FROM phieu', lay='mot')[0], 0)
 
+    def test_international_phone_numbers_are_accepted(self):
+        # Khách Nhật và khách quốc tế: số có mã nước được nhận; số Việt Nam vẫn phải đủ 10 số
+        for so in ('+81 90 1234 5678', '+1 (415) 555-0123', '+84 901 234 567'):
+            data = self.quick(lien_he=so, ma_gui=secrets.token_hex(24))
+            self.assertEqual(self.client.post('/api/tu-van', json=data).status_code, 201, so)
+        for so in ('+84 12', '+0 123 456 789', '090123', '+81 90 1234 5678 9999'):
+            data = self.quick(lien_he=so, ma_gui=secrets.token_hex(24))
+            self.assertEqual(self.client.post('/api/tu-van', json=data).status_code, 400, so)
+        self.assertIsNone(m.kiem_tra_lien_he('Zalo', '+81 90-1234-5678'))
+        self.assertIsNotNone(m.kiem_tra_lien_he('Zalo', '+81 12'))
+
     def test_quick_request_appears_in_admin_and_excel_with_sample(self):
         data = self.quick(ma_mau='ST029', nguon='TikTok')
         self.assertEqual(self.client.post('/api/tu-van', json=data).status_code, 201)
