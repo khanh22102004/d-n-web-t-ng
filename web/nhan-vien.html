@@ -39,11 +39,19 @@
 
     <ul class="so-lieu" id="so-lieu" aria-label="Tổng quan yêu cầu"></ul>
 
-    <details class="nv-link">
-      <summary>Link phiếu theo loại video, để gửi cho khách</summary>
-      <p class="dan">Khách mở link sẽ vào thẳng bộ câu hỏi của loại video đó. Phiếu khách gửi vẫn về danh sách và file Excel ở trang này.</p>
-      <ul id="ds-link"></ul>
-    </details>
+    <section class="nv-qr" aria-labelledby="nv-qr-tieu-de">
+      <img src="/ma-qr.svg" width="168" height="168" alt="Mã QR mở trang điền phiếu">
+      <div>
+        <h2 id="nv-qr-tieu-de">Mã QR điền phiếu</h2>
+        <p class="dan">Khách quét mã là vào thẳng trang điền phiếu (không qua trang chủ), chọn loại video rồi trả lời câu hỏi. Phiếu gửi về danh sách và file Excel ở trang này.</p>
+        <div class="nv-qr-link"><input type="text" id="link-chung" readonly aria-label="Link trang điền phiếu"><button type="button" class="nut nho" id="chep-link-chung">Chép link</button><a class="nut nho nut-phu" href="/ma-qr.png?tai=1" download>Tải ảnh mã QR</a></div>
+        <details class="nv-link">
+          <summary>Link riêng từng loại video</summary>
+          <p class="dan">Khách mở link sẽ vào thẳng bộ câu hỏi của loại video đó, bỏ qua bước chọn loại.</p>
+          <ul id="ds-link"></ul>
+        </details>
+      </div>
+    </section>
 
     <section class="nv-danh-sach" aria-labelledby="nv-danh-sach-tieu-de">
     <h2 id="nv-danh-sach-tieu-de">Danh sách phiếu</h2>

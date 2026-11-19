@@ -71,8 +71,15 @@ body.staff-page .dau-trang .nut-chu { font-size: .9rem; }
 .nv .nut-nguy-hiem { color: #a32923; margin-top: 18px; font-size: .85rem; }
 .anh-khach { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
 .anh-khach img { width: 120px; height: 120px; object-fit: cover; border-radius: 5px; border: 1px solid #d2d2ce; }
-/* Link phiếu theo loại video để gửi khách */
-.nv-link { margin-top: 24px; padding: 18px 24px; background: #fff; border: 1px solid #dededb; border-radius: 10px; }
+/* Mã QR và link trang điền phiếu để gửi khách */
+.nv-qr { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 28px; align-items: start; margin-top: 24px; padding: 24px; background: #fff; border: 1px solid #dededb; border-radius: 10px; }
+.nv-qr > img { width: 168px; height: 168px; image-rendering: pixelated; }
+.nv-qr h2 { font-size: 1.25rem; }
+.nv-qr .dan { margin-top: 6px; font-size: .92rem; max-width: 70ch; }
+.nv-qr-link { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.nv-qr-link input { flex: 1 1 260px; min-width: 0; font: inherit; font-size: .9rem; padding: 9px 10px; border: 1px solid #d0d0cc; border-radius: 5px; background: #fafaf8; }
+.nv-qr-link .nut.nho { min-height: 40px; white-space: nowrap; }
+.nv-link { margin-top: 16px; }
 .nv-link summary { cursor: pointer; font-weight: 700; min-height: 32px; display: flex; align-items: center; }
 .nv-link .dan { margin-top: 8px; font-size: .9rem; }
 #ds-link { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 10px; }
@@ -122,6 +129,8 @@ body.staff-page .nv .nut.nut-xoa:hover:not(:disabled) { background: #8a211c; bor
   .hai-cot { grid-template-columns: 1fr; gap: 16px; }
   .nv-phan, .nv-danh-sach { padding: 20px; }
   #loc-phieu { grid-template-columns: 1fr; }
+  .nv-qr { grid-template-columns: 1fr; padding: 18px; }
+  .nv-qr > img { width: 150px; height: 150px; }
   #ds-link li { grid-template-columns: 1fr auto; }
   #ds-link span { grid-column: 1 / -1; }
   .nv-chon-nut { margin-left: 0; }

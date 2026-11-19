@@ -39,6 +39,8 @@
   let cauHinh = null, nhom = [], cau = [], mau = {};
   // Mỗi loại video một bộ câu hỏi. tatCaCau/tatCaNhom: kho chung; cau/nhom: của loại đang chọn (phần "Loại video" luôn đứng đầu).
   let tatCaCau = [], tatCaNhom = [], dsLoai = [], boDangChon = "", boTuLink = "";
+  // Trang điền phiếu riêng (/phieu, /phieu/<loại>, mã QR): chỉ có khung bắt đầu, phiếu và lời cảm ơn.
+  const cheDoPhieu = document.body.classList.contains("che-do-phieu");
   let maPhieu = "", traLoi = {}, anh = [], viTri = 0, henLuu = 0, dangLuu = Promise.resolve();
   let lanSua = 0, canLuu = false, dangGuiLuu = false, dangGui = false, daGui = false, choThu = 1500, canTaiPhieu = false;
   let luotPhieu = crypto.randomUUID(), doSauLichSu = 0, doSauDaGui = 0, ketQuaDaGui = [];
@@ -68,7 +70,8 @@
   function nguon() {
     const q = new URLSearchParams(location.search);
     const moi = (q.get("nguon") || q.get("utm_source") || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 40);
-    try { if (moi) sessionStorage.setItem("bp-nguon", moi); return sessionStorage.getItem("bp-nguon") || ""; } catch { return moi; }
+    const macDinh = cheDoPhieu ? "link-phieu" : "";
+    try { if (moi) sessionStorage.setItem("bp-nguon", moi); return sessionStorage.getItem("bp-nguon") || macDinh; } catch { return moi || macDinh; }
   }
 
   // Chạy lại hiệu ứng CSS của một lớp mà không ép trình duyệt tính bố cục (thay cho mẹo "void el.offsetWidth"):
@@ -275,7 +278,7 @@
     the.classList.add("o-tuong");
     the.querySelector(".khung").append(tao("span", "nhan-nganh", m.nhom));
     the.querySelector("button").tabIndex = -1;
-    const anh = the.querySelector("img"); anh.loading = som ? "eager" : "lazy"; anh.decoding = "async";
+    const anh = the.querySelector("img"); anh.loading = som && !cheDoPhieu ? "eager" : "lazy"; anh.decoding = "async";   // trang điền phiếu riêng: tường nền bị ẩn, không tải ảnh
     ganDoan(the);
     return the;
   }
@@ -425,7 +428,7 @@
     }
     if (coSan) coSan.remove();
     c = tao("div", "dt-mot"); const k = khungAnh(m, true), anh = k.querySelector("img");
-    anh.alt = ""; anh.loading = "eager"; if (!dt.canh.size) anh.fetchPriority = "high";
+    anh.alt = ""; anh.loading = cheDoPhieu ? "lazy" : "eager"; if (!dt.canh.size && !cheDoPhieu) anh.fetchPriority = "high";
     c.append(k); dt.canh.set(m.ma, c); $("dt-canh").append(c);
     return c;
   }
@@ -745,7 +748,7 @@
     ["xem", "bat-dau-hop", "menu-dt"].forEach(id => $(id)?.addEventListener("close", dtCapNhat));
     // Trang đã rảnh và mạng không tiết kiệm dữ liệu: bắt đầu phát video thật (không tiếng) trên máy.
     const mang = navigator.connection;
-    if (!itChuyenDong && !mayYeu && !/(^|-)2g$/.test(mang?.effectiveType || "")) {
+    if (!itChuyenDong && !mayYeu && !cheDoPhieu && !/(^|-)2g$/.test(mang?.effectiveType || "")) {   // trang điền phiếu riêng: máy minh họa bị ẩn, không nạp video
       // Chỉ nạp video YouTube khi khách bắt đầu tương tác (rê chuột, chạm, cuộn, bấm phím): trước đó máy hiện ảnh mẫu.
       // Trang hiện nhanh hơn trên điện thoại (không tải sẵn khoảng 560 KB mã của YouTube) và không phát sinh cookie YouTube khi khách chỉ mở trang.
       dtBatDauVideo = () => { if (dt.video) return; dt.video = true; if (!dt.yt) dtNapVideo(dt.ds[dt.i], dt.tieng); };
@@ -1211,9 +1214,7 @@
 
   // Gửi link cho người khác: người nhận mở ra phiếu mới cùng loại video, không thấy câu trả lời của người gửi.
   async function guiLink() {
-    const u = new URL("/", location.origin), dich = s => (window.dichChu ? window.dichChu(s) : s), bao = $("gui-link-bao");
-    if (boDangChon) u.searchParams.set("loai", boDangChon);
-    u.searchParams.set("nguon", "chia-se");
+    const u = new URL(boDangChon ? `/phieu/${boDangChon}` : "/phieu", location.origin), dich = s => (window.dichChu ? window.dichChu(s) : s), bao = $("gui-link-bao");
     if (window.BP_NN && window.BP_NN !== "vi") u.searchParams.set("lang", window.BP_NN);
     const url = u.href, chu = dich("Phiếu yêu cầu làm video") + (boDangChon ? `: ${dich(tenLoai(boDangChon))}` : "");
     bao.hidden = true; $("gui-link-o").hidden = true;
@@ -1229,12 +1230,19 @@
       bao.textContent = "Quý khách hàng chép link dưới đây rồi gửi cho người cần điền."; bao.hidden = false;
     }
   }
-  // Mở trang từ link được gửi: hỏi đồng ý lưu bản nháp rồi vào thẳng phiếu đúng loại video. Mỗi phiên chỉ tự mở một lần.
-  function moTuLink() {
-    if (!boTuLink || maPhieu || daGui || !$("phieu").hidden || !$("cam-on").hidden) return;
-    try { if (sessionStorage.getItem("bp-mo-link") === boTuLink) return; sessionStorage.setItem("bp-mo-link", boTuLink); } catch { /* bỏ qua */ }
-    $("bat-dau-loai").textContent = `Loại video: ${tenLoai(boTuLink)}`; $("bat-dau-loai").hidden = false;
-    dungTatCa(); $("bat-dau-hop").showModal();
+  // Trang điền phiếu riêng: có phiếu dở cùng loại thì mở tiếp ngay; chưa có thì hiện khung đồng ý lưu nháp ngay trên trang
+  // (không phải hộp nổi). Phiếu dở khác loại với link thì điền phiếu mới đúng loại của link (phiếu cũ vẫn còn trên máy chủ).
+  function moTrangPhieu() {
+    if (!cheDoPhieu || !$("phieu").hidden || !$("cam-on").hidden) return;
+    if (maPhieu && boTuLink && boDangChon && boDangChon !== boTuLink) {
+      maPhieu = ""; traLoi = {}; anh = []; viTri = 0; canLuu = false; datBo(""); nho.xoa(KHOA_PHIEU);
+    }
+    if (maPhieu) { $("dong-y-luu").checked = true; batDau(); return; }
+    hienKhungBatDau();
+  }
+  function hienKhungBatDau() {
+    $("bat-dau-loai").textContent = boTuLink ? `Loại video: ${tenLoai(boTuLink)}` : ""; $("bat-dau-loai").hidden = !boTuLink;
+    if (!$("bat-dau-hop").open) $("bat-dau-hop").show();
   }
 
   // ---------- Vẽ phiếu ----------
@@ -1410,7 +1418,7 @@
       li.append(so, tao("span", "", buoc.ten)); return li;
     }));
     $("ket-thuc").hidden = !cuoi; $("tiep-tuc").textContent = cuoi ? "Gửi phiếu" : "Lưu và tiếp tục";
-    $("quay-lai").textContent = viTri === 0 ? "Về trang đầu" : "Quay lại"; $("loi-phieu").hidden = true;
+    $("quay-lai").textContent = viTri === 0 && !cheDoPhieu ? "Về trang đầu" : "Quay lại"; $("loi-phieu").hidden = true;
     if (cuon) { window.scrollTo({ top: 0 }); $("ten-nhom").focus({ preventScroll: true }); }
   }
 
@@ -1539,6 +1547,7 @@
   }
   function veTrangDau() {
     hien("dau");
+    if (cheDoPhieu) { if (maPhieu) $("dong-y-luu").checked = true; hienKhungBatDau(); window.scrollTo({ top: 0, behavior: "instant" }); return; }
     requestAnimationFrame(() => {
       const dich = document.getElementById(location.hash.slice(1));
       if (dich) dich.scrollIntoView({ block: "start", behavior: "instant" }); else window.scrollTo({ top: 0, behavior: "instant" });
@@ -1592,16 +1601,18 @@
   }
 
   async function batDau() {
-    const loi = $("loi-mo-dau"); loi.hidden = true;
+    const loi = cheDoPhieu ? $("loi-dong-y-luu") : $("loi-mo-dau"); loi.hidden = true;
     if (canTaiPhieu) {
       await khoiPhuc();
       if (canTaiPhieu) {
-        loi.textContent = "Chưa tải được phiếu cũ. Quý khách hàng vui lòng kiểm tra mạng rồi thử lại."; loi.hidden = false; return;
+        loi.textContent = "Chưa tải được phiếu cũ. Quý khách hàng vui lòng kiểm tra mạng rồi thử lại."; loi.hidden = false;
+        if (cheDoPhieu) hienKhungBatDau();
+        return;
       }
     }
     if (!$("dong-y-luu").checked) {
       dungTatCa();
-      if (!$("bat-dau-hop").open) $("bat-dau-hop").showModal();
+      if (cheDoPhieu) hienKhungBatDau(); else if (!$("bat-dau-hop").open) $("bat-dau-hop").showModal();
       return;
     }
     $("bat-dau-hop").close();
@@ -1617,7 +1628,10 @@
       }
       if (kieuCho && !boDangChon) { chonBo(cauHinh.bo_cau_hoi.bo_mac_dinh, false); viTri = 1; }
       apDungKieuCho(); doiNhom(viTri);
-    } catch (e) { loi.textContent = e.message; loi.hidden = false; $("mo-dau").scrollIntoView(); }
+    } catch (e) {
+      loi.textContent = e.message; loi.hidden = false;
+      if (cheDoPhieu) { hien("dau"); hienKhungBatDau(); } else $("mo-dau").scrollIntoView();
+    }
     finally { document.querySelectorAll("[data-bat-dau]").forEach(b => { b.disabled = false; }); }
   }
 
@@ -1837,8 +1851,7 @@
     try { if (!cauHinh || !cauHinh.bo_cau_hoi) cauHinh = await goi("/api/cau-hinh"); }
     catch (e) { const loi = $("loi-mo-dau"); loi.textContent = "Trang chưa tải được bộ câu hỏi. Quý khách hàng vui lòng tải lại trang."; loi.hidden = false; return; }
     tatCaCau = cauHinh.bo_cau_hoi.cau_hoi; tatCaNhom = cauHinh.bo_cau_hoi.nhom; dsLoai = cauHinh.bo_cau_hoi.loai; datBo("");
-    const loaiLink = new URLSearchParams(location.search).get("loai");
-    if (dsLoai.some(l => l.id === loaiLink)) boTuLink = loaiLink;
+    if (cheDoPhieu && dsLoai.some(l => l.id === document.body.dataset.loai)) boTuLink = document.body.dataset.loai;
     document.querySelectorAll("[data-bat-dau]").forEach(b => { b.dataset.nhanGoc = b.textContent; });
     cauHinh.mau.forEach(m => { mau[m.ma] = m; });
     document.querySelectorAll("[data-studio]").forEach(e => { e.textContent = cauHinh.studio; });
@@ -1850,7 +1863,7 @@
     }
     if (cauHinh.zalo) { ["link-zalo", "zalo-cam-on"].forEach(id => { $(id).href = cauHinh.zalo; $(id).hidden = false; }); }
     veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); ganQuayLai(); ganQuyTrinh(); veMenu(); ganXemTruoc(); veDanhGia(); ganHieuUng(); ganNghieng(); gan3D();
-    await khoiPhuc(); khoiTaoLichSu(); moTuLink();
+    await khoiPhuc(); khoiTaoLichSu(); moTrangPhieu();
     $("gui-link").addEventListener("click", guiLink);
     $("bat-dau-hop").addEventListener("close", () => { $("bat-dau-loai").hidden = true; });
     document.querySelectorAll("[data-bat-dau]").forEach(b => b.addEventListener("click", batDau));

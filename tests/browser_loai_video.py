@@ -1,5 +1,6 @@
-"""Kiểm tra trên trình duyệt: phiếu theo loại video, link gửi người khác, câu hiện theo điều kiện, tiếng Nhật,
-và trang nhân viên (lọc theo loại, tích chọn, tải Excel phiếu đã chọn, xóa phiếu đã chọn, xóa hết phiếu đang lọc).
+"""Kiểm tra trên trình duyệt: trang điền phiếu riêng (/phieu, /phieu/<loại>, mã QR), phiếu theo loại video,
+nút gửi link, câu hiện theo điều kiện, tiếng Nhật, và trang nhân viên (mã QR, link, lọc theo loại, tích chọn,
+tải Excel phiếu đã chọn, xóa phiếu đã chọn, xóa hết phiếu đang lọc).
 Chỉ chạy trên máy chủ thử cục bộ có DATA_DIR riêng và ADMIN_PASSWORD, vì bài thử tạo rồi xóa phiếu giả.
     python tests/browser_loai_video.py --base-url http://127.0.0.1:8000 --mat-khau <ADMIN_PASSWORD> [--anh thư-mục-ảnh]
 """
@@ -8,7 +9,7 @@ import json
 import re
 import urllib.request
 from pathlib import Path
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
 
@@ -76,11 +77,17 @@ with sync_playwright() as p:
         pg.on('pageerror', lambda e: loi_js.append(str(e)))
         return ctx, pg
 
-    # 1) Mở link được gửi: hỏi đồng ý rồi vào thẳng bộ câu hỏi "Sự kiện"; số câu bắt đầu từ 1.
+    # 1) Link riêng một loại: vào thẳng trang điền phiếu (không qua trang chủ, không tải ảnh mẫu), đồng ý ngay trên trang,
+    #    rồi vào bộ câu hỏi "Sự kiện"; số câu bắt đầu từ 1.
     ctx, page = trang_moi()
-    page.goto(base + '/?loai=su-kien&nguon=chia-se', wait_until='networkidle')
+    anh_mau = []
+    page.on('request', lambda r: anh_mau.append(r.url) if '/anh-mau/' in r.url else None)
+    page.goto(base + '/phieu/su-kien', wait_until='networkidle')
     expect(page.locator('#bat-dau-hop')).to_be_visible()
+    expect(page.locator('#mo-dau')).to_be_hidden()
+    assert page.evaluate('!document.querySelector("#bat-dau-hop").matches(":modal")')   # khung nằm trên trang, không phải hộp nổi
     expect(page.locator('#bat-dau-loai')).to_have_text('Loại video: Sự kiện')
+    expect(page.locator('#bat-dau-huy')).to_be_hidden()
     page.locator('#dong-y-luu').check(); page.locator('#bat-dau-xac-nhan').click()
     expect(page).to_have_url(re.compile('#phieu/thong-tin$'))
     so_phan = len(nhom_cua('su-kien'))
@@ -91,10 +98,28 @@ with sync_playwright() as p:
     dien_het(page, 'su-kien', 'Khách link sự kiện')
     expect(page.locator('#tom-tat')).to_contain_text('Loại video')
     expect(page.locator('#tom-tat')).to_contain_text('Sự kiện')
-    page.reload(wait_until='networkidle')
-    expect(page.locator('#bat-dau-hop')).to_be_hidden()        # mỗi phiên chỉ tự mở một lần
+    assert not anh_mau, anh_mau
     ctx.close()
-    print('PASS link ?loai=su-kien mở đúng bộ câu hỏi, số câu từ 1, gửi được và tóm tắt có loại video')
+    print('PASS /phieu/su-kien vào thẳng phiếu, không tải ảnh mẫu, số câu từ 1, gửi được và tóm tắt có loại video')
+
+    # 1b) Mã QR chung (/phieu): đồng ý rồi tới bước chọn loại video; tải lại giữa chừng thì mở tiếp phiếu dở.
+    ctx, page = trang_moi()
+    page.goto(base + '/phieu', wait_until='networkidle')
+    expect(page.locator('#bat-dau-loai')).to_be_hidden()
+    page.locator('#bat-dau-xac-nhan').click()
+    expect(page.locator('#loi-dong-y-luu')).to_be_visible()
+    page.locator('#dong-y-luu').check(); page.locator('#bat-dau-xac-nhan').click()
+    expect(page.locator('#cau-loai .the-loai')).to_have_count(8)
+    page.locator('#cau-loai').get_by_role('button', name=re.compile('^Khác')).click()
+    page.locator('#o-21-ten_don_vi').fill('Khách quét mã QR')
+    page.wait_for_timeout(1500)
+    page.reload(wait_until='networkidle')
+    expect(page.locator('#o-21-ten_don_vi')).to_have_value('Khách quét mã QR')
+    page.locator('#quay-lai').click(); page.locator('#quay-lai').click()
+    expect(page.locator('#bat-dau-hop')).to_be_visible()      # về khung bắt đầu, không về trang chủ
+    expect(page.locator('#mo-dau')).to_be_hidden()
+    ctx.close()
+    print('PASS /phieu (mã QR): đồng ý trên trang, chọn loại, tải lại mở tiếp phiếu dở, Quay lại về khung bắt đầu')
 
     # 2) Chọn loại ở bước đầu, câu "quay thực tế" chỉ hiện khi chọn, nút gửi link chép đúng link.
     ctx, page = trang_moi(permissions=['clipboard-read', 'clipboard-write'])
@@ -112,8 +137,7 @@ with sync_playwright() as p:
     expect(page).to_have_url(re.compile('#phieu/thong-tin$'))
     page.locator('#gui-link').click()
     expect(page.locator('#gui-link-bao')).to_have_text('Đã chép link. Quý khách hàng dán vào Zalo, Messenger hoặc email để gửi.')
-    q = parse_qs(urlsplit(page.evaluate('navigator.clipboard.readText()')).query)
-    assert q == {'loai': ['doanh-nghiep'], 'nguon': ['chia-se']}, q
+    assert page.evaluate('navigator.clipboard.readText()') == base + '/phieu/doanh-nghiep'
     dien_phan(page, 'doanh-nghiep', 'Khách doanh nghiệp'); page.locator('#tiep-tuc').click()
     dien_phan(page, 'doanh-nghiep', 'Khách doanh nghiệp'); page.locator('#tiep-tuc').click()
     expect(page).to_have_url(re.compile('#phieu/hinh-thuc$'))
@@ -144,7 +168,7 @@ with sync_playwright() as p:
     # 4) Trang nhân viên: lọc theo loại, tích chọn, tải Excel phiếu đã chọn, xóa phiếu đã chọn, xóa hết phiếu đang lọc.
     for bo, ten in (('tuyen-dung', 'Khách tuyển dụng A'), ('tuyen-dung', 'Khách tuyển dụng B')):
         ctx, page = trang_moi()
-        page.goto(base + f'/?loai={bo}', wait_until='networkidle')
+        page.goto(base + f'/phieu/{bo}', wait_until='networkidle')
         page.locator('#dong-y-luu').check(); page.locator('#bat-dau-xac-nhan').click()
         dien_het(page, bo, ten)
         ctx.close()
@@ -154,6 +178,11 @@ with sync_playwright() as p:
     page.locator('#mat-khau').fill(args.mat_khau); page.locator('#nv-dang-nhap-nut').click()
     expect(page.locator('#bang')).to_be_visible()
     expect(page.locator('#ds-link li')).to_have_count(8)
+    expect(page.locator('#link-chung')).to_have_value(base + '/phieu')
+    assert page.evaluate('document.querySelector(".nv-qr img").naturalWidth') > 0
+    with page.expect_download() as tai_qr:
+        page.get_by_role('link', name='Tải ảnh mã QR').click()
+    assert tai_qr.value.suggested_filename == 'ma-qr-phieu-b-productions.png', tai_qr.value.suggested_filename
     page.locator('#loc-bo').select_option('tuyen-dung')
     expect(page.locator('#phan-trang')).to_contain_text('2 phiếu')
     expect(page.locator('#xoa-dang-loc')).to_have_text('Xóa hết 2 phiếu đang lọc')

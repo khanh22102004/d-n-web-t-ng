@@ -1157,6 +1157,20 @@ body.parent-brand .xem-huong-dan :is(#xem-nganh, #xem-kieu) { display: none; }
 .gui-link input { width: 100%; margin-top: 8px; font: inherit; font-size: .9rem; padding: 10px 12px; border: 1.5px solid #c9c8c3; border-radius: 6px; }
 .bat-dau-loai { margin-top: 10px; font-weight: 700; }
 
+/* Trang điền phiếu riêng (/phieu, /phieu/<loại>, mã QR): chỉ còn logo, nút đổi ngôn ngữ, khung bắt đầu, phiếu và lời cảm ơn.
+   Khung bắt đầu (đồng ý lưu nháp) nằm ngay trên trang thay vì hộp nổi. */
+body.che-do-phieu main > section:not(#phieu):not(#cam-on), body.che-do-phieu > footer, body.che-do-phieu .thanh-duoi,
+body.che-do-phieu .dau-trang .menu, body.che-do-phieu .dau-trang nav > .nut, body.che-do-phieu .menu-mo,
+body.che-do-phieu #bat-dau-huy, body.che-do-phieu #bat-dau-nhanh { display: none !important; }
+body.che-do-phieu .bat-dau-hop[open] { position: relative; inset: auto; display: block; margin: 40px auto 72px; box-shadow: 0 18px 48px rgba(20, 32, 28, .08); }
+body.che-do-phieu .bat-dau-hop .bat-dau-loai { font-size: 1.05rem; }
+@media (max-width: 760px) {
+  body.che-do-phieu .bat-dau-hop[open] { margin: 20px auto 40px; }
+  body.che-do-phieu .dau-trang .doi-nn:not(.doi-nn-menu) { display: inline-flex !important; }   /* trang phiếu không có menu: giữ nút đổi ngôn ngữ ngay trên đầu */
+  body.che-do-phieu .dau-trang .doi-nn:not(.doi-nn-menu) .doi-nn-ma { display: none; }
+  body.che-do-phieu .dau-trang .doi-nn:not(.doi-nn-menu) button { padding: 0 8px; }
+}
+
 /* Trang chủ chèn sẵn CSS màn hình đầu và tạm ẩn các phần bên dưới cho tới khi tệp CSS đầy đủ (tệp này) tải xong,
    để các phần đó không bị vẽ khi chưa có kiểu rồi chạy hiệu ứng chuyển màu lúc kiểu tới. Quy tắc dưới đây hiện lại
    (độ ưu tiên bằng 0 nên mọi quy tắc display khác vẫn thắng; phần có thuộc tính hidden vẫn ẩn). */

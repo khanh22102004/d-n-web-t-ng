@@ -67,17 +67,22 @@
     bao(""); hop.hidden = false; $("xn-xuat").focus();
   }
 
+  // Nút chép link: chép được thì báo "Đã chép"; trình duyệt chặn thì chọn sẵn chữ trong ô để nhân viên tự chép.
+  function ganChep(o, nut) {
+    nut.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(o.value); nut.textContent = "Đã chép"; setTimeout(() => { nut.textContent = "Chép link"; }, 2000); }
+      catch { o.focus(); o.select(); }
+    });
+  }
+  // Mã QR và link trang điền phiếu (/phieu) theo tên miền đang mở; link riêng từng loại video (/phieu/<loại>).
   function veLoai(loai) {
     if ($("loc-bo").options.length > 1) return;
     loai.forEach(l => { const o = tao("option", "", l.ten); o.value = l.id; $("loc-bo").append(o); });
+    $("link-chung").value = new URL("/phieu", location.origin).href; ganChep($("link-chung"), $("chep-link-chung"));
     loai.forEach(l => {
-      const u = new URL("/", location.origin); u.searchParams.set("loai", l.id); u.searchParams.set("nguon", "chia-se");
       const li = tao("li"), o = tao("input"), nut = tao("button", "nut nho", "Chép link"); nut.type = "button";
-      o.type = "text"; o.readOnly = true; o.value = u.href; o.setAttribute("aria-label", `Link phiếu ${l.ten}`);
-      nut.addEventListener("click", async () => {
-        try { await navigator.clipboard.writeText(o.value); nut.textContent = "Đã chép"; setTimeout(() => { nut.textContent = "Chép link"; }, 2000); }
-        catch { o.focus(); o.select(); }
-      });
+      o.type = "text"; o.readOnly = true; o.value = new URL(`/phieu/${l.id}`, location.origin).href; o.setAttribute("aria-label", `Link phiếu ${l.ten}`);
+      ganChep(o, nut);
       li.append(tao("span", "", l.ten), o, nut); $("ds-link").append(li);
     });
   }

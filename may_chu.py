@@ -29,9 +29,11 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from starlette.applications import Starlette
 from starlette.concurrency import run_in_threadpool
 from starlette.middleware.gzip import GZipMiddleware
-from starlette.responses import FileResponse, HTMLResponse, JSONResponse, Response
+from starlette.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
+
+import ma_qr
 
 GOC = Path(__file__).resolve().parent
 
@@ -1417,7 +1419,7 @@ def gan_phien_ban(trang):
     return re.sub(r'((?:href|src)=")(/[\w.-]+\.(?:css|js|webp|png|svg))"', thay, trang)
 
 
-async def trang_chu(request):
+def dung_trang_chu(che_do_phieu=False, loai=""):
     # Gắn sẵn bộ câu hỏi và danh sách mẫu vào trang để trình duyệt không phải gọi thêm một lượt.
     du_lieu = json.dumps(du_lieu_cau_hinh(), ensure_ascii=False).replace("</", "<\\/")
     trang = gan_phien_ban((WEB / "index.html").read_text(encoding="utf-8")).replace("__CAU_HINH__", du_lieu)
@@ -1435,6 +1437,16 @@ async def trang_chu(request):
     # Dãy chấm đếm mẫu dưới điện thoại cũng ghi sẵn (app.js dùng lại vì đủ số chấm).
     trang = trang.replace("__DT_CHAM__", '<i class="hien"></i>' + "<i></i>" * (len(ds) - 1) if ds else "")
     trang = trang.replace("__DT_NGANH__", "").replace("__DT_TEN__", "").replace("__DT_KIEU__", "")
+    if che_do_phieu:
+        # Trang điền phiếu riêng (link gửi khách, mã QR): cùng mã nguồn với trang chủ nhưng chỉ hiện phiếu.
+        # Không tải ảnh màn hình đầu: bỏ ảnh tải trước, ảnh trong các phần bị ẩn chuyển sang tải khi cần (không bao giờ tải).
+        ten = LOAI[loai]["ten"] if loai in LOAI else ""
+        trang = trang.replace('<body class="parent-brand">', f'<body class="parent-brand che-do-phieu" data-loai="{html.escape(loai)}">', 1)
+        trang = re.sub(r"<title>.*?</title>", f"<title>Phiếu yêu cầu làm video{': ' + html.escape(ten) if ten else ''} | B PRODUCTIONS</title>", trang, count=1)
+        trang = re.sub(r'<link rel="preload" href="[^"]*" as="image"[^>]*>\n?', "", trang)
+        trang = re.sub(r'<img (?![^>]*\bloading=)(?![^>]*logo-anh)', '<img loading="lazy" ', trang).replace(' fetchpriority="high"', "")
+        # CSS đầy đủ để ngay đầu trang: phiếu nằm ngoài "màn hình đầu" của trang chủ.
+        return trang
     # CSS màn hình đầu chèn thẳng vào trang để trình duyệt vẽ ngay; tệp CSS đầy đủ chuyển xuống cuối trang
     # nên không còn chặn hiển thị (PageSpeed: "Yêu cầu chặn hiển thị"). Chưa đóng gói thì giữ như cũ.
     dau = css_dau()
@@ -1443,7 +1455,40 @@ async def trang_chu(request):
         if the_css:
             trang = trang.replace(the_css.group(0), f"<style>{dau[0]}</style>\n", 1)
             trang = trang.replace('<script type="application/json" id="cau-hinh">', the_css.group(0) + '<script type="application/json" id="cau-hinh">', 1)
-    return HTMLResponse(trang, headers={"Cache-Control": TRANG_CONG_KHAI})
+    return trang
+
+
+async def trang_chu(request):
+    return HTMLResponse(dung_trang_chu(), headers={"Cache-Control": TRANG_CONG_KHAI})
+
+
+async def trang_dien_phieu(request):
+    """/phieu và /phieu/<loại video>: khách vào thẳng phiếu, không qua trang chủ (link gửi khách, mã QR)."""
+    loai = request.path_params.get("loai", "")
+    if loai and loai not in LOAI:
+        return RedirectResponse("/phieu", status_code=302)
+    return HTMLResponse(dung_trang_chu(True, loai), headers={"Cache-Control": TRANG_CONG_KHAI})
+
+
+def dia_chi_trang(request):
+    """Địa chỉ gốc của trang (https://tên-miền) theo yêu cầu đang đến, để mã QR luôn đúng tên miền đang dùng."""
+    host = (request.headers.get("x-forwarded-host") or request.headers.get("host") or "").split(",")[0].strip()
+    if not re.fullmatch(r"[A-Za-z0-9.\-]{1,200}(:\d{1,5})?", host):
+        host = "localhost"
+    giao_thuc = (request.headers.get("x-forwarded-proto") or request.url.scheme or "https").split(",")[0].strip()
+    return f'{giao_thuc if giao_thuc in ("http", "https") else "https"}://{host}'
+
+
+async def anh_ma_qr(request):
+    """Mã QR mở trang điền phiếu (/phieu). ?loai=<loại> cho mã của riêng một loại video; ?tai=1 để tải ảnh PNG về."""
+    loai = request.query_params.get("loai", "")
+    o = await run_in_threadpool(ma_qr.ma_tran, dia_chi_trang(request) + "/phieu" + (f"/{loai}" if loai in LOAI else ""))
+    dau = {"Cache-Control": "public, max-age=3600"}
+    if request.url.path.endswith(".png"):
+        if request.query_params.get("tai"):
+            dau["Content-Disposition"] = f'attachment; filename="ma-qr-phieu-b-productions{"-" + loai if loai in LOAI else ""}.png"'
+        return Response(await run_in_threadpool(ma_qr.png, o, 1024), media_type="image/png", headers=dau)
+    return Response(ma_qr.svg(o), media_type="image/svg+xml", headers=dau)
 
 
 async def trang_chinh_sach(request):
@@ -1527,6 +1572,10 @@ tao_bang()
 app = BaoVe(GZipMiddleware(Starlette(routes=[
     Route("/", trang_chu),
     Route("/nhan-vien", trang_nhan_vien),
+    Route("/phieu", trang_dien_phieu),
+    Route("/phieu/{loai}", trang_dien_phieu),
+    Route("/ma-qr.svg", anh_ma_qr),
+    Route("/ma-qr.png", anh_ma_qr),
     Route("/chinh-sach", trang_chinh_sach),
     Route("/chinh-sach.html", trang_chinh_sach),
     Route("/goi.css", tep_goi_css),

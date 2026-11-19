@@ -2,6 +2,7 @@
 import concurrent.futures
 import io
 import json
+import re
 import os
 import secrets
 from pathlib import Path
@@ -462,6 +463,54 @@ class RegressionTests(unittest.TestCase):
         self.assertIn('Loại video: Sự kiện', chu)
         self.assertIn('Sự kiện: Lễ kỷ niệm 10 năm', chu)
         self.assertEqual(wb['Tổng hợp'].cell(7, 4).value, 'Sự kiện')
+
+    # ---------- Trang điền phiếu riêng và mã QR ----------
+    def test_form_page_opens_without_homepage_assets(self):
+        r = self.client.get('/phieu/tuyen-dung')
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('class="parent-brand che-do-phieu" data-loai="tuyen-dung"', r.text)
+        self.assertIn('<title>Phiếu yêu cầu làm video: Video tuyển dụng | B PRODUCTIONS</title>', r.text)
+        self.assertNotIn('as="image"', r.text)                 # không tải trước ảnh màn hình đầu
+        self.assertNotIn('fetchpriority="high"', r.text)
+        for the in re.findall(r'<img [^>]*>', r.text):
+            self.assertTrue('loading="lazy"' in the or 'logo-anh' in the, the)
+        self.assertIn('data-loai=""', self.client.get('/phieu').text)
+        r = self.client.get('/phieu/khong-co', follow_redirects=False)
+        self.assertEqual((r.status_code, r.headers['location']), (302, '/phieu'))
+        self.assertNotIn('che-do-phieu', self.client.get('/').text)
+
+    def test_qr_code_opens_form_page(self):
+        r = self.client.get('/ma-qr.svg')
+        self.assertEqual((r.status_code, r.headers['content-type']), (200, 'image/svg+xml'))
+        self.assertTrue(r.text.startswith('<svg'))
+        r = self.client.get('/ma-qr.png?tai=1&loai=su-kien')
+        self.assertEqual(r.headers['content-type'], 'image/png')
+        self.assertIn('ma-qr-phieu-b-productions-su-kien.png', r.headers['content-disposition'])
+        try:
+            import cv2, numpy as np
+        except ImportError:
+            self.skipTest('Không có OpenCV để đọc thử mã QR')
+        from PIL import Image
+        doc = lambda b: cv2.QRCodeDetector().detectAndDecode(np.array(Image.open(io.BytesIO(b)).convert('L')))[0]
+        self.assertEqual(doc(r.content), 'http://testserver/phieu/su-kien')
+        self.assertEqual(doc(self.client.get('/ma-qr.png?loai=../x').content), 'http://testserver/phieu')
+        r = self.client.get('/ma-qr.png', headers={'x-forwarded-proto': 'https', 'x-forwarded-host': 'dichvuvideo-ai.bprovn.com'})
+        self.assertEqual(doc(r.content), 'https://dichvuvideo-ai.bprovn.com/phieu')
+
+    def test_qr_encoder_versions(self):
+        import ma_qr
+        with self.assertRaises(ValueError):
+            ma_qr.ma_tran('x' * 300)                   # quá phiên bản 10: báo lỗi rõ, không tạo mã sai
+        try:
+            import cv2, numpy as np
+        except ImportError:
+            self.skipTest('Không có OpenCV để đọc thử mã QR')
+        from PIL import Image
+        for n in (1, 20, 40, 70, 100, 150, 190):
+            chu = 'https://vi.du/' + 'a' * n
+            o = ma_qr.ma_tran(chu)
+            anh = np.array(Image.open(io.BytesIO(ma_qr.png(o, 600))).convert('L'))
+            self.assertEqual(cv2.QRCodeDetector().detectAndDecode(anh)[0], chu, len(o))
 
     def test_concurrent_page_views(self):
         def view(_):
