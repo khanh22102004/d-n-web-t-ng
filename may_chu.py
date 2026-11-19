@@ -291,6 +291,18 @@ def lam_sach(tra_loi):
     return sach
 
 
+def can_hoi(tra_loi, chi_khi):
+    """Trường có điều kiện "chi_khi" (ví dụ giọng vùng chỉ hỏi khi video có tiếng Việt).
+    Câu điều kiện chưa trả lời thì vẫn hỏi; đã trả lời mà không có lựa chọn cần thì bỏ qua."""
+    if not chi_khi:
+        return True
+    gia_tri = tra_loi.get(chi_khi["khoa"])
+    ds = list(gia_tri) if isinstance(gia_tri, list) else [gia_tri] if gia_tri else []
+    if not ds and not tra_loi.get(chi_khi["khoa"] + ".khac"):
+        return True
+    return chi_khi["co"] in ds
+
+
 def tim_thieu(tra_loi):
     """Danh sách lỗi {so, truong, thong_bao} của một phiếu trước khi gửi."""
     thieu = []
@@ -299,6 +311,8 @@ def tim_thieu(tra_loi):
             khoa = f'{cau["so"]}.{tr["id"]}'
             bo_qua = tr.get("bo_qua_neu")
             if bo_qua and tra_loi.get(f'{cau["so"]}.{bo_qua["truong"]}') == bo_qua["la"]:
+                continue
+            if not can_hoi(tra_loi, tr.get("chi_khi")):
                 continue
             co = bool(tra_loi.get(khoa)) or bool(tra_loi.get(khoa + ".khac"))
             if tr.get("bat_buoc") and not co:

@@ -97,7 +97,7 @@
      "truong": [
        {"id": "giong", "kieu": "mot", "nhan": "Giọng đọc", "bat_buoc": true,
         "lua_chon": ["Giọng nam", "Giọng nữ", "Không cần giọng đọc"]},
-       {"id": "vung", "kieu": "mot", "nhan": "Giọng vùng", "bat_buoc": true, "bo_qua_neu": {"truong": "giong", "la": "Không cần giọng đọc"},
+       {"id": "vung", "kieu": "mot", "nhan": "Giọng vùng", "bat_buoc": true, "bo_qua_neu": {"truong": "giong", "la": "Không cần giọng đọc"}, "chi_khi": {"khoa": "14.ngon_ngu", "co": "Tiếng Việt"},
         "lua_chon": ["Miền Bắc", "Miền Trung", "Miền Nam"]},
        {"id": "toc_do", "kieu": "mot", "nhan": "Tốc độ", "bat_buoc": true, "bo_qua_neu": {"truong": "giong", "la": "Không cần giọng đọc"},
         "lua_chon": ["Chậm", "Vừa", "Nhanh"]}

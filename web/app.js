@@ -12,6 +12,29 @@
   // Máy yếu (RAM từ 4 GB trở xuống, ít nhân CPU) hoặc đang tiết kiệm dữ liệu: tắt các hiệu ứng nặng, không tự tải trình phát YouTube.
   const mayYeu = tietKiem || (navigator.deviceMemory && navigator.deviceMemory <= 4) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
   document.documentElement.classList.toggle("may-yeu", !!mayYeu);
+  // Máy nhận là mạnh nhưng vẽ không kịp (ví dụ laptop không có card đồ họa rời, trình duyệt tắt tăng tốc phần cứng):
+  // đo nhịp khung hình trong 2 giây, bắt đầu 3 giây sau khi mở trang; chậm hơn khoảng 42 khung/giây thì chuyển sang chế độ nhẹ như máy yếu
+  // (tắt tường ảnh trôi, vạch quét, sóng âm, tim bay tự động). Ghi nhớ trên máy này để lần sau mở là nhẹ ngay.
+  let khongKip = !mayYeu && nho.doc("bp-may-cham") === "1";
+  if (khongKip) document.documentElement.classList.add("may-yeu");
+  function doNhipKhung() {
+    if (mayYeu || khongKip || itChuyenDong || !window.requestAnimationFrame) return;
+    setTimeout(() => {
+      if (document.hidden) return;
+      const ds = [], het = performance.now() + 2000; let truoc = 0;
+      const ha = () => { khongKip = true; document.documentElement.classList.add("may-yeu"); nho.ghi("bp-may-cham", "1"); };
+      const buoc = t => {
+        if (truoc) ds.push(t - truoc); truoc = t;
+        if (t < het && !document.hidden) { requestAnimationFrame(buoc); return; }
+        if (document.hidden) return;
+        if (ds.length < 20) { ha(); return; }
+        ds.sort((x, y) => x - y);
+        if (ds[ds.length >> 1] > 24) ha();
+      };
+      requestAnimationFrame(buoc);
+    }, 3000);
+  }
+  doNhipKhung();   // không chờ sự kiện "load": mạng chậm thì "load" đến rất muộn
   document.body.classList.toggle("tam-dung-nen", document.hidden);
   let cauHinh = null, nhom = [], cau = [], mau = {};
   let maPhieu = "", traLoi = {}, anh = [], viTri = 0, henLuu = 0, dangLuu = Promise.resolve();
@@ -123,7 +146,7 @@
 
   // Thẻ mở trình xem video cho một mẫu. coChu: hiện mã và tên bên dưới khung. tuPhat: phát thử khi thẻ nằm trong tầm nhìn.
   let soThe = 0;
-  function nutMau(m, danhSach, coChu, tuPhat = false, net = true) {
+  function nutMau(m, danhSach, coChu, tuPhat = false, net = true, chon = null) {
     const the = tao("div", "mau-nut"), b = tao("button", "mo"); b.type = "button";
     the._mau = m; soThe += 1;
     if (m.hien === "dong") the.classList.add("dong", soThe % 2 ? "kieu-1" : "kieu-2");
@@ -132,7 +155,7 @@
     the.append(k);
     if (coChu) the.append(tao("span", "ma-mau", m.ma), tao("span", "ten-mau", m.ten));
     the.append(b);
-    b.addEventListener("click", () => moXem(danhSach(), m.ma));
+    b.addEventListener("click", () => moXem(danhSach(), m.ma, chon));
     let hen = 0;
     the.addEventListener("pointerenter", e => { if (e.pointerType === "touch" || m.doan) return; theDangRe = the; hen = setTimeout(() => phatThu(the), 350); });
     the.addEventListener("pointerleave", () => { clearTimeout(hen); if (theDangRe === the) theDangRe = null; if (!the._giu && !(tuPhat && m.hien === "video")) dungThu(the); });
@@ -478,7 +501,7 @@
   function batBay() {
     if (itChuyenDong || tietKiem || mayYeu) return;   // tim/bình luận bay lên tự động chỉ để trang trí: tắt trên máy yếu
     setInterval(() => {
-      if (!dtDuocPhat()) return;                                   // dừng khi khách cuộn đi, mở khung xem hay bấm "Dừng chuyển động"
+      if (!dtDuocPhat() || khongKip) return;                       // dừng khi khách cuộn đi, mở khung xem, bấm "Dừng chuyển động", hoặc máy vẽ không kịp
       if (Math.random() < 0.8) bayLen("tim");
       if (Math.random() < 0.35) bayLen("binh-luan");
       if (Math.random() < 0.35) bayLen("chia-se");
@@ -905,7 +928,7 @@
   }
 
   // ---------- Trình xem video ----------
-  let dsXem = [], viTriXem = 0, kieuCho = "", xemPlayer = null;
+  let dsXem = [], viTriXem = 0, kieuCho = "", xemPlayer = null, chonPhieu = null;
   function xoaPlayerXem() {
     if (!xemPlayer) return;
     xemPlayer.hen.forEach(clearTimeout);
@@ -963,8 +986,18 @@
     $("xem-truoc").disabled = viTriXem === 0; $("xem-sau").disabled = viTriXem === dsXem.length - 1;
     $("xem-chon").hidden = !$("phieu").hidden || !$("cam-on").hidden || !$("xem-form").hidden;
     $("xem-chi-tiet").hidden = !m.kieu || !$("cam-on").hidden;
+    nutXemTheoNoiMo();
   }
-  function moXem(ds, ma) { dungTatCa(); dsXem = ds; viTriXem = Math.max(0, ds.findIndex(m => m.ma === ma)); veXem(); if (!$("xem").open) $("xem").showModal(); dtCapNhat(); }
+  // Trình xem mở từ câu 11 của phiếu: nút chính thành "Chọn kiểu này" (trước đây phiếu đang mở thì trình xem không có nút nào).
+  function nutXemTheoNoiMo() {
+    const nc = $("xem-chon");
+    if (!chonPhieu) { if (nc.dataset.goc) { nc.textContent = nc.dataset.goc; delete nc.dataset.goc; } return; }
+    if (!nc.dataset.goc) nc.dataset.goc = "Nhận báo giá làm video kiểu này";
+    const tt = dsXem[viTriXem] ? chonPhieu.trangThai(dsXem[viTriXem]) : "khong";
+    nc.textContent = tt === "da" ? "✓ Đã chọn kiểu này, quay lại phiếu" : tt === "day" ? "Đã chọn đủ hai kiểu, quay lại phiếu" : "Chọn kiểu này";
+    nc.hidden = tt === "khong"; $("xem-chi-tiet").hidden = true;
+  }
+  function moXem(ds, ma, chon = null) { dungTatCa(); chonPhieu = chon; dsXem = ds; viTriXem = Math.max(0, ds.findIndex(m => m.ma === ma)); veXem(); if (!$("xem").open) $("xem").showModal(); dtCapNhat(); }
   function chuyenXem(buoc) { const moi = viTriXem + buoc; if (moi < 0 || moi >= dsXem.length) return; viTriXem = moi; veXem(); }
   function ganXem() {
     const hop = $("xem"); let batDauX = null;
@@ -978,6 +1011,11 @@
     hop.addEventListener("touchstart", e => { batDauX = trongForm(e) ? null : e.touches[0].clientX; }, { passive: true });
     hop.addEventListener("touchend", e => { if (batDauX == null) return; const d = e.changedTouches[0].clientX - batDauX; batDauX = null; if (Math.abs(d) > 60) chuyenXem(d < 0 ? 1 : -1); }, { passive: true });
     $("xem-chon").addEventListener("click", () => {
+      if (chonPhieu) {
+        const n = chonPhieu.chon(dsXem[viTriXem]); hop.close();
+        if (n) { (n.the || n.b).scrollIntoView({ block: "nearest" }); n.b.focus({ preventScroll: true }); }
+        return;
+      }
       const vung = $("xem-form");
       if (!vung.hidden) { vung.querySelector("input, button")?.focus(); return; }
       vung.replaceChildren(formNhanh({ tieuDe: "Nhận phương án và báo giá theo mẫu này", nutGui: "Gửi cho tôi phương án và báo giá", layMau: () => dsXem[viTriXem] }));
@@ -988,7 +1026,7 @@
       } else vung.scrollIntoView({ block: "start", behavior: itChuyenDong ? "instant" : "smooth" });
       vung.querySelector("input")?.focus({ preventScroll: true });
     });
-    hop.addEventListener("close", () => { $("xem-form").hidden = true; $("xem-form").replaceChildren(); });
+    hop.addEventListener("close", () => { $("xem-form").hidden = true; $("xem-form").replaceChildren(); chonPhieu = null; nutXemTheoNoiMo(); });
     $("xem-chi-tiet").addEventListener("click", () => {
       kieuCho = dsXem[viTriXem].kieu; hop.close();
       if ($("phieu").hidden) batDau(); else { apDungKieuCho(); doiNhom(nhom.findIndex(n => n.id === cau.find(c => c.so === 11).nhom)); $("cau-11").scrollIntoView({ block: "start" }); }
@@ -1004,7 +1042,14 @@
   // ---------- Vẽ phiếu ----------
   const khoa = (c, t) => `${c.so}.${t.id}`;
   const tenLuaChon = lc => typeof lc === "string" ? lc : lc.ten;
-  const biBoQua = (c, t) => t.bo_qua_neu && traLoi[`${c.so}.${t.bo_qua_neu.truong}`] === t.bo_qua_neu.la;
+  // "chi_khi": chỉ hỏi khi câu khác có lựa chọn cần (giọng vùng chỉ hỏi khi video có tiếng Việt).
+  const canHoi = chi => {
+    if (!chi) return true;
+    const gt = traLoi[chi.khoa], ds = Array.isArray(gt) ? gt : (gt ? [gt] : []);
+    if (!ds.length && !traLoi[chi.khoa + ".khac"]) return true;
+    return ds.includes(chi.co);
+  };
+  const biBoQua = (c, t) => (t.bo_qua_neu && traLoi[`${c.so}.${t.bo_qua_neu.truong}`] === t.bo_qua_neu.la) || !canHoi(t.chi_khi);
 
   function veTruongChu(c, t) {
     const hop = tao("div", "truong"), id = `o-${c.so}-${t.id}`;
@@ -1037,6 +1082,12 @@
       });
     };
 
+    // Mở video mẫu từ phiếu thì trình xem có nút "Chọn kiểu này" để chọn rồi quay lại phiếu.
+    const nutCuaMau = ma => { const lc = t.lua_chon.find(x => x.mau === ma); return lc ? nut.find(n => n.ten === tenLuaChon(lc)) : null; };
+    const chonTrongXem = {
+      trangThai: m => { const n = nutCuaMau(m.ma); if (!n) return "khong"; return dangChon().includes(n.ten) ? "da" : (n.b.disabled ? "day" : "chua"); },
+      chon: m => { const n = nutCuaMau(m.ma); if (n && !n.b.disabled && !dangChon().includes(n.ten)) n.b.click(); return n; }
+    };
     t.lua_chon.forEach(lc => {
       const ten = tenLuaChon(lc), b = tao("button", "", ten); b.type = "button";
       b.addEventListener("click", () => {
@@ -1047,13 +1098,17 @@
         else chon = [...chon.filter(x => x !== t.rieng), ten];
         ghi(k, nhieu ? chon : (chon[0] || "")); capNhat(); xoaLoi(c);
         if (c.truong.some(x => x.bo_qua_neu?.truong === t.id)) veNhom(false);
+        else if (cau.some(c2 => c2.truong.some(x => x.chi_khi?.khoa === k))) {
+          cau.forEach(c2 => c2.truong.forEach(x => { if (x.chi_khi?.khoa === k && !canHoi(x.chi_khi)) ghi(`${c2.so}.${x.id}`, ""); }));
+          veNhom(false);
+        }
       });
       let the = null;
       if (t.dang_the && lc.mau && mau[lc.mau]) {
         the = tao("div", "the-mau"); const xem = tao("button", "nut-chu", `Xem video mẫu ${lc.mau}`); xem.type = "button";
         const dsThe = () => t.lua_chon.map(x => mau[x.mau]).filter(Boolean);
-        xem.addEventListener("click", () => moXem(dsThe(), lc.mau));
-        the.append(nutMau(mau[lc.mau], dsThe, false), b, xem); day.append(the);
+        xem.addEventListener("click", () => moXem(dsThe(), lc.mau, chonTrongXem));
+        the.append(nutMau(mau[lc.mau], dsThe, false, false, true, chonTrongXem), b, xem); day.append(the);
       } else day.append(b);
       nut.push({ b, ten, the });
     });

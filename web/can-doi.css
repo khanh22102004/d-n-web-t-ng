@@ -954,3 +954,23 @@ body.parent-brand .quy-trinh-ds p { max-width: 30ch; }
 @media (max-width: 760px) {
   body.parent-brand .mau-toi .ray.thu-gon > li:nth-child(n+7) { display: none; }
 }
+
+/* ---------- Logo bằng ảnh gốc của công ty (19/11/2026) ----------
+   Logo dựng bằng chữ SVG trước đây bị ép ngang cho vừa khổ nên trông bị bóp.
+   Nay dùng đúng ảnh logo gốc, giữ tỉ lệ: chữ đen trên nền sáng, chữ trắng ở chân trang nền đen. */
+.logo-anh { display: block; height: auto; max-width: 100%; }
+.ten-studio .logo-anh.logo-dau { width: auto; height: 54px; }
+@media (max-width: 760px) { .ten-studio .logo-anh.logo-dau { height: 42px; } }
+.logo-anh.logo-the { width: min(250px, 72%); margin: 0 auto 12px; }
+.logo-anh.logo-chan, body.parent-brand .chan-thuong-hieu .logo-anh.logo-chan,
+body.parent-brand .chan-trang .chan-thuong-hieu .logo-anh.logo-chan { width: 150px; height: auto; padding: 0; background: none; border-radius: 0; font-size: inherit; }
+
+/* ---------- Câu 11: nút chọn dưới mỗi ảnh mẫu (19/11/2026) ----------
+   Trước đây tên kiểu video dưới ảnh trông như chữ thường nên khách không biết bấm vào đâu để chọn.
+   Nay có vòng tròn chọn bên trái; đã chọn thì nền mực, có dấu tích. */
+body.parent-brand .the-mau > button:not(.nut-chu) { display: flex; align-items: center; gap: 10px; text-align: left; padding: 12px 14px; background: #fff; color: #202224; cursor: pointer; }
+body.parent-brand .the-mau > button:not(.nut-chu)::before { content: ""; flex: none; box-sizing: border-box; width: 20px; height: 20px; border: 1.5px solid #8c8e91; border-radius: 50%; }
+body.parent-brand .the-mau > button[aria-pressed="true"] { background: #202224; color: #fff; }
+body.parent-brand .the-mau > button[aria-pressed="true"]::before { content: "✓"; border-color: #fff; background: #fff; color: #202224; font-size: 13px; font-weight: 800; line-height: 17px; text-align: center; }
+body.parent-brand .the-mau > button:not(.nut-chu):disabled { opacity: .5; cursor: not-allowed; }
+body.parent-brand .the-mau.da-chon { box-shadow: 0 0 0 2px #202224; }
