@@ -86,10 +86,10 @@
     const anhRieng = typeof m.anh_bia === "string" && m.anh_bia.startsWith("/anh-mau/") && !m.anh_bia.includes("..") && !/[?#]/.test(m.anh_bia) ? m.anh_bia : "";
     ganDuPhong(k, i, m);
     // Ảnh đủ nét (net === true, điện thoại mẫu giữa): trình duyệt tự chọn ảnh 270 hay 360 điểm ảnh theo cỡ khung và mật độ màn hình.
-    if (!anhRieng && net === true) { i.srcset = `/anh-mau/nho/${m.ma}.webp 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 140px, 240px"; }
+    if (!anhRieng && net === true) { i.srcset = `/anh-mau/nho/${m.ma}.webp 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 190px, 240px"; }   // sizes phải trùng imagesizes của thẻ preload trong index.html
     // Thẻ thư viện ("the"): màn hình nét (máy tính phóng 125–150%, điện thoại mật độ cao) lấy ảnh 360 cho khỏi mờ,
     // màn hình thường vẫn lấy ảnh 270; máy yếu luôn giữ ảnh 270 (ít bộ nhớ, không lag thêm).
-    if (!anhRieng && net === "the" && !mayYeu) { i.srcset = `/anh-mau/nho/${m.ma}.webp 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 172px, 236px"; }
+    if (!anhRieng && net === "the" && !mayYeu) { i.srcset = `/anh-mau/nho/${m.ma}.webp 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 44vw, (max-width: 1190px) 196px, 236px"; }   // đo thật: điện thoại ~44% bề ngang, máy tính 196–236px
     if (net === "the") net = "nho";
     i.src = anhRieng || (net === "nho" ? `/anh-mau/nho/${m.ma}.webp` : net === "tuong" ? `/anh-mau/tuong/${m.ma}.webp` : taiCho);   // "tuong": ảnh 180×320 chỉ cho tường nền
     // Không còn đổi sang ảnh bìa YouTube độ nét cao: ảnh WebP của trang đã đủ nét cho khung điện thoại,
