@@ -69,12 +69,32 @@
     try { if (moi) sessionStorage.setItem("bp-nguon", moi); return sessionStorage.getItem("bp-nguon") || ""; } catch { return moi; }
   }
 
+  // Chạy lại hiệu ứng CSS của một lớp mà không ép trình duyệt tính bố cục (thay cho mẹo "void el.offsetWidth"):
+  // chưa có lớp thì gắn ngay; đã có thì phát lại từ đầu các hiệu ứng có tên trong "ten" (Web Animations, chỉ tính lại kiểu,
+  // không tính lại bố cục). bat = false: gỡ lớp.
+  function chayLai(el, lop, ten, bat = true) {
+    if (!bat) { el.classList.remove(lop); return; }
+    if (!el.classList.contains(lop)) { el.classList.add(lop); return; }
+    for (const a of el.getAnimations({ subtree: true })) if (ten.includes(a.animationName)) { a.cancel(); a.play(); }
+  }
+
   // ---------- Trang mở đầu và mẫu ----------
   // Hiện ảnh tại chỗ ngay; nâng lên ảnh dọc nét hơn khi tải được.
   function khungAnh(m, net = false) {
-    const k = tao("div", "khung"), i = tao("img"), taiCho = `/anh-mau/${m.ma}.webp`, duPhongJpg = `/anh-mau/${m.ma}.jpg`;   // WebP nhẹ hơn ~56%; JPG dự phòng
+    const k = tao("div", "khung"), i = tao("img"), taiCho = `/anh-mau/${m.ma}.webp`;   // WebP nhẹ hơn ~56%; JPG dự phòng
     i.alt = `Mẫu ${m.ma}: ${m.ten}`; i.loading = "lazy"; i.decoding = "async"; i.width = 360; i.height = 640;
     const anhRieng = typeof m.anh_bia === "string" && m.anh_bia.startsWith("/anh-mau/") && !m.anh_bia.includes("..") && !/[?#]/.test(m.anh_bia) ? m.anh_bia : "";
+    ganDuPhong(k, i, m);
+    // Ảnh đủ nét (net === true, điện thoại mẫu giữa): trình duyệt tự chọn ảnh 270 hay 360 điểm ảnh theo cỡ khung và mật độ màn hình.
+    if (!anhRieng && net === true) { i.srcset = `/anh-mau/nho/${m.ma}.webp 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 140px, 240px"; }
+    i.src = anhRieng || (net === "nho" ? `/anh-mau/nho/${m.ma}.webp` : net === "tuong" ? `/anh-mau/tuong/${m.ma}.webp` : taiCho);   // "tuong": ảnh 180×320 chỉ cho tường nền
+    // Không còn đổi sang ảnh bìa YouTube độ nét cao: ảnh WebP của trang đã đủ nét cho khung điện thoại,
+    // và việc đổi ảnh muộn làm chỉ số "nội dung lớn nhất" (LCP) của PageSpeed bị tính trễ.
+    k.append(i); return k;
+  }
+  // Ảnh lỗi: thử ảnh WebP tại chỗ, rồi JPG, cuối cùng ẩn ảnh và hiện khung trống.
+  function ganDuPhong(k, i, m) {
+    const taiCho = `/anh-mau/${m.ma}.webp`, duPhongJpg = `/anh-mau/${m.ma}.jpg`;
     let daDuPhong = false, daJpg = false;
     i.addEventListener("error", () => {
       i.removeAttribute("srcset");
@@ -83,12 +103,6 @@
       else { i.hidden = true; k.classList.add("thieu-anh"); }
     });
     i.addEventListener("load", () => { i.hidden = false; k.classList.remove("thieu-anh"); });
-    // Ảnh đủ nét (net === true, điện thoại mẫu giữa): trình duyệt tự chọn ảnh 270 hay 360 điểm ảnh theo cỡ khung và mật độ màn hình.
-    if (!anhRieng && net === true) { i.srcset = `/anh-mau/nho/${m.ma}.webp 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 140px, 240px"; }
-    i.src = anhRieng || (net === "nho" ? `/anh-mau/nho/${m.ma}.webp` : net === "tuong" ? `/anh-mau/tuong/${m.ma}.webp` : taiCho);   // "tuong": ảnh 180×320 chỉ cho tường nền
-    // Không còn đổi sang ảnh bìa YouTube độ nét cao: ảnh WebP của trang đã đủ nét cho khung điện thoại,
-    // và việc đổi ảnh muộn làm chỉ số "nội dung lớn nhất" (LCP) của PageSpeed bị tính trễ.
-    k.append(i); return k;
   }
 
   // ---------- Đoạn xem thử không tiếng ----------
@@ -201,24 +215,22 @@
     the.querySelector(".khung").append(tao("span", "nhan-nganh", m.nhom)); ganDoan(the);
     li.append(the, tao("p", "phong-cach-mau", m.kieu || m.nhom), tuVan); return li;
   }
-  function veRay() {
-    const ds = mauDangLoc(), hop = $("hang-mau");
+  // Thư viện: hàng nút ngành phía trên ("Tất cả" và từng ngành). Bấm ngành nào thì dải thẻ chỉ còn mẫu của ngành đó
+  // (khung xem lớn cũng chỉ lướt trong ngành đó); bấm "Tất cả" để xem lại toàn bộ.
+  function veRay(nganh = locNhom) {
+    const hop = $("hang-mau"); if (!hop) return;
     dungTatCa();
-    // Một dải thẻ lướt ngang, xếp liền theo từng ngành; hàng nút ngành phía trên: bấm ngành nào dải lướt tới ngành đó,
-    // lướt tới đâu nút ngành tương ứng sáng lên.
-    const thuTu = []; ds.forEach(m => { if (!thuTu.includes(m.nhom)) thuTu.push(m.nhom); });
-    const xep = thuTu.flatMap(n => ds.filter(m => m.nhom === n));
-    const hangNut = tao("div", "nganh-ds"); hangNut.setAttribute("role", "group"); hangNut.setAttribute("aria-label", "Chọn ngành hàng");
-    const ul = tao("ul", "ray ray-hang"); ul.id = "ray-mau"; ul.tabIndex = 0; ul.setAttribute("aria-label", "Danh sách mẫu video");
+    locNhom = nganh === "noi-bat" ? "" : nganh;
+    const tatCa = dauTien(cauHinh.mau), thuTu = [...new Set(tatCa.map(m => m.nhom))];
+    const ds = mauDangLoc(), xep = locNhom ? ds : thuTu.flatMap(n => ds.filter(m => m.nhom === n));
+    const hangNut = tao("div", "nganh-ds"); hangNut.setAttribute("role", "group"); hangNut.setAttribute("aria-label", "Lọc mẫu theo ngành hàng");
+    const ul = tao("ul", "ray ray-hang"); ul.id = "ray-mau"; ul.tabIndex = 0;
+    ul.setAttribute("aria-label", locNhom ? `Mẫu video ngành ${locNhom}` : "Danh sách mẫu video");
     ul.append(...xep.map(m => { const li = theMau(m); li.dataset.nhom = m.nhom; return li; }));
-    const cacNut = thuTu.map(n => {
-      const b = tao("button", "nganh-nut"); b.type = "button"; b.dataset.nhom = n; b.setAttribute("aria-pressed", "false");
-      b.append(tao("span", "nganh-ten", n), tao("span", "nganh-so", String(xep.filter(m => m.nhom === n).length)));
-      b.addEventListener("click", () => {
-        const li = ul.querySelector(`li[data-nhom="${CSS.escape(n)}"]`); if (!li) return;
-        ul.scrollTo({ left: li.offsetLeft - ul.firstElementChild.offsetLeft, behavior: itChuyenDong ? "instant" : "smooth" });
-        datNganh(n);
-      });
+    const cacNut = ["", ...thuTu].map(n => {
+      const b = tao("button", "nganh-nut"); b.type = "button"; b.dataset.nhom = n; b.setAttribute("aria-pressed", String(n === locNhom));
+      b.append(tao("span", "nganh-ten", n || "Tất cả"), tao("span", "nganh-so", String(n ? tatCa.filter(m => m.nhom === n).length : tatCa.length)));
+      b.addEventListener("click", () => { if (n === locNhom) return; veRay(n); hop.querySelector(`.nganh-nut[data-nhom="${CSS.escape(n)}"]`)?.focus({ preventScroll: true }); });
       return b;
     });
     hangNut.append(...cacNut);
@@ -227,27 +239,21 @@
     const cuon = huong => ul.scrollBy({ left: huong * Math.max(220, ul.clientWidth * 0.8), behavior: itChuyenDong ? "instant" : "smooth" });
     truoc.addEventListener("click", () => cuon(-1)); sau.addEventListener("click", () => cuon(1));
     khung.append(truoc, ul, sau);
-    let dangNganh = "", hen = 0;
-    function datNganh(n) {
-      if (n === dangNganh) return; dangNganh = n;
-      cacNut.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.nhom === n)));
-      const b = cacNut.find(x => x.dataset.nhom === n);
-      if (b && hangNut.scrollWidth > hangNut.clientWidth) hangNut.scrollTo({ left: b.offsetLeft - hangNut.clientWidth / 2 + b.offsetWidth / 2, behavior: itChuyenDong ? "instant" : "smooth" });
-    }
+    let hen = 0;
+    // Đọc hết kích thước trước rồi mới đổi lớp/thuộc tính: đọc sau khi vừa đổi bắt trình duyệt tính lại bố cục ngay (PageSpeed: "Buộc chỉnh lại luồng").
     const capNhat = () => {
       hen = 0;
-      const coCuon = ul.scrollWidth > ul.clientWidth + 2, cuoi = ul.scrollLeft + ul.clientWidth >= ul.scrollWidth - 2;
-      truoc.disabled = ul.scrollLeft <= 2; sau.disabled = cuoi;
-      khung.classList.toggle("con-trai", coCuon && ul.scrollLeft > 2); khung.classList.toggle("con-phai", coCuon && !cuoi);
-      const cacThe = [...ul.children], moc = ul.scrollLeft + ul.firstElementChild.offsetLeft;
-      const li = cuoi ? cacThe[cacThe.length - 1] : (cacThe.find(x => x.offsetLeft + x.offsetWidth / 2 >= moc) || cacThe[0]);
-      if (li) datNganh(li.dataset.nhom);
+      const rong = ul.scrollWidth, khach = ul.clientWidth, trai = ul.scrollLeft;
+      const coCuon = rong > khach + 2, cuoi = trai + khach >= rong - 2;
+      truoc.disabled = trai <= 2; sau.disabled = cuoi;
+      khung.classList.toggle("con-trai", coCuon && trai > 2); khung.classList.toggle("con-phai", coCuon && !cuoi);
     };
     ul.addEventListener("scroll", () => { if (!hen) hen = requestAnimationFrame(capNhat); }, { passive: true });
     hop._capNhat = capNhat;
     hop.replaceChildren(hangNut, khung);
-    $("dem-mau").textContent = `Tất cả ${ds.length} mẫu trong thư viện`;
-    requestAnimationFrame(capNhat);
+    $("dem-mau").textContent = `Tất cả ${tatCa.length} mẫu trong thư viện`;
+    // ResizeObserver báo sau khi trình duyệt đã tính bố cục, nên đọc kích thước lúc đó không tốn thêm một lượt tính.
+    if ("ResizeObserver" in window) new ResizeObserver(() => capNhat()).observe(ul); else requestAnimationFrame(capNhat);
   }
   function capNhatNutRay() { $("hang-mau")?._capNhat?.(); }
 
@@ -337,7 +343,9 @@
     chu.textContent = ds[0];
     if (itChuyenDong || ds.length < 2) return;
     const cho = ms => new Promise(r => setTimeout(r, ms));
-    const dangThay = () => { const r = chu.getBoundingClientRect(); return !tamDung && !document.hidden && r.bottom > 0 && r.top < innerHeight; };
+    let trongTam = true;   // dòng chữ có đang trong màn hình không (IntersectionObserver báo, không phải đo vị trí mỗi lượt)
+    if ("IntersectionObserver" in window) new IntersectionObserver(d => { trongTam = d.some(x => x.isIntersecting); }).observe(chu);
+    const dangThay = () => !tamDung && !document.hidden && trongTam;
     let i = 0;
     (async () => {
       for (;;) {
@@ -402,6 +410,14 @@
   function dtCanh(m) {
     let c = dt.canh.get(m.ma);
     if (c) return c;
+    // Mẫu đầu đã có sẵn trong trang (máy chủ ghi vào) để ảnh hiện ngay, không chờ app.js: dùng lại khung đó.
+    const coSan = !dt.canh.size && $("dt-canh").querySelector(".dt-mot[data-ma]");
+    if (coSan && coSan.dataset.ma === m.ma) {
+      const anh = coSan.querySelector("img"); ganDuPhong(coSan.querySelector(".khung"), anh, m);
+      if (anh.complete && !anh.naturalWidth) anh.dispatchEvent(new Event("error"));   // ảnh đã lỗi trước khi gắn dự phòng
+      dt.canh.set(m.ma, coSan); return coSan;
+    }
+    if (coSan) coSan.remove();
     c = tao("div", "dt-mot"); const k = khungAnh(m, true), anh = k.querySelector("img");
     anh.alt = ""; anh.loading = "eager"; if (!dt.canh.size) anh.fetchPriority = "high";
     c.append(k); dt.canh.set(m.ma, c); $("dt-canh").append(c);
@@ -520,10 +536,15 @@
   }
   // ---------- Tim, bong bóng bình luận, mũi tên chia sẻ bay lên từ các nút bên phải điện thoại ----------
   // Chỉ là hiệu ứng trang trí, không kèm số lượt.
+  // Vị trí ba nút đo sẵn khi khung máy đổi cỡ (ResizeObserver báo sau khi đã tính bố cục), không đo mỗi lần thả tim:
+  // đo ngay sau khi vừa thêm phần tử bắt trình duyệt tính lại bố cục (trước đây tốn ~100ms lúc mở trang trên máy chậm).
+  const NUT_BAY = { tim: "dt-tim", "binh-luan": "dt-hoi", "chia-se": "dt-chia-se" }, viTriBay = {};
+  const doViTriBay = () => { for (const [loai, id] of Object.entries(NUT_BAY)) { const b = $(id), ray = b?.parentElement; if (ray) viTriBay[loai] = [ray.offsetLeft + b.offsetLeft + b.offsetWidth / 2, ray.offsetTop + b.offsetTop + 14]; } };
+  if ("ResizeObserver" in window && $("dt-man")) { const ro = new ResizeObserver(doViTriBay); ro.observe($("dt-man")); $("dt-tim") && ro.observe($("dt-tim").parentElement); }
   function bayLen(loai) {
     const hop = $("dt-bay-len"); if (!hop || hop.childElementCount > 26) return;
-    const nut = { tim: "dt-tim", "binh-luan": "dt-hoi", "chia-se": "dt-chia-se" }[loai], b = $(nut), ray = b.parentElement;
-    const x = ray.offsetLeft + b.offsetLeft + b.offsetWidth / 2, y = ray.offsetTop + b.offsetTop + 14;
+    if (!viTriBay[loai]) { if ("ResizeObserver" in window) return; doViTriBay(); }
+    const [x, y] = viTriBay[loai];
     const e = tao("span", `bay-len bay-${loai}`);
     e.style.left = `${x - 11}px`; e.style.top = `${y - 11}px`;
     e.style.setProperty("--x", `${Math.round(-70 + Math.random() * 60)}px`);
@@ -587,7 +608,7 @@
     $("dt-tim").classList.toggle("da-thich", !!timCuaKhach[m.ma]); $("dt-tim").setAttribute("aria-label", "Thả tim cho mẫu này");
     dtSoLieu(m); if (!soThat(m.so_lieu?.tim) && timCuaKhach[m.ma]) $("dt-so-tim").textContent = timCuaKhach[m.ma];
     dtVeTieng();
-    [$("dt-duoi"), $("dt-man")].forEach(e => { e.classList.remove("doi"); void e.offsetWidth; e.classList.add("doi"); });
+    chayLai($("dt-duoi"), "doi", ["len"]); chayLai($("dt-man"), "doi", ["tim"]);
     if (dt.video || dt.tieng) dtNapVideo(m, dt.tieng); else dtGoVideo();
     dtCapNhat();
   }
@@ -600,12 +621,12 @@
       if (dt.yt.v) { if (duoc) dt.yt.v.play().catch(() => {}); else dt.yt.v.pause(); }
       else { const lenh = duoc ? "playVideo" : "pauseVideo"; if (dt.yt.lenh !== lenh) { dt.yt.lenh = lenh; dtLenh(lenh); } }   // chỉ gửi khi đổi trạng thái, để YouTube không hiện lại nút của nó
     }
-    tien.classList.remove("chay"); void tien.offsetWidth;
+    if (!luot) chayLai(tien, "chay", null, false);
     if (luot) {
       // Video chưa chạy được (mạng chậm, bị chặn): vẫn chờ một lượt video rồi xoay tiếp, không đứng im.
       let tg = dt.yt?.dangPhat || choVideo ? DT_VIDEO : DT_LUOT;
       if (!daTuongTac) tg = Math.max(tg, moc12 - performance.now());
-      tien.style.animationDuration = `${tg}ms`; tien.classList.add("chay");
+      tien.style.animationDuration = `${tg}ms`; chayLai(tien, "chay", ["tien"]);
       dt.hen = setTimeout(() => dtXoay(1), tg);
     }
   }
@@ -960,10 +981,21 @@
     const ds = document.querySelector(".quy-trinh-ds"); if (!ds) return;
     ds.querySelectorAll("[data-mo-mau]").forEach(b => b.addEventListener("click", () => { const m = mau[b.dataset.moMau]; if (m) moXem(cauHinh.mau, m.ma); }));
     ds.querySelector("[data-qt-phieu]")?.addEventListener("click", () => document.querySelector("[data-bat-dau]")?.click());
-    if (itChuyenDong || mayYeu || !("IntersectionObserver" in window)) return;
-    ds.classList.add("cho-chay");
-    const qs = new IntersectionObserver(([e]) => { if (!e.isIntersecting) return; ds.classList.add("chay"); qs.disconnect(); }, { threshold: 0.35 });
-    qs.observe(ds);
+    // Bấm từng bước để xem bước đó (không tự chạy lần lượt như trình chiếu). Mở sẵn bước 1; chưa có JS thì hiện cả bốn bước.
+    const cacBuoc = [...ds.children];
+    const mo = li => cacBuoc.forEach(x => {
+      const dang = x === li; x.classList.toggle("mo", dang);
+      x.querySelector(".qt-nut")?.setAttribute("aria-expanded", String(dang));
+      const ct = x.querySelector(".qt-chi-tiet"); if (ct) ct.hidden = !dang;
+    });
+    cacBuoc.forEach(li => {
+      const h3 = li.querySelector("h3"), ct = li.querySelector(".qt-chi-tiet"); if (!h3 || !ct) return;
+      const nut = tao("button", "qt-nut"); nut.type = "button"; nut.setAttribute("aria-controls", ct.id);
+      nut.append(...h3.childNodes); h3.append(nut);
+      nut.addEventListener("click", () => mo(li));
+    });
+    const goiY = tao("p", "qt-goi-y", "Bấm vào từng bước để xem chi tiết."); ds.before(goiY);
+    ds.classList.add("qt-bam"); mo(cacBuoc[0]);
   }
 
   // ---------- Nút nổi "quay lại điền tiếp" ----------
@@ -1025,6 +1057,20 @@
     $("xem-ma").textContent = m.ma; $("xem-ten").textContent = m.ten;
     $("xem-dem").textContent = `Mẫu ${viTriXem + 1} trên ${dsXem.length}`;
     $("xem-nganh").textContent = m.nhom || "Video mẫu";
+    // Thẻ của mẫu: ngành (bấm để xem các mẫu cùng ngành trong thư viện) và phong cách.
+    const the = $("xem-the");
+    if (the) {
+      const cac = [];
+      if (m.nhom) {
+        const b = tao("button", "xem-the-nganh", m.nhom); b.type = "button"; b.title = "Xem các mẫu cùng ngành";
+        b.setAttribute("aria-label", `Ngành ${m.nhom}: xem các mẫu cùng ngành`);
+        b.addEventListener("click", () => { $("xem").close(); veRay(m.nhom); $("mau").scrollIntoView({ block: "start", behavior: itChuyenDong ? "instant" : "smooth" }); });
+        cac.push(b);
+      }
+      if (m.kieu) cac.push(tao("span", "", m.kieu));
+      cac.push(tao("span", "", "Video AI"));
+      the.replaceChildren(...cac.map(x => { const li = tao("li"); li.append(x); return li; }));
+    }
     $("xem-kieu").textContent = m.kieu || "";
     $("xem-ngoai").href = `https://www.youtube.com/watch?v=${encodeURIComponent(m.id)}`;
     khung.classList.remove("xem-san-sang"); khung.style.backgroundImage = "";

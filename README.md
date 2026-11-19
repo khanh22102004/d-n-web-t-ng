@@ -140,14 +140,17 @@ web-b-productions/
 ├── .env.example            # Mẫu cấu hình; CHAY-WEB.bat tự chép thành .env
 ├── BRAND_SOURCES.md        # Nguồn và quyết định nhận diện
 ├── KIEM_TRA_GIAO_DIEN.md   # Kết quả kiểm tra giao diện
+├── cong-cu/
+│   └── dong_goi.py         # Nén JS/CSS vào web/da-nen/ (chạy lại sau mỗi lần sửa CSS hoặc JS)
 ├── tests/
-│   ├── test_regressions.py # 26 kiểm thử máy chủ
+│   ├── test_regressions.py # 28 kiểm thử máy chủ
 │   └── browser_history.py  # Kiểm thử Back/Forward bằng Chromium
 └── web/
     ├── index.html          # Trang khách
     ├── chinh-sach.html     # Cách dùng thông tin
     ├── nhan-vien.html/.js  # Trang nhân viên
     ├── app.js              # Toàn bộ tương tác phía khách
+    ├── da-nen/             # Bản nén do cong-cu/dong_goi.py tạo: app.js, ngon-ngu.js, goi.css, dau.css (CSS màn hình đầu)
     ├── style.css, brand.css, desktop.css, can-doi.css, nhan-vien.css
     ├── logo-b-productions.png/.webp, bieu-tuong.png
     ├── ma-vach.svg            # Mã vạch đo từ logo, dùng làm họa tiết điểm nhấn
@@ -304,7 +307,7 @@ python -m pip install -r requirements-test.txt
 python -m unittest discover -s tests -v
 ```
 
-26 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: ảnh (đồng thời, tệp giả, giới hạn), quyền xóa, lưu đến muộn, phân trang, Excel, tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn tần suất, gửi lại, gửi đồng thời, trả lời bổ sung, gộp với phiếu chi tiết), đánh giá chỉ hiện khi đủ điều kiện.
+28 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: ảnh (đồng thời, tệp giả, giới hạn), quyền xóa, lưu đến muộn, phân trang, Excel, tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn tần suất, gửi lại, gửi đồng thời, trả lời bổ sung, gộp với phiếu chi tiết), đánh giá chỉ hiện khi đủ điều kiện.
 
 **Back/Forward bằng Chromium** (chỉ chạy trên máy chủ thử có `DATA_DIR` riêng, vì bài thử tạo phiếu giả):
 
@@ -314,6 +317,14 @@ python -m playwright install chromium
 python -m uvicorn may_chu:app --host 127.0.0.1 --port 8000     # cửa sổ khác, DATA_DIR thử
 python tests/browser_history.py --base-url http://127.0.0.1:8000
 ```
+
+**Đóng gói sau khi sửa CSS hoặc JS.** Trang chủ dùng bản nén trong `web/da-nen/` và chèn thẳng CSS màn hình đầu vào trang (mã băm của nó tự thêm vào chính sách bảo mật CSP). Sửa `web/*.css`, `web/app.js` hoặc `web/ngon-ngu.js` xong thì chạy lại:
+
+```bash
+python cong-cu/dong_goi.py      # cần esbuild (npm i -g esbuild) và Playwright Chromium
+```
+
+Quên chạy thì trang vẫn đúng: máy chủ thấy mã băm không khớp nên dùng tệp gốc và CSS trong thẻ đầu trang như trước, chỉ chậm hơn; kiểm thử `test_packed_files_match_sources` sẽ báo.
 
 Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md](KIEM_TRA_GIAO_DIEN.md).
 
@@ -329,6 +340,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 19/11/2026 | Góp ý nhóm (đợt 3) và PageSpeed | Thư viện mẫu: bấm ngành nào thì chỉ hiện mẫu ngành đó, có nút Tất cả (khung xem lớn cũng chỉ lướt trong ngành đang chọn). Quy trình: bỏ kiểu tự sáng lần lượt; bấm từng bước để xem bước đó (mở sẵn bước 1). Thứ tự phần: phần "Có ý tưởng. Có hướng bắt đầu." (bài viết) lên trước, phần tư vấn để khách chốt nằm cuối. Phần tư vấn giãn khoảng cách. Ba dịch vụ TVC, Animation, Video giới thiệu doanh nghiệp là liên kết tới đúng phần trên trang dịch vụ video của B PRODUCTIONS. Bản đồ chân trang mở thẳng địa điểm B PRODUCTIONS trên Google Maps. Khung xem mẫu có thẻ ngành (bấm để xem mẫu cùng ngành), phong cách, Video AI. Tốc độ: CSS màn hình đầu chèn thẳng vào trang, tệp CSS đầy đủ chuyển xuống cuối trang (hết chặn hiển thị); JS và CSS nén bằng esbuild (cong-cu/dong_goi.py, web/da-nen/); ảnh, chữ và dãy chấm của điện thoại mẫu đầu ghi sẵn trong trang; đoạn giới thiệu và hàng nút màn hình đầu không bắt đầu từ trong suốt; bỏ các lần đo bố cục lúc mở trang (bay tim, dòng chữ đổi kiểu, thư viện, chạy lại hiệu ứng); tia quét tiêu đề và vạch mã vạch chạy bằng dịch chuyển (bộ xử lý đồ họa tự chạy). Đo giả lập điện thoại 4G chậm, CPU chậm 4 lần: hiện chữ đầu tiên 1,8 → 0,5 giây, nội dung lớn nhất 2,2 → 0,5 giây; kiểu chữ toàn trang khớp bản cũ ở 3 khổ màn hình |
 | 19/11/2026 | Điện thoại hiện ra không từ trong suốt | Ba điện thoại ở màn hình đầu vẫn trồi lên và xòe ra nhưng không bắt đầu từ trong suốt (trình duyệt không tính phần tử trong suốt là nội dung lớn nhất). Đo giả lập điện thoại 4G chậm: nội dung lớn nhất là ảnh điện thoại, hiện sau 2,0 giây (trước 2,3 giây) |
 | 19/11/2026 | Ảnh hai điện thoại bên có sẵn trong trang | Máy chủ ghi sẵn ảnh hai điện thoại bên ở màn hình đầu vào HTML (thứ tự giống app.js, MAU_DAU = ST025) và ưu tiên tải, vì PageSpeed tính ảnh này là nội dung lớn nhất mà trước đây phải chờ app.js mới biết để tải |
 | 19/11/2026 | Ảnh vừa khung | Theo PageSpeed (điện thoại 92 điểm): logo đầu trang và chân trang dùng bản nhỏ (logo-chu-den-nho.webp, logo-chu-trang-nho.webp); ảnh dẫn chứng quy trình còn 120 điểm ảnh ngang; điện thoại mẫu giữa có srcset để điện thoại tải ảnh 270 thay cho 360 điểm ảnh. Ảnh thừa cỡ khi tải trang trên điện thoại: khoảng 105 KB → 24 KB |

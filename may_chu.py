@@ -6,6 +6,7 @@ và trang nhân viên (xem phiếu, số liệu, tải Excel).
 Chạy thử:  uvicorn may_chu:app --port 8000
 Dữ liệu:   SQLite trong thư mục du-lieu/ (mặc định), hoặc PostgreSQL nếu đặt DATABASE_URL.
 """
+import base64
 import hashlib
 import html
 import hmac
@@ -1169,13 +1170,65 @@ _GOI = {"moc": None, "noi_dung": b"", "ma": ""}
 def goi_css():
     moc = tuple((WEB / ten).stat().st_mtime_ns for ten in GOI_CSS)
     if _GOI["moc"] != moc:
-        chu = "\n".join((WEB / ten).read_text(encoding="utf-8") for ten in GOI_CSS)
-        chu = re.sub(r"/\*.*?\*/", "", chu, flags=re.S)
-        chu = re.sub(r"\s+", " ", chu)
-        chu = re.sub(r"\s*([{};])\s*", r"\1", chu).strip()
-        noi_dung = chu.encode("utf-8")
-        _GOI.update(moc=moc, noi_dung=noi_dung, ma=hashlib.md5(noi_dung).hexdigest()[:10])
+        nen = ban_nen("goi.css", GOI_CSS)
+        if nen is None:
+            chu = "\n".join((WEB / ten).read_text(encoding="utf-8") for ten in GOI_CSS)
+            chu = re.sub(r"/\*.*?\*/", "", chu, flags=re.S)
+            chu = re.sub(r"\s+", " ", chu)
+            chu = re.sub(r"\s*([{};])\s*", r"\1", chu).strip()
+            nen = chu.encode("utf-8")
+        _GOI.update(moc=moc, noi_dung=nen, ma=hashlib.md5(nen).hexdigest()[:10])
     return _GOI
+
+
+# Bản nén do cong-cu/dong_goi.py tạo trong web/da-nen/. Dòng đầu ghi mã băm của tệp gốc; chỉ dùng khi còn khớp,
+# nên sửa tệp gốc mà quên đóng gói lại thì trang vẫn chạy đúng bằng tệp gốc (chỉ nặng hơn).
+DA_NEN = WEB / "da-nen"
+_NEN = {}
+
+
+def ban_nen(ten, nguon):
+    if os.environ.get("BO_QUA_DA_NEN"):
+        return None
+    tep = DA_NEN / ten
+    try:
+        moc = (tep.stat().st_mtime_ns, *((WEB / t).stat().st_mtime_ns for t in nguon))
+    except OSError:
+        return None
+    cu = _NEN.get(ten)
+    if cu and cu[0] == moc:
+        return cu[1]
+    noi_dung = tep.read_bytes()
+    h = hashlib.md5()
+    for t in nguon:
+        h.update((WEB / t).read_bytes())
+    khop = noi_dung.startswith(f"/*nguon:{h.hexdigest()}*/".encode())
+    _NEN[ten] = (moc, noi_dung if khop else None)
+    return _NEN[ten][1]
+
+
+def css_dau():
+    """CSS của thanh trên và phần mở đầu, chèn thẳng vào trang chủ (None nếu chưa đóng gói hoặc đã cũ)."""
+    nen = ban_nen("dau.css", GOI_CSS)
+    if nen is None:
+        return None
+    if _NEN.get("dau-bam", (None,))[0] != nen:
+        _NEN["dau-bam"] = (nen, "sha256-" + base64.b64encode(hashlib.sha256(nen).digest()).decode())
+    return nen.decode("utf-8"), _NEN["dau-bam"][1]
+
+
+def bam_css_dau():
+    dau = css_dau()
+    return f" '{dau[1]}'".encode() if dau else b""
+
+
+def noi_dung_js(ten):
+    nen = ban_nen(ten, (ten,))
+    return nen if nen is not None else (WEB / ten).read_bytes()
+
+
+async def tep_js(request):
+    return Response(noi_dung_js(request.url.path.lstrip("/")), media_type="text/javascript; charset=utf-8")
 
 
 async def tep_goi_css(request):
@@ -1185,6 +1238,8 @@ async def tep_goi_css(request):
 def _ma_phien_ban(duong):
     if duong == "/goi.css":
         return goi_css()["ma"]
+    if duong in ("/app.js", "/ngon-ngu.js"):
+        return hashlib.md5(noi_dung_js(duong[1:])).hexdigest()[:10]
     tep = WEB / duong.lstrip("/")
     try:
         moc = tep.stat().st_mtime_ns
@@ -1215,7 +1270,22 @@ async def trang_chu(request):
     if MAU_DAU in ds:
         ds.remove(MAU_DAU); ds.insert(0, MAU_DAU)
     if ds:
-        trang = trang.replace("__ANH_TRAI__", ds[-1]).replace("__ANH_PHAI__", ds[1 % len(ds)])
+        mau_dau = next(m for m in MAU if m["ma"] == ds[0])
+        # Chữ dưới điện thoại (ngành, tên, kiểu) của mẫu đầu cũng ghi sẵn, để khung chữ không đổi cỡ khi app.js chạy (CLS).
+        trang = (trang.replace("__ANH_TRAI__", ds[-1]).replace("__ANH_PHAI__", ds[1 % len(ds)])
+                 .replace("__MAU_DAU__", html.escape(ds[0])).replace("__DT_NGANH__", html.escape(mau_dau.get("nhom", "")))
+                 .replace("__DT_TEN__", html.escape(mau_dau.get("ten", ""))).replace("__DT_KIEU__", html.escape(mau_dau.get("kieu", ""))))
+    # Dãy chấm đếm mẫu dưới điện thoại cũng ghi sẵn (app.js dùng lại vì đủ số chấm).
+    trang = trang.replace("__DT_CHAM__", '<i class="hien"></i>' + "<i></i>" * (len(ds) - 1) if ds else "")
+    trang = trang.replace("__DT_NGANH__", "").replace("__DT_TEN__", "").replace("__DT_KIEU__", "")
+    # CSS màn hình đầu chèn thẳng vào trang để trình duyệt vẽ ngay; tệp CSS đầy đủ chuyển xuống cuối trang
+    # nên không còn chặn hiển thị (PageSpeed: "Yêu cầu chặn hiển thị"). Chưa đóng gói thì giữ như cũ.
+    dau = css_dau()
+    if dau:
+        the_css = re.search(r'<link rel="stylesheet" href="/goi\.css[^"]*">\n?', trang)
+        if the_css:
+            trang = trang.replace(the_css.group(0), f"<style>{dau[0]}</style>\n", 1)
+            trang = trang.replace('<script type="application/json" id="cau-hinh">', the_css.group(0) + '<script type="application/json" id="cau-hinh">', 1)
     return HTMLResponse(trang, headers={"Cache-Control": TRANG_CONG_KHAI})
 
 
@@ -1287,7 +1357,7 @@ class BaoVe:
                                     else b"no-cache"))
                 tieu_de += [(b"x-content-type-options", b"nosniff"), (b"x-frame-options", b"DENY"),
                             (b"referrer-policy", b"strict-origin-when-cross-origin"),
-                            (b"content-security-policy", b"default-src 'self'; img-src 'self' data: blob: https://i.ytimg.com; style-src 'self'; "
+                            (b"content-security-policy", b"default-src 'self'; img-src 'self' data: blob: https://i.ytimg.com; style-src 'self'" + bam_css_dau() + b"; "
                                                          b"script-src 'self'; frame-src https://www.youtube-nocookie.com https://www.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")]
                 tin = {**tin, "headers": tieu_de}
             await send(tin)
@@ -1303,6 +1373,8 @@ app = BaoVe(GZipMiddleware(Starlette(routes=[
     Route("/chinh-sach", trang_chinh_sach),
     Route("/chinh-sach.html", trang_chinh_sach),
     Route("/goi.css", tep_goi_css),
+    Route("/app.js", tep_js),
+    Route("/ngon-ngu.js", tep_js),
     Route("/api/suc-khoe", suc_khoe),
     Route("/api/cau-hinh", cau_hinh),
     Route("/api/luot-xem", ghi_luot_xem, methods=["POST"]),

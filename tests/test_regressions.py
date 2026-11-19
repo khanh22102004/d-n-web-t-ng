@@ -344,5 +344,25 @@ class RegressionTests(unittest.TestCase):
         self.assertEqual(m.sql('SELECT so FROM luot_xem WHERE nguon=?', ('test',), 'mot')[0], 8)
 
 
+    def test_packed_files_match_sources(self):
+        # web/da-nen/ phải được đóng gói lại (python cong-cu/dong_goi.py) mỗi khi sửa CSS hoặc app.js / ngon-ngu.js
+        for ten, nguon in (('app.js', ('app.js',)), ('ngon-ngu.js', ('ngon-ngu.js',)), ('goi.css', m.GOI_CSS), ('dau.css', m.GOI_CSS)):
+            self.assertIsNotNone(m.ban_nen(ten, nguon), f'web/da-nen/{ten} cũ: chạy python cong-cu/dong_goi.py')
+
+    def test_home_inlines_first_screen_css_with_csp_hash(self):
+        r = self.client.get('/')
+        self.assertEqual(r.status_code, 200)
+        dau, bam = m.css_dau()
+        self.assertIn('<style>' + dau + '</style>', r.text)
+        self.assertIn(f"'{bam}'", r.headers['content-security-policy'])
+        # tệp CSS đầy đủ chuyển xuống cuối trang, trước các tệp JS; ảnh và chữ mẫu đầu có sẵn trong trang
+        self.assertLess(r.text.index('href="/goi.css'), r.text.index('src="/app.js'))
+        self.assertGreater(r.text.index('href="/goi.css'), r.text.index('</main>'))
+        self.assertNotIn('__', r.text.split('id="cau-hinh"')[0].replace('__cf', ''))
+        self.assertIn('class="dt-mot hien" data-ma="ST025"', r.text)
+        js = self.client.get('/app.js')
+        self.assertTrue(js.text.startswith('/*nguon:'))
+
+
 if __name__ == '__main__':
     unittest.main()
