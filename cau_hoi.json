@@ -43,7 +43,7 @@
     {"so": 5, "nhom": "muc-dich", "cau": "Sau khi xem video, Quý khách hàng muốn người xem làm gì?",
      "truong": [
        {"id": "hanh_dong", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Mua hàng", "Nhắn tin hoặc gọi điện", "Vào website", "Đăng ký", "Chỉ cần nhớ thương hiệu"]},
-       {"id": "hien_dung", "kieu": "chu", "nhan": "Thông tin cần hiện đúng từng chữ, nếu có", "vi_du": "0901 234 567, nang.vn, mã NANG10", "bat_buoc": false}
+       {"id": "hien_dung", "kieu": "chu", "nhan": "Số điện thoại, website hoặc mã ưu đãi cần ghi trong video, nếu có", "vi_du": "0901 234 567, nang.vn, mã NANG10", "bat_buoc": false}
      ]},
     {"so": 6, "nhom": "muc-dich", "cau": "Xin hỏi, người xem video của Quý khách hàng là những ai?",
      "truong": [
@@ -180,7 +180,7 @@
     {"so": 36, "nhom": "muc-dich", "cau": "Sau khi xem video, Quý khách hàng muốn ứng viên làm gì?",
      "truong": [
        {"id": "hanh_dong", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Nộp hồ sơ trên website", "Gọi điện hoặc nhắn Zalo", "Quét mã QR để ứng tuyển", "Đến phỏng vấn trực tiếp"]},
-       {"id": "hien_dung", "kieu": "chu", "nhan": "Thông tin cần hiện đúng từng chữ, nếu có", "vi_du": "tuyendung@nangviet.vn, hạn nộp 30/12", "bat_buoc": false}
+       {"id": "hien_dung", "kieu": "chu", "nhan": "Email, số điện thoại hoặc hạn nộp hồ sơ cần ghi trong video, nếu có", "vi_du": "tuyendung@nangviet.vn, hạn nộp 30/12", "bat_buoc": false}
      ]},
     {"so": 37, "nhom": "thong-tin", "cau": "Quý khách hàng muốn làm video mạng xã hội theo hướng nào?",
      "truong": [

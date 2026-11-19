@@ -1006,7 +1006,7 @@ KHUON_YEU_CAU = [
                                                      ("Chạy quảng cáo trả phí", "8.quang_cao")]),
     ("Thời gian cần hoàn thiện video là lúc nào?", None, [("Cần có video", "17.han")]),
     ("Dự trù kinh phí", "Nếu có", [("Dự định chi", "18.ngan_sach")]),
-    ("Các yêu cầu khác", "Nếu có", [("Thông tin cần hiện đúng từng chữ", "5.hien_dung"), ("Thông tin cần hiện đúng từng chữ", "36.hien_dung"),
+    ("Các yêu cầu khác", "Nếu có", [("Thông tin ghi trong video", "5.hien_dung"), ("Thông tin ghi trong video", "36.hien_dung"),
                                     ("Điều cần tránh", "13.can_tranh"),
                                     ("Câu chữ cần giữ nguyên", "13.giu_nguyen"), ("Biết đến B PRODUCTIONS qua", "20.nguon")]),
 ]
