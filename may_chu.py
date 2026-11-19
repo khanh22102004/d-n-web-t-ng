@@ -1157,7 +1157,31 @@ TRANG_CONG_KHAI = "public, max-age=0, must-revalidate, s-maxage=86400"
 _BAM = {}
 
 
+# Trang chủ và trang chính sách nạp MỘT tệp CSS gộp (/goi.css) thay cho 4 tệp riêng: bớt 3 lượt hỏi máy chủ trước khi trang hiện chữ
+# (PageSpeed báo CSS chặn hiển thị). Gộp đúng thứ tự cũ, bỏ chú thích và khoảng trắng thừa; dựng lại khi một tệp gốc đổi.
+GOI_CSS = ("style.css", "brand.css", "desktop.css", "can-doi.css")
+_GOI = {"moc": None, "noi_dung": b"", "ma": ""}
+
+
+def goi_css():
+    moc = tuple((WEB / ten).stat().st_mtime_ns for ten in GOI_CSS)
+    if _GOI["moc"] != moc:
+        chu = "\n".join((WEB / ten).read_text(encoding="utf-8") for ten in GOI_CSS)
+        chu = re.sub(r"/\*.*?\*/", "", chu, flags=re.S)
+        chu = re.sub(r"\s+", " ", chu)
+        chu = re.sub(r"\s*([{};])\s*", r"\1", chu).strip()
+        noi_dung = chu.encode("utf-8")
+        _GOI.update(moc=moc, noi_dung=noi_dung, ma=hashlib.md5(noi_dung).hexdigest()[:10])
+    return _GOI
+
+
+async def tep_goi_css(request):
+    return Response(goi_css()["noi_dung"], media_type="text/css; charset=utf-8")
+
+
 def _ma_phien_ban(duong):
+    if duong == "/goi.css":
+        return goi_css()["ma"]
     tep = WEB / duong.lstrip("/")
     try:
         moc = tep.stat().st_mtime_ns
@@ -1268,6 +1292,7 @@ app = BaoVe(GZipMiddleware(Starlette(routes=[
     Route("/nhan-vien", trang_nhan_vien),
     Route("/chinh-sach", trang_chinh_sach),
     Route("/chinh-sach.html", trang_chinh_sach),
+    Route("/goi.css", tep_goi_css),
     Route("/api/suc-khoe", suc_khoe),
     Route("/api/cau-hinh", cau_hinh),
     Route("/api/luot-xem", ghi_luot_xem, methods=["POST"]),

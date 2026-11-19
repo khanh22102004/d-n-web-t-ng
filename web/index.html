@@ -10,15 +10,11 @@
 <meta property="og:description" content="Chọn phong cách Quý khách hàng thích. Cùng B PRODUCTIONS đưa câu chuyện sản phẩm lên hình.">
 <meta name="theme-color" content="#1c1c1c">
 <link rel="icon" href="/bieu-tuong.png" type="image/png">
-<link rel="preconnect" href="https://i.ytimg.com">
 <link rel="preconnect" href="https://www.youtube-nocookie.com">
 <link rel="preload" href="/fonts/InterDisplay-ExtraBold.woff" as="font" type="font/woff" crossorigin>
 <link rel="preload" href="/fonts/Inter-Regular.woff" as="font" type="font/woff" crossorigin>
-<link rel="preload" href="/anh-mau/ST025.webp" as="image" type="image/webp">
-<link rel="stylesheet" href="/style.css">
-<link rel="stylesheet" href="/brand.css">
-<link rel="stylesheet" href="/desktop.css">
-<link rel="stylesheet" href="/can-doi.css">
+<link rel="preload" href="/anh-mau/ST025.webp" as="image" type="image/webp" fetchpriority="high">
+<link rel="stylesheet" href="/goi.css">
 </head>
 <body class="parent-brand">
 <a class="bo-qua" href="#noi-dung">Đến nội dung chính</a>
@@ -27,18 +23,7 @@
   <nav aria-label="Điều hướng chính">
     <ul class="menu">
       <li class="menu-trang-chu"><a href="#mo-dau" data-phan="mo-dau">Trang chủ</a></li>
-      <li class="menu-co-con" id="menu-co-con">
-        <button type="button" class="menu-nut" id="menu-kieu-nut" aria-expanded="false" aria-controls="menu-kieu" data-phan="mau">Kiểu video</button>
-        <div class="menu-kieu" id="menu-kieu" hidden>
-          <div><p class="menu-nho">Theo ngành hàng</p><div class="menu-kieu-luoi" id="menu-kieu-luoi"></div></div>
-          <div class="menu-kieu-ben">
-            <p class="menu-kieu-hoi">Chưa biết chọn kiểu nào?</p>
-            <p>Quý khách hàng để lại tên sản phẩm, chúng tôi tư vấn kiểu video hợp với sản phẩm.</p>
-            <a class="nut" href="#tu-van">Nhờ tư vấn</a>
-            <a class="menu-tat-ca" href="#mau">Xem tất cả <span data-so-mau>13</span> video mẫu</a>
-          </div>
-        </div>
-      </li>
+      <li><a href="#mau" data-phan="mau">Kiểu video</a></li>
       <li><a href="#ve-b-productions" data-phan="ve-b-productions">Về B PRODUCTIONS</a></li>
       <li><a href="#goc-chia-se" data-phan="goc-chia-se">Blog</a></li>
     </ul>
@@ -50,10 +35,9 @@
 <dialog class="menu-dt" id="menu-dt" aria-labelledby="menu-dt-tieu-de">
   <div class="menu-dt-dau"><p id="menu-dt-tieu-de">Menu</p><button type="button" class="menu-dong" id="menu-dong" aria-label="Đóng menu">×</button></div>
   <nav aria-label="Menu trên điện thoại">
-    <ul class="menu-dt-ds menu-dt-dau-ds"><li><a href="#mo-dau">Trang chủ</a></li></ul>
-    <p class="menu-nho">Kiểu video theo ngành hàng</p>
-    <div class="menu-kieu-luoi" id="menu-dt-kieu"></div>
     <ul class="menu-dt-ds">
+      <li><a href="#mo-dau">Trang chủ</a></li>
+      <li><a href="#mau">Kiểu video</a></li>
       <li><a href="#ve-b-productions">Về B PRODUCTIONS</a></li>
       <li><a href="#goc-chia-se">Blog</a></li>
     </ul>
@@ -110,7 +94,6 @@
           <span class="dt-cham" id="dt-cham" aria-hidden="true"></span>
           <span class="dt-goi-y" aria-hidden="true" data-goi-y="Kéo ngang để xem mẫu khác">Vuốt ngang để xem mẫu khác</span>
         </div>
-        <p class="dt-nguon" id="dt-nguon" hidden></p>
       </div>
     </div>
     <div class="hero-footer">
@@ -135,10 +118,11 @@
         <p class="dan goi-y-tieng"><span class="song-am" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>Bấm vào ảnh để xem video có tiếng.</p>
       </div>
     </div>
-    <div class="loc" id="loc" role="group" aria-label="Lọc mẫu video"></div>
+    <div class="loc" id="loc" role="group" aria-label="Lọc mẫu video" hidden></div>
     <div class="loc loc-nganh" id="loc-nganh" role="group" aria-label="Chọn ngành hàng" hidden></div>
     <p class="loc-dang-chon" id="loc-dang-chon" hidden></p>
-    <div class="ray-hop">
+    <div class="hang-mau-ds" id="hang-mau"></div>
+    <div class="ray-hop" hidden>
       <ul class="ray" id="luoi-mau" tabindex="0" aria-label="Danh sách mẫu video" aria-describedby="ray-goi-y"></ul>
       <div class="ray-huong-dan" id="ray-huong-dan" hidden>
         <p id="ray-goi-y">Vuốt ngang để xem thêm <span aria-hidden="true">↔</span></p>
@@ -171,10 +155,14 @@
   <section class="quy-trinh" id="quy-trinh" aria-labelledby="quy-trinh-tieu-de">
     <div class="muc-dau"><h2 id="quy-trinh-tieu-de">Quy trình làm video</h2></div>
     <ol class="quy-trinh-ds">
-      <li><h3>Gửi yêu cầu</h3><p>Điền phiếu hoặc nhờ tư vấn. Chúng tôi liên hệ lại trong <span data-hen>một ngày làm việc</span>.</p></li>
-      <li><h3>Chốt ý tưởng</h3><p>Thống nhất mục đích, phong cách, thời lượng và hạn giao.</p></li>
-      <li><h3>Sản xuất</h3><p>Đội Penguin Lab thực hiện và báo tiến độ cho Quý khách hàng.</p></li>
-      <li><h3>Kiểm tra, bàn giao</h3><p>Xem lại toàn bộ rồi mới gửi video.</p></li>
+      <li><h3>Gửi yêu cầu</h3><p>Điền phiếu hoặc nhờ tư vấn. Chúng tôi liên hệ lại trong <span data-hen>một ngày làm việc</span>.</p>
+        <button type="button" class="qt-chung" data-qt-phieu><img src="/anh-quy-trinh/phieu.webp" alt="" width="390" height="620" loading="lazy"><span>Phiếu yêu cầu trên trang <b>Mở phiếu →</b></span></button></li>
+      <li><h3>Chốt ý tưởng</h3><p>Thống nhất mục đích, phong cách, thời lượng và hạn giao.</p>
+        <a class="qt-chung" href="https://www.bprovn.com/blog/dich-vu-san-xuat-video-marketing" target="_blank" rel="noopener noreferrer"><img src="/anh-quy-trinh/chon-kieu.webp" alt="" width="390" height="620" loading="lazy"><span>Quý khách hàng chọn kiểu video ngay trong phiếu <b>Cách chọn kiểu video ↗</b></span></a></li>
+      <li><h3>Sản xuất</h3><p>Đội Penguin Lab thực hiện và báo tiến độ cho Quý khách hàng.</p>
+        <button type="button" class="qt-chung" data-mo-mau="ST025"><img src="/anh-mau/nho/ST025.webp" alt="" width="270" height="480" loading="lazy"><span>Một video do đội thực hiện <b>Xem video mẫu ST025</b></span></button></li>
+      <li><h3>Kiểm tra, bàn giao</h3><p>Xem lại toàn bộ rồi mới gửi video.</p>
+        <button type="button" class="qt-chung" data-mo-mau="ST029"><img src="/anh-mau/nho/ST029.webp" alt="" width="270" height="480" loading="lazy"><span>Video 9:16 đăng được ngay lên TikTok, Reels, Shorts <b>Xem video mẫu ST029</b></span></button></li>
     </ol>
   </section>
 
@@ -184,10 +172,9 @@
   </section>
 
   <section class="tu-van" id="tu-van" aria-labelledby="tu-van-tieu-de">
-    <div class="tu-van-chu"><h2 id="tu-van-tieu-de">Sản phẩm của Quý khách hàng<br>có thể lên hình thế nào?</h2><p class="dan">Để lại tên sản phẩm và số liên hệ. Chúng tôi sẽ cùng Quý khách hàng tìm phong cách phù hợp và trao đổi chi phí.</p><div class="tu-van-hang"><figure class="tv-xem-truoc" aria-hidden="true"><div class="tv-may"><div class="tv-man"><img class="tv-xt-anh" src="/anh-mau/ST029.webp" alt="" width="360" height="640" loading="lazy"><span class="tv-xt-nhan">9:16</span><p class="tv-xt-chu"><span>Sản phẩm của Quý khách hàng</span></p></div></div></figure><div class="tu-van-them"><p class="tu-van-hen">Phản hồi trong <strong data-hen>một ngày làm việc</strong>.</p><p class="tu-van-goi"><a id="goi-studio" hidden></a></p><div class="tu-van-chi-tiet"><p class="tvct-hoi">Quý khách đã có yêu cầu rõ ràng?</p><p class="tvct-mo">Điền phiếu chi tiết 20 câu, khoảng 5–7 phút, để nhận phương án và báo giá sát hơn.</p><button type="button" class="nut tvct-nut" data-bat-dau>Gửi yêu cầu chi tiết →</button></div></div></div></div>
+    <div class="tu-van-chu"><h2 id="tu-van-tieu-de">Sản phẩm của Quý khách hàng<br>có thể lên hình thế nào?</h2><p class="dan">Để lại tên sản phẩm và số liên hệ. Chúng tôi sẽ cùng Quý khách hàng tìm phong cách phù hợp và trao đổi chi phí.</p><div class="tu-van-hang"><div class="tu-van-them"><p class="tu-van-hen">Phản hồi trong <strong data-hen>một ngày làm việc</strong>.</p><p class="tu-van-goi"><a id="goi-studio" hidden></a></p><div class="tu-van-chi-tiet"><p class="tvct-hoi">Quý khách đã có yêu cầu rõ ràng?</p><p class="tvct-mo">Điền phiếu chi tiết 20 câu, khoảng 5–7 phút, để nhận phương án và báo giá sát hơn.</p><button type="button" class="nut tvct-nut" data-bat-dau>Gửi yêu cầu chi tiết →</button></div></div></div></div>
     <div class="tu-van-hop">
       <form id="form-tu-van" novalidate>
-        <div class="tv-mini" aria-hidden="true"><div class="tv-man"><img class="tv-xt-anh" src="/anh-mau/nho/ST029.webp" alt="" width="270" height="480" loading="lazy"><p class="tv-xt-chu"><span>Sản phẩm của Quý khách hàng</span></p></div></div>
         <h3>Nhận phương án và báo giá</h3>
         <div class="truong"><label class="nhan" for="tv-san-pham">Quý khách hàng muốn giới thiệu sản phẩm gì?</label><input type="text" id="tv-san-pham" name="san_pham" maxlength="300" placeholder="Ví dụ: son dưỡng, cà phê, ứng dụng…" required></div>
         <div class="truong"><label class="nhan" for="tv-lien-he">Số điện thoại của Quý khách hàng</label><input type="tel" id="tv-lien-he" name="lien_he" maxlength="30" autocomplete="tel" inputmode="tel" placeholder="0901 234 567" required></div>
@@ -267,6 +254,7 @@
     </div>
   </div>
 </dialog>
+<button type="button" class="quay-lai-form" id="quay-lai-form" hidden></button>
 <div class="thanh-duoi" id="thanh-duoi" hidden><a class="nut" href="#tu-van">Nhận báo giá</a><a class="nut-phu" href="#mau">Xem video mẫu</a></div>
 <footer class="chan-trang">
   <div class="chan-thuong-hieu"><img class="logo-anh logo-chan" src="/logo-chu-trang.webp" width="480" height="324" alt="B PRODUCTIONS" loading="lazy"><p class="chan-khau-hieu">Video AI cho câu chuyện của Quý khách hàng.</p><p class="chan-nam">Thành lập năm <strong>2017</strong></p></div>
