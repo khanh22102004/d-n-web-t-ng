@@ -949,3 +949,8 @@ body.parent-brand .quy-trinh-ds p { max-width: 30ch; }
   body.parent-brand .quy-trinh-ds li:not(:last-child)::after, body.parent-brand .quy-trinh-ds li:nth-child(2)::after { display: block; top: 40px; bottom: 4px; left: 18px; right: auto; width: 1px; height: auto; }
   body.parent-brand .quy-trinh-ds h3 { align-self: center; margin: 7px 0 2px; }
 }
+
+/* Điện thoại: thư viện mẫu chỉ hiện 6 mẫu đầu, còn lại mở bằng nút "Xem thêm" (luật cũ trong style.css bị luật hiển thị lưới đè nên không chạy) */
+@media (max-width: 760px) {
+  body.parent-brand .mau-toi .ray.thu-gon > li:nth-child(n+7) { display: none; }
+}

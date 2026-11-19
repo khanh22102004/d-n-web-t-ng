@@ -329,6 +329,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 19/11/2026 | Điện thoại: thư viện mẫu gọn lại | Sửa lỗi luật "thu gọn" bị đè nên điện thoại hiện cả 13 mẫu liền nhau (phần mẫu cao 3553px); nay hiện 6 mẫu đầu + nút "Xem thêm 7 mẫu", phần mẫu còn 1855px, cả trang ngắn hơn khoảng 1700px |
 | 19/11/2026 | Quy trình gọn hơn | 4 bước dạng các vòng tròn số nối nhau bằng đường mảnh (điện thoại: xếp dọc, đường nối dọc); bỏ đường kẻ ngang và các vạch dọc, bớt khoảng trắng trên dưới |
 | 19/11/2026 | Giữ điện thoại minh họa ở phần tư vấn | Máy tính: hàng dưới cột trái = điện thoại minh họa + (phản hồi, gọi trực tiếp, khung phiếu chi tiết); đầu điện thoại ngang dòng "Phản hồi", đáy ngang khung phiếu chi tiết; hai cột thẳng đầu, thẳng đáy |
 | 19/11/2026 | Phần tư vấn gọn hơn | Máy tính: bỏ điện thoại minh họa ở cột trái; "Phản hồi trong… · Gọi trực tiếp…" một hàng; khung "Quý khách đã có yêu cầu rõ ràng?" nằm ngang (chữ bên trái, nút bên phải); hai cột thẳng đầu và thẳng đáy |
