@@ -901,23 +901,21 @@ body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut:hover { background: #e9e6e0
 body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 @media (max-width: 760px) { body.parent-brand .tu-van-them .tu-van-chi-tiet { max-width: none; margin-top: 18px; } body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut { width: 100%; justify-content: center; } }
 
-/* Phần tư vấn trên máy tính — gọn và cân:
-   cột trái chỉ còn tiêu đề, lời dẫn, một hàng thông tin (phản hồi · gọi trực tiếp) và khung phiếu chi tiết nằm ngang;
-   bỏ điện thoại minh họa (khung bên phải đã là nơi thao tác); hai cột thẳng đầu, thẳng đáy. */
+/* Phần tư vấn trên máy tính — gọn và cân, giữ điện thoại minh họa làm điểm nhấn:
+   hàng dưới = [điện thoại | (phản hồi, gọi trực tiếp, khung phiếu chi tiết)], đầu điện thoại ngang dòng "Phản hồi",
+   đáy điện thoại ngang đáy khung phiếu chi tiết; hai cột thẳng đầu, thẳng đáy. */
 @media (min-width: 901px) {
   body.parent-brand .tu-van { align-items: stretch; align-content: center; }
   body.parent-brand .tu-van-chu { display: flex; flex-direction: column; }
-  body.parent-brand .tu-van-chu .tu-van-hang { display: block; margin-top: auto; padding-top: 28px; }
-  body.parent-brand .tu-van-chu .tv-xem-truoc { display: none; }
-  body.parent-brand .tu-van-them { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
-  body.parent-brand .tu-van-them > .tu-van-hen, body.parent-brand .tu-van-them > .tu-van-goi { margin: 0; }
-  body.parent-brand .tu-van-them > .tu-van-goi:not(:empty)::before { content: ""; display: inline-block; width: 4px; height: 4px; margin: 0 14px 3px 0; border-radius: 50%; background: #6f6b65; vertical-align: middle; }
+  body.parent-brand .tu-van-chu .tu-van-hang { display: flex; align-items: stretch; gap: clamp(20px, 2.4vw, 32px); margin-top: auto; padding-top: 28px; }
+  body.parent-brand .tu-van-chu .tv-xem-truoc { display: flex; align-self: stretch; justify-content: center; }
+  body.parent-brand .tu-van-hang .tv-may { width: clamp(124px, 9.6vw, 140px); }
+  body.parent-brand .tu-van-them { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  body.parent-brand .tu-van-them > .tu-van-hen, body.parent-brand .tu-van-them > .tu-van-goi { margin: 0; line-height: 1.5; }
   body.parent-brand .tu-van-them .tu-van-goi a { min-height: 0; }
-  body.parent-brand .tu-van-them .tu-van-chi-tiet { flex-basis: 100%; max-width: none; margin-top: 18px; padding: 20px 22px;
-    display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 20px; row-gap: 4px; align-items: center; }
-  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-hoi { grid-column: 1; }
-  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-mo { grid-column: 1; margin: 0; }
-  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut { grid-column: 2; grid-row: 1 / span 2; min-height: 46px; white-space: nowrap; }
+  body.parent-brand .tu-van-them .tu-van-chi-tiet { max-width: none; margin-top: auto; padding: 16px 18px 18px; gap: 4px; }
+  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-mo { margin: 0 0 10px; }
+  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut { min-height: 44px; }
 }
 /* khung bên phải và cột trái cao bằng nhau; phần dư dồn trước nút gửi */
 @media (min-width: 901px) {
@@ -925,10 +923,4 @@ body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut:focus-visible { outline: 2p
   body.parent-brand .tu-van-hop > form { flex: 1; display: flex; flex-direction: column; }
   body.parent-brand .tu-van-hop > form > button[type="submit"] { margin-top: auto; }
   body.parent-brand .tu-van-hop > form > .tv-dong-y { margin-bottom: 22px; }
-}
-@media (min-width: 901px) and (max-width: 1180px) {
-  body.parent-brand .tu-van-them > .tu-van-goi:not(:empty)::before { display: none; }
-  body.parent-brand .tu-van-them > .tu-van-goi { flex-basis: 100%; }
-  body.parent-brand .tu-van .tu-van-chi-tiet { grid-template-columns: 1fr; }
-  body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut { grid-column: 1; grid-row: auto; justify-self: start; margin-top: 8px; }
 }

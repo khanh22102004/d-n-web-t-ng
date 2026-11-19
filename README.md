@@ -329,6 +329,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 19/11/2026 | Giữ điện thoại minh họa ở phần tư vấn | Máy tính: hàng dưới cột trái = điện thoại minh họa + (phản hồi, gọi trực tiếp, khung phiếu chi tiết); đầu điện thoại ngang dòng "Phản hồi", đáy ngang khung phiếu chi tiết; hai cột thẳng đầu, thẳng đáy |
 | 19/11/2026 | Phần tư vấn gọn hơn | Máy tính: bỏ điện thoại minh họa ở cột trái; "Phản hồi trong… · Gọi trực tiếp…" một hàng; khung "Quý khách đã có yêu cầu rõ ràng?" nằm ngang (chữ bên trái, nút bên phải); hai cột thẳng đầu và thẳng đáy |
 | 19/11/2026 | Cân hai cột phần tư vấn | Màn rộng: đầu và chân cột trái thẳng hàng với khung điền thông tin; "Phản hồi trong…" và "Gọi trực tiếp…" chung một hàng khi đủ chỗ; khung phiếu chi tiết và điện thoại minh họa thẳng đáy; màn 901–1180px khung bên phải đứng giữa |
 | 19/11/2026 | Lối vào phiếu chi tiết nổi rõ hơn | Phần tư vấn: "Quý khách đã có yêu cầu rõ ràng?" thành một khung có viền, dòng giải thích (20 câu, khoảng 5–7 phút) và nút trắng "Gửi yêu cầu chi tiết →"; có bản dịch Nhật, Anh |
