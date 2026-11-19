@@ -77,11 +77,14 @@
     const anhRieng = typeof m.anh_bia === "string" && m.anh_bia.startsWith("/anh-mau/") && !m.anh_bia.includes("..") && !/[?#]/.test(m.anh_bia) ? m.anh_bia : "";
     let daDuPhong = false, daJpg = false;
     i.addEventListener("error", () => {
+      i.removeAttribute("srcset");
       if (!daDuPhong && i.getAttribute("src") !== taiCho) { daDuPhong = true; i.src = taiCho; }
       else if (!daJpg) { daJpg = true; i.src = duPhongJpg; }
       else { i.hidden = true; k.classList.add("thieu-anh"); }
     });
     i.addEventListener("load", () => { i.hidden = false; k.classList.remove("thieu-anh"); });
+    // Ảnh đủ nét (net === true, điện thoại mẫu giữa): trình duyệt tự chọn ảnh 270 hay 360 điểm ảnh theo cỡ khung và mật độ màn hình.
+    if (!anhRieng && net === true) { i.srcset = `/anh-mau/nho/${m.ma}.webp 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 140px, 240px"; }
     i.src = anhRieng || (net === "nho" ? `/anh-mau/nho/${m.ma}.webp` : net === "tuong" ? `/anh-mau/tuong/${m.ma}.webp` : taiCho);   // "tuong": ảnh 180×320 chỉ cho tường nền
     // Không còn đổi sang ảnh bìa YouTube độ nét cao: ảnh WebP của trang đã đủ nét cho khung điện thoại,
     // và việc đổi ảnh muộn làm chỉ số "nội dung lớn nhất" (LCP) của PageSpeed bị tính trễ.
