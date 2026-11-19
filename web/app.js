@@ -621,12 +621,14 @@
       if (dt.yt.v) { if (duoc) dt.yt.v.play().catch(() => {}); else dt.yt.v.pause(); }
       else { const lenh = duoc ? "playVideo" : "pauseVideo"; if (dt.yt.lenh !== lenh) { dt.yt.lenh = lenh; dtLenh(lenh); } }   // chỉ gửi khi đổi trạng thái, để YouTube không hiện lại nút của nó
     }
-    if (!luot) chayLai(tien, "chay", null, false);
+    // Thanh chạy dưới máy: dùng Web Animations, tạo lại mỗi lượt (không gỡ/gắn lớp rồi đọc lại hiệu ứng,
+    // việc đó bắt trình duyệt tính lại kiểu cả trang ngay lúc mở trang — PageSpeed: "Buộc chỉnh lại luồng").
+    dt.tienHieuUng?.cancel(); dt.tienHieuUng = null;
     if (luot) {
       // Video chưa chạy được (mạng chậm, bị chặn): vẫn chờ một lượt video rồi xoay tiếp, không đứng im.
       let tg = dt.yt?.dangPhat || choVideo ? DT_VIDEO : DT_LUOT;
       if (!daTuongTac) tg = Math.max(tg, moc12 - performance.now());
-      tien.style.animationDuration = `${tg}ms`; chayLai(tien, "chay", ["tien"]);
+      if (tien.animate) dt.tienHieuUng = tien.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: tg, easing: "linear", fill: "both" });
       dt.hen = setTimeout(() => dtXoay(1), tg);
     }
   }

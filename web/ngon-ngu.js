@@ -49,7 +49,10 @@
       const mo = () => {
         if (k.querySelector("iframe")) return;
         const f = document.createElement("iframe");
-        f.src = "https://www.google.com/maps?q=" + encodeURIComponent(k.dataset.banDo) + "&hl=" + nn + "&z=16&output=embed";
+        // Có mã địa điểm Google (data-ban-do-cid) thì mở đúng ghim "B Productions Đà Nẵng"; không thì tìm theo địa chỉ.
+        const cid = /^\d+$/.test(k.dataset.banDoCid || "") ? k.dataset.banDoCid : "";
+        f.src = cid ? "https://www.google.com/maps?cid=" + cid + "&hl=" + nn + "&z=17&output=embed"
+          : "https://www.google.com/maps?q=" + encodeURIComponent(k.dataset.banDo) + "&hl=" + nn + "&z=16&output=embed";
         f.title = dich("Bản đồ đến B PRODUCTIONS"); f.loading = "lazy"; f.referrerPolicy = "no-referrer-when-downgrade"; f.allowFullscreen = true;
         k.appendChild(f);
         const nut = k.querySelector(".ban-do-nut"); if (nut) nut.remove();
