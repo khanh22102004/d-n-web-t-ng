@@ -924,3 +924,28 @@ body.parent-brand .tu-van .tu-van-chi-tiet .tvct-nut:focus-visible { outline: 2p
   body.parent-brand .tu-van-hop > form > button[type="submit"] { margin-top: auto; }
   body.parent-brand .tu-van-hop > form > .tv-dong-y { margin-bottom: 22px; }
 }
+
+/* ======================================================================
+   QUY TRÌNH — gọn: 4 bước nối nhau bằng một đường mảnh, số trong vòng tròn
+   ====================================================================== */
+body.parent-brand .quy-trinh { padding-top: 56px; padding-bottom: 60px; }
+body.parent-brand .quy-trinh .muc-dau { margin-bottom: 0; }
+body.parent-brand .quy-trinh-ds { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 28px; margin-top: 30px; border-top: 0; }
+body.parent-brand .quy-trinh-ds li, body.parent-brand .quy-trinh-ds li + li, body.parent-brand .quy-trinh-ds li:nth-child(n) { position: relative; padding: 0; border: 0; }
+body.parent-brand .quy-trinh-ds li::before { position: relative; z-index: 1; display: grid; place-items: center; width: 36px; height: 36px; margin: 0 0 14px; border-radius: 50%;
+  background: var(--bp-logo); color: #fff; font: 700 .875rem/1 "Inter", system-ui, sans-serif; content: counter(buoc); }
+body.parent-brand .quy-trinh-ds li:not(:last-child)::after { content: ""; position: absolute; top: 18px; left: 48px; right: -16px; height: 1px; background: var(--bp-vien); }
+body.parent-brand .quy-trinh-ds h3 { margin: 0 0 4px; }
+body.parent-brand .quy-trinh-ds p { max-width: 30ch; }
+@media (max-width: 900px) {
+  body.parent-brand .quy-trinh-ds { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 26px; }
+  body.parent-brand .quy-trinh-ds li:nth-child(2)::after { display: none; }
+}
+@media (max-width: 760px) {
+  body.parent-brand .quy-trinh { padding-top: 34px; padding-bottom: 34px; }
+  body.parent-brand .quy-trinh-ds { grid-template-columns: 1fr; row-gap: 0; margin-top: 20px; }
+  body.parent-brand .quy-trinh-ds li, body.parent-brand .quy-trinh-ds li + li, body.parent-brand .quy-trinh-ds li:nth-child(n) { display: grid; grid-template-columns: 36px 1fr; column-gap: 14px; padding: 0 0 20px; }
+  body.parent-brand .quy-trinh-ds li::before { grid-row: span 2; margin: 0; font-size: .875rem; line-height: 1; }
+  body.parent-brand .quy-trinh-ds li:not(:last-child)::after, body.parent-brand .quy-trinh-ds li:nth-child(2)::after { display: block; top: 40px; bottom: 4px; left: 18px; right: auto; width: 1px; height: auto; }
+  body.parent-brand .quy-trinh-ds h3 { align-self: center; margin: 7px 0 2px; }
+}

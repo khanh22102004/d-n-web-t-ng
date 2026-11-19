@@ -329,6 +329,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 19/11/2026 | Quy trình gọn hơn | 4 bước dạng các vòng tròn số nối nhau bằng đường mảnh (điện thoại: xếp dọc, đường nối dọc); bỏ đường kẻ ngang và các vạch dọc, bớt khoảng trắng trên dưới |
 | 19/11/2026 | Giữ điện thoại minh họa ở phần tư vấn | Máy tính: hàng dưới cột trái = điện thoại minh họa + (phản hồi, gọi trực tiếp, khung phiếu chi tiết); đầu điện thoại ngang dòng "Phản hồi", đáy ngang khung phiếu chi tiết; hai cột thẳng đầu, thẳng đáy |
 | 19/11/2026 | Phần tư vấn gọn hơn | Máy tính: bỏ điện thoại minh họa ở cột trái; "Phản hồi trong… · Gọi trực tiếp…" một hàng; khung "Quý khách đã có yêu cầu rõ ràng?" nằm ngang (chữ bên trái, nút bên phải); hai cột thẳng đầu và thẳng đáy |
 | 19/11/2026 | Cân hai cột phần tư vấn | Màn rộng: đầu và chân cột trái thẳng hàng với khung điền thông tin; "Phản hồi trong…" và "Gọi trực tiếp…" chung một hàng khi đủ chỗ; khung phiếu chi tiết và điện thoại minh họa thẳng đáy; màn 901–1180px khung bên phải đứng giữa |
