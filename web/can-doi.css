@@ -1065,3 +1065,14 @@ body.parent-brand .quy-trinh-ds.chay li:nth-child(4)::before, body.parent-brand 
   }
   body.parent-brand .quy-trinh-ds p { max-width: none; }
 }
+
+/* Màn hình đầu: điện thoại hiện ra bằng chuyển động, không bắt đầu từ trong suốt.
+   Trình duyệt không tính phần tử đang trong suốt lúc vẽ lần đầu là "nội dung lớn nhất", nên trước đây PageSpeed phải chờ ảnh khác (LCP trễ). */
+@media (prefers-reduced-motion: no-preference) {
+  html.hieu-ung body.parent-brand .san-khau .dien-thoai, body.parent-brand .san-khau .dien-thoai { animation-name: bp-len-may; }
+  html.hieu-ung body.parent-brand .san-khau .dt-ben, body.parent-brand .san-khau .dt-ben { animation-name: bp-xoe-trai-ro; }
+  html.hieu-ung body.parent-brand .san-khau .dt-ben.phai, body.parent-brand .san-khau .dt-ben.phai { animation-name: bp-xoe-phai-ro; }
+}
+@keyframes bp-len-may { from { translate: 0 22px; } }
+@keyframes bp-xoe-trai-ro { from { translate: 60% 18px; } }
+@keyframes bp-xoe-phai-ro { from { translate: -60% 18px; } }

@@ -329,6 +329,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 19/11/2026 | Điện thoại hiện ra không từ trong suốt | Ba điện thoại ở màn hình đầu vẫn trồi lên và xòe ra nhưng không bắt đầu từ trong suốt (trình duyệt không tính phần tử trong suốt là nội dung lớn nhất). Đo giả lập điện thoại 4G chậm: nội dung lớn nhất là ảnh điện thoại, hiện sau 2,0 giây (trước 2,3 giây) |
 | 19/11/2026 | Ảnh hai điện thoại bên có sẵn trong trang | Máy chủ ghi sẵn ảnh hai điện thoại bên ở màn hình đầu vào HTML (thứ tự giống app.js, MAU_DAU = ST025) và ưu tiên tải, vì PageSpeed tính ảnh này là nội dung lớn nhất mà trước đây phải chờ app.js mới biết để tải |
 | 19/11/2026 | Ảnh vừa khung | Theo PageSpeed (điện thoại 92 điểm): logo đầu trang và chân trang dùng bản nhỏ (logo-chu-den-nho.webp, logo-chu-trang-nho.webp); ảnh dẫn chứng quy trình còn 120 điểm ảnh ngang; điện thoại mẫu giữa có srcset để điện thoại tải ảnh 270 thay cho 360 điểm ảnh. Ảnh thừa cỡ khi tải trang trên điện thoại: khoảng 105 KB → 24 KB |
 | 19/11/2026 | Quy trình cân đối | Máy tính: 4 cột quy trình chia hàng chung (vòng số, tiêu đề, mô tả, ô dẫn chứng) nên 4 ô dẫn chứng thẳng hàng và cao bằng nhau dù mô tả dài ngắn khác nhau |
