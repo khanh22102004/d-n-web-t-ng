@@ -1,6 +1,19 @@
 {
-  "phien_ban": "2026-11-13",
+  "phien_ban": "2026-11-19",
+  "bo_mac_dinh": "san-pham-dich-vu",
+  "loai": [
+    {"id": "doanh-nghiep", "ten": "Video doanh nghiệp", "mo_ta": "Giới thiệu công ty, nhà máy, đội ngũ", "cau": [21, 22, 31, 30, 32, 23, 24, 25, 26, 27, 28, 29, 13, 14, 15, 16, 17, 18, 19, 20]},
+    {"id": "tuyen-dung", "ten": "Video tuyển dụng", "mo_ta": "Thu hút ứng viên cho vị trí đang tuyển", "cau": [21, 22, 33, 34, 35, 36, 23, 24, 25, 26, 27, 28, 29, 14, 15, 16, 17, 18, 19, 20]},
+    {"id": "san-pham-dich-vu", "ten": "Sản phẩm, dịch vụ", "mo_ta": "Giới thiệu và bán sản phẩm, dịch vụ", "cau": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]},
+    {"id": "mang-xa-hoi", "ten": "Video mạng xã hội", "mo_ta": "Nội dung cho kênh TikTok, Facebook, YouTube", "cau": [21, 22, 37, 4, 5, 6, 7, 8, 9, 10, 11, 29, 13, 14, 15, 16, 17, 18, 19, 20]},
+    {"id": "giao-duc", "ten": "Giáo dục, tuyển sinh", "mo_ta": "Tuyển sinh, giới thiệu trường và khóa học", "cau": [21, 38, 39, 40, 41, 23, 24, 25, 26, 27, 28, 29, 13, 14, 15, 16, 17, 18, 19, 20]},
+    {"id": "dao-tao", "ten": "Video đào tạo nhân viên", "mo_ta": "Quy trình, kỹ năng, hội nhập", "cau": [21, 42, 43, 44, 45, 23, 24, 25, 26, 27, 28, 29, 13, 14, 15, 16, 17, 18, 19, 20]},
+    {"id": "su-kien", "ten": "Sự kiện", "mo_ta": "Trước, trong và sau sự kiện", "cau": [21, 46, 47, 23, 24, 25, 26, 27, 28, 29, 13, 14, 15, 16, 17, 18, 19, 20]},
+    {"id": "khac", "ten": "Khác", "mo_ta": "Loại video khác, mô tả để chúng tôi tư vấn", "cau": [21, 22, 48, 23, 24, 25, 26, 27, 28, 29, 13, 14, 15, 16, 17, 18, 19, 20]}
+  ],
   "nhom": [
+    {"id": "loai-video", "ten": "Loại video", "mo_ta": "Mỗi loại video có bộ câu hỏi riêng, hợp với việc Quý khách hàng cần làm"},
+    {"id": "thong-tin", "ten": "Thông tin chung", "mo_ta": "Đơn vị của Quý khách hàng và nội dung chính của video"},
     {"id": "san-pham", "ten": "Sản phẩm", "mo_ta": "Quý khách hàng muốn giới thiệu sản phẩm nào"},
     {"id": "muc-dich", "ten": "Mục đích và người xem", "mo_ta": "Video dùng để làm gì và dành cho ai"},
     {"id": "hinh-thuc", "ten": "Hình thức video", "mo_ta": "Nơi đăng, số lượng, độ dài và kiểu video"},
@@ -17,71 +30,49 @@
      ]},
     {"so": 2, "nhom": "san-pham", "cau": "Sản phẩm của Quý khách hàng thuộc nhóm nào?",
      "truong": [
-       {"id": "nhom", "kieu": "mot", "bat_buoc": true, "tu_dien": true,
-        "lua_chon": ["Mỹ phẩm, làm đẹp", "Thực phẩm", "Thời trang", "Ứng dụng, phần mềm", "Cửa hàng, dịch vụ"]}
+       {"id": "nhom", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Mỹ phẩm, làm đẹp", "Thực phẩm", "Thời trang", "Ứng dụng, phần mềm", "Cửa hàng, dịch vụ"]}
      ]},
     {"so": 3, "nhom": "san-pham", "cau": "Quý khách hàng muốn người xem nhớ nhất điều gì về sản phẩm?", "goi_y": "Chọn tối đa ba.",
      "truong": [
-       {"id": "diem_nho", "kieu": "nhieu", "toi_da": 3, "bat_buoc": true, "tu_dien": true,
-        "lua_chon": ["Giá tốt", "Chất lượng", "Khuyến mãi", "Thương hiệu uy tín", "Tính năng nổi bật"]}
+       {"id": "diem_nho", "kieu": "nhieu", "toi_da": 3, "bat_buoc": true, "tu_dien": true, "lua_chon": ["Giá tốt", "Chất lượng", "Khuyến mãi", "Thương hiệu uy tín", "Tính năng nổi bật"]}
      ]},
-
     {"so": 4, "nhom": "muc-dich", "cau": "Xin hỏi, video này Quý khách hàng định dùng để làm gì?", "goi_y": "Chọn một mục chính.",
      "truong": [
-       {"id": "muc_dich", "kieu": "mot", "bat_buoc": true, "tu_dien": true,
-        "lua_chon": ["Bán hàng", "Giới thiệu thương hiệu", "Ra mắt sản phẩm mới", "Thông báo khuyến mãi"]}
+       {"id": "muc_dich", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Bán hàng", "Giới thiệu thương hiệu", "Ra mắt sản phẩm mới", "Thông báo khuyến mãi"]}
      ]},
     {"so": 5, "nhom": "muc-dich", "cau": "Sau khi xem video, Quý khách hàng muốn người xem làm gì?",
      "truong": [
-       {"id": "hanh_dong", "kieu": "mot", "bat_buoc": true, "tu_dien": true,
-        "lua_chon": ["Mua hàng", "Nhắn tin hoặc gọi điện", "Vào website", "Đăng ký", "Chỉ cần nhớ thương hiệu"]},
+       {"id": "hanh_dong", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Mua hàng", "Nhắn tin hoặc gọi điện", "Vào website", "Đăng ký", "Chỉ cần nhớ thương hiệu"]},
        {"id": "hien_dung", "kieu": "chu", "nhan": "Thông tin cần hiện đúng từng chữ, nếu có", "vi_du": "0901 234 567, nang.vn, mã NANG10", "bat_buoc": false}
      ]},
     {"so": 6, "nhom": "muc-dich", "cau": "Xin hỏi, người xem video của Quý khách hàng là những ai?",
      "truong": [
-       {"id": "tuoi", "kieu": "nhieu", "nhan": "Độ tuổi", "bat_buoc": true,
-        "lua_chon": ["Dưới 18", "18 đến 24", "25 đến 34", "35 đến 44", "Từ 45 trở lên"]},
-       {"id": "gioi_tinh", "kieu": "mot", "nhan": "Giới tính", "bat_buoc": true,
-        "lua_chon": ["Nam", "Nữ", "Cả hai"]}
+       {"id": "tuoi", "kieu": "nhieu", "nhan": "Độ tuổi", "bat_buoc": true, "lua_chon": ["Dưới 18", "18 đến 24", "25 đến 34", "35 đến 44", "Từ 45 trở lên"]},
+       {"id": "gioi_tinh", "kieu": "mot", "nhan": "Giới tính", "bat_buoc": true, "lua_chon": ["Nam", "Nữ", "Cả hai"]}
      ]},
-
     {"so": 7, "nhom": "hinh-thuc", "cau": "Quý khách hàng định đăng video ở đâu?", "goi_y": "Chọn được nhiều nơi.",
      "truong": [
-       {"id": "noi_dang", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true,
-        "lua_chon": ["TikTok", "Facebook, Instagram", "YouTube Shorts", "Zalo"]}
+       {"id": "noi_dang", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "lua_chon": ["TikTok", "Facebook, Instagram", "YouTube Shorts", "Zalo"]}
      ]},
     {"so": 8, "nhom": "hinh-thuc", "cau": "Quý khách hàng có định dùng video này để chạy quảng cáo trả phí không?",
      "truong": [
-       {"id": "quang_cao", "kieu": "mot", "bat_buoc": true,
-        "lua_chon": ["Có", "Không", "Chưa quyết định"]}
+       {"id": "quang_cao", "kieu": "mot", "bat_buoc": true, "lua_chon": ["Có", "Không", "Chưa quyết định"]}
      ]},
     {"so": 9, "nhom": "hinh-thuc", "cau": "Quý khách hàng cần làm bao nhiêu video?", "goi_y": "Video được làm theo khung dọc 9:16 để đăng mạng xã hội.",
      "truong": [
-       {"id": "so_video", "kieu": "mot", "bat_buoc": true, "tu_dien": true,
-        "lua_chon": ["1 video", "2 đến 3 video", "4 đến 10 video", "Trên 10 video"]}
+       {"id": "so_video", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["1 video", "2 đến 3 video", "4 đến 10 video", "Trên 10 video"]}
      ]},
     {"so": 10, "nhom": "hinh-thuc", "cau": "Mỗi video Quý khách hàng muốn dài khoảng bao lâu?",
      "truong": [
-       {"id": "do_dai", "kieu": "mot", "bat_buoc": true,
-        "lua_chon": ["Dưới 15 giây", "15 đến 30 giây", "30 đến 60 giây", "Nhờ chúng tôi tư vấn"]}
+       {"id": "do_dai", "kieu": "mot", "bat_buoc": true, "lua_chon": ["Dưới 15 giây", "15 đến 30 giây", "30 đến 60 giây", "Nhờ chúng tôi tư vấn"]}
      ]},
     {"so": 11, "nhom": "hinh-thuc", "cau": "Trong các mẫu của chúng tôi, Quý khách hàng thích kiểu video nào?", "goi_y": "Chọn tối đa hai. Bấm vào ảnh để xem video mẫu.",
      "truong": [
-       {"id": "kieu", "kieu": "nhieu", "toi_da": 2, "bat_buoc": true, "tu_dien": true, "dang_the": true,
-        "lua_chon": [
-          {"ten": "Người mẫu giới thiệu sản phẩm", "mau": "ST029"},
-          {"ten": "Video vui, gây chú ý", "mau": "ST033"},
-          {"ten": "Chỉ có sản phẩm, sang trọng", "mau": "ST051"},
-          {"ten": "Hoạt hình", "mau": "ST025"},
-          {"ten": "Người thật, đời thường", "mau": "ST052"},
-          {"ten": "Giới thiệu ứng dụng", "mau": "ST056"}
-        ]}
+       {"id": "kieu", "kieu": "nhieu", "toi_da": 2, "bat_buoc": true, "tu_dien": true, "dang_the": true, "lua_chon": [{"ten": "Người mẫu giới thiệu sản phẩm", "mau": "ST029"}, {"ten": "Video vui, gây chú ý", "mau": "ST033"}, {"ten": "Chỉ có sản phẩm, sang trọng", "mau": "ST051"}, {"ten": "Hoạt hình", "mau": "ST025"}, {"ten": "Người thật, đời thường", "mau": "ST052"}, {"ten": "Giới thiệu ứng dụng", "mau": "ST056"}]}
      ]},
-
     {"so": 12, "nhom": "noi-dung", "cau": "Hiện tại Quý khách hàng đã có sẵn những gì?", "goi_y": "Chọn được nhiều mục.",
      "truong": [
-       {"id": "da_co", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "rieng": "Chưa có gì",
-        "lua_chon": ["Ảnh sản phẩm", "Video sản phẩm", "Logo", "Kịch bản hoặc ý tưởng", "Video mẫu muốn làm giống", "Chưa có gì"]}
+       {"id": "da_co", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "rieng": "Chưa có gì", "lua_chon": ["Ảnh sản phẩm", "Video sản phẩm", "Logo", "Kịch bản hoặc ý tưởng", "Video mẫu muốn làm giống", "Chưa có gì"]}
      ]},
     {"so": 13, "nhom": "noi-dung", "cau": "Quý khách hàng có điều gì cần tránh, hoặc câu chữ nào cần giữ nguyên không?", "goi_y": "Nếu không có, có thể để trống.",
      "truong": [
@@ -90,46 +81,163 @@
      ]},
     {"so": 14, "nhom": "noi-dung", "cau": "Quý khách hàng muốn video dùng ngôn ngữ nào?", "goi_y": "Chọn được nhiều ngôn ngữ.",
      "truong": [
-       {"id": "ngon_ngu", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true,
-        "lua_chon": ["Tiếng Việt", "Tiếng Nhật", "Tiếng Anh"]}
+       {"id": "ngon_ngu", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Tiếng Việt", "Tiếng Nhật", "Tiếng Anh"]}
      ]},
     {"so": 15, "nhom": "noi-dung", "cau": "Quý khách hàng muốn giọng đọc như thế nào?",
      "truong": [
-       {"id": "giong", "kieu": "mot", "nhan": "Giọng đọc", "bat_buoc": true,
-        "lua_chon": ["Giọng nam", "Giọng nữ", "Không cần giọng đọc"]},
-       {"id": "vung", "kieu": "mot", "nhan": "Giọng vùng", "bat_buoc": true, "bo_qua_neu": {"truong": "giong", "la": "Không cần giọng đọc"}, "chi_khi": {"khoa": "14.ngon_ngu", "co": "Tiếng Việt"},
-        "lua_chon": ["Miền Bắc", "Miền Trung", "Miền Nam"]},
-       {"id": "toc_do", "kieu": "mot", "nhan": "Tốc độ", "bat_buoc": true, "bo_qua_neu": {"truong": "giong", "la": "Không cần giọng đọc"},
-        "lua_chon": ["Chậm", "Vừa", "Nhanh"]}
+       {"id": "giong", "kieu": "mot", "nhan": "Giọng đọc", "bat_buoc": true, "lua_chon": ["Giọng nam", "Giọng nữ", "Không cần giọng đọc"]},
+       {"id": "vung", "kieu": "mot", "nhan": "Giọng vùng", "bat_buoc": true, "bo_qua_neu": {"truong": "giong", "la": "Không cần giọng đọc"}, "chi_khi": {"khoa": "14.ngon_ngu", "co": "Tiếng Việt"}, "lua_chon": ["Miền Bắc", "Miền Trung", "Miền Nam"]},
+       {"id": "toc_do", "kieu": "mot", "nhan": "Tốc độ", "bat_buoc": true, "bo_qua_neu": {"truong": "giong", "la": "Không cần giọng đọc"}, "lua_chon": ["Chậm", "Vừa", "Nhanh"]}
      ]},
     {"so": 16, "nhom": "noi-dung", "cau": "Quý khách hàng có đồng ý cho chúng tôi dùng AI để tạo hình ảnh, video và giọng đọc không?",
      "truong": [
-       {"id": "ai", "kieu": "mot", "bat_buoc": true,
-        "lua_chon": ["Đồng ý", "Đồng ý, nhưng không tạo người thật hoặc giọng người thật", "Không đồng ý"]}
+       {"id": "ai", "kieu": "mot", "bat_buoc": true, "lua_chon": ["Đồng ý", "Đồng ý, nhưng không tạo người thật hoặc giọng người thật", "Không đồng ý"]}
      ]},
-
     {"so": 17, "nhom": "thoi-gian", "cau": "Khi nào Quý khách hàng cần có video?",
      "truong": [
-       {"id": "han", "kieu": "mot", "bat_buoc": true,
-        "lua_chon": ["Trong 3 ngày", "Trong 1 đến 2 tuần", "Hơn 2 tuần", "Chưa có hạn"]}
+       {"id": "han", "kieu": "mot", "bat_buoc": true, "lua_chon": ["Trong 3 ngày", "Trong 1 đến 2 tuần", "Hơn 2 tuần", "Chưa có hạn"]}
      ]},
     {"so": 18, "nhom": "thoi-gian", "cau": "Quý khách hàng dự định chi khoảng bao nhiêu cho video này?",
      "truong": [
-       {"id": "ngan_sach", "kieu": "mot", "bat_buoc": true,
-        "lua_chon": ["Dưới 5 triệu đồng", "5 đến 15 triệu đồng", "15 đến 50 triệu đồng", "Trên 50 triệu đồng", "Nhờ chúng tôi báo giá"]}
+       {"id": "ngan_sach", "kieu": "mot", "bat_buoc": true, "lua_chon": ["Dưới 5 triệu đồng", "5 đến 15 triệu đồng", "15 đến 50 triệu đồng", "Trên 50 triệu đồng", "Nhờ chúng tôi báo giá"]}
      ]},
-
     {"so": 19, "nhom": "lien-he", "cau": "Xin cho biết tên và cách chúng tôi nên liên hệ với Quý khách hàng.",
      "truong": [
        {"id": "ten", "kieu": "chu", "nhan": "Tên của Quý khách hàng", "vi_du": "Nguyễn Văn A", "bat_buoc": true},
-       {"id": "kenh", "kieu": "mot", "nhan": "Cách liên hệ", "bat_buoc": true,
-        "lua_chon": ["Zalo", "Điện thoại", "Email", "Messenger"]},
+       {"id": "kenh", "kieu": "mot", "nhan": "Cách liên hệ", "bat_buoc": true, "lua_chon": ["Zalo", "Điện thoại", "Email", "Messenger"]},
        {"id": "dia_chi", "kieu": "chu", "nhan": "Số điện thoại, email hoặc link Messenger", "vi_du": "0901 234 567", "bat_buoc": true, "kiem_tra": "lien_he"}
      ]},
     {"so": 20, "nhom": "lien-he", "cau": "Quý khách hàng biết đến B PRODUCTIONS qua đâu?",
      "truong": [
-       {"id": "nguon", "kieu": "mot", "bat_buoc": true, "tu_dien": true,
-        "lua_chon": ["TikTok", "Facebook", "YouTube", "Người quen giới thiệu"]}
+       {"id": "nguon", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["TikTok", "Facebook", "YouTube", "Người quen giới thiệu"]}
+     ]},
+    {"so": 21, "nhom": "thong-tin", "cau": "Xin cho biết tên công ty, cửa hàng, trường học hoặc tổ chức của Quý khách hàng.", "co_anh": true, "anh_nhan": "Gửi kèm logo hoặc ảnh tham khảo, nếu có",
+     "truong": [
+       {"id": "ten_don_vi", "kieu": "chu", "nhan": "Tên đơn vị", "vi_du": "Công ty TNHH Nắng Việt", "bat_buoc": true},
+       {"id": "link", "kieu": "chu", "nhan": "Website hoặc trang mạng xã hội, nếu có", "vi_du": "https://…", "bat_buoc": false}
+     ]},
+    {"so": 22, "nhom": "thong-tin", "cau": "Đơn vị của Quý khách hàng hoạt động trong ngành nào?",
+     "truong": [
+       {"id": "nganh", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Sản xuất, xây dựng, logistics", "Ẩm thực", "Làm đẹp", "Y tế, chăm sóc sức khỏe", "Du lịch, khách sạn", "Công nghệ, ứng dụng", "Bất động sản", "Giáo dục", "Giải trí", "Cơ quan nhà nước"]}
+     ]},
+    {"so": 23, "nhom": "hinh-thuc", "cau": "Quý khách hàng định dùng video ở đâu?", "goi_y": "Chọn được nhiều nơi.",
+     "truong": [
+       {"id": "dung_o", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Website", "YouTube", "Facebook, Instagram", "TikTok", "Chiếu tại sự kiện, hội thảo", "Gửi cho khách hàng, đối tác", "Dùng trong nội bộ"]}
+     ]},
+    {"so": 24, "nhom": "hinh-thuc", "cau": "Quý khách hàng cần làm bao nhiêu video?",
+     "truong": [
+       {"id": "so_video", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["1 video", "2 đến 3 video", "4 đến 10 video", "Trên 10 video"]}
+     ]},
+    {"so": 25, "nhom": "hinh-thuc", "cau": "Mỗi video Quý khách hàng muốn dài khoảng bao lâu?",
+     "truong": [
+       {"id": "do_dai", "kieu": "mot", "bat_buoc": true, "lua_chon": ["Dưới 30 giây", "30 giây đến 1 phút", "1 đến 3 phút", "Trên 3 phút", "Nhờ chúng tôi tư vấn"]}
+     ]},
+    {"so": 26, "nhom": "hinh-thuc", "cau": "Video cần làm theo khung hình nào?", "goi_y": "Khung dọc hợp với điện thoại và mạng xã hội. Khung ngang hợp với website, YouTube và màn chiếu.",
+     "truong": [
+       {"id": "khung", "kieu": "mot", "bat_buoc": true, "lua_chon": ["Khung ngang 16:9", "Khung dọc 9:16", "Khung vuông 1:1", "Cả khung ngang và khung dọc", "Nhờ chúng tôi tư vấn"]}
+     ]},
+    {"so": 27, "nhom": "hinh-thuc", "cau": "Quý khách hàng muốn làm video theo cách nào?", "goi_y": "Chọn tối đa hai. Video bằng AI là hình ảnh và nhân vật do AI tạo. Infographic là chữ, số liệu và biểu đồ chuyển động.",
+     "truong": [
+       {"id": "cach_lam", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "toi_da": 2, "rieng": "Nhờ chúng tôi tư vấn", "lua_chon": ["Video bằng AI", "Quay thực tế", "Hoạt hình", "Infographic", "Nhờ chúng tôi tư vấn"]}
+     ]},
+    {"so": 28, "nhom": "hinh-thuc", "cau": "Với phần quay thực tế, xin Quý khách hàng cho biết thêm vài thông tin.", "hien_khi": {"khoa": "27.cach_lam", "co": "Quay thực tế"},
+     "truong": [
+       {"id": "dia_diem", "kieu": "chu", "nhan": "Quay ở đâu, bao nhiêu địa điểm", "vi_du": "Văn phòng ở Quận 1 và nhà máy ở Bình Dương", "bat_buoc": true},
+       {"id": "so_ngay", "kieu": "mot", "nhan": "Thời gian quay dự kiến", "bat_buoc": true, "lua_chon": ["Nửa ngày", "1 ngày", "2 ngày trở lên", "Chưa rõ"]},
+       {"id": "nguoi", "kieu": "mot", "nhan": "Người xuất hiện trong video", "bat_buoc": true, "lua_chon": ["Cần thuê diễn viên", "Dùng người của đơn vị", "Không cần người xuất hiện", "Nhờ chúng tôi tư vấn"]},
+       {"id": "flycam", "kieu": "mot", "nhan": "Quay từ trên cao bằng flycam", "bat_buoc": true, "lua_chon": ["Cần", "Không cần", "Nhờ chúng tôi tư vấn"]}
+     ]},
+    {"so": 29, "nhom": "noi-dung", "cau": "Hiện tại Quý khách hàng đã có sẵn những gì?", "goi_y": "Chọn được nhiều mục.",
+     "truong": [
+       {"id": "da_co", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "rieng": "Chưa có gì", "lua_chon": ["Logo, bộ nhận diện", "Ảnh, video có sẵn", "Kịch bản hoặc ý tưởng", "Tài liệu giới thiệu", "Video mẫu muốn làm giống", "Chưa có gì"]}
+     ]},
+    {"so": 30, "nhom": "muc-dich", "cau": "Video doanh nghiệp này Quý khách hàng định dùng để làm gì?",
+     "truong": [
+       {"id": "muc_dich", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Giới thiệu công ty", "Giới thiệu nhà máy, quy trình", "Kỷ niệm ngày thành lập", "Gặp đối tác, gọi vốn", "Tổng kết năm"]}
+     ]},
+    {"so": 31, "nhom": "thong-tin", "cau": "Video cần nói về những nội dung nào?", "goi_y": "Chọn được nhiều mục.",
+     "truong": [
+       {"id": "noi_dung", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Chặng đường phát triển", "Sản phẩm, dịch vụ chính", "Nhà máy, văn phòng", "Đội ngũ, văn hóa công ty", "Khách hàng, đối tác tiêu biểu", "Thành tựu, giải thưởng"]},
+       {"id": "thong_diep", "kieu": "chu", "nhan": "Câu Quý khách hàng muốn người xem nhớ nhất, nếu có", "vi_du": "Chất lượng làm nên niềm tin", "bat_buoc": false}
+     ]},
+    {"so": 32, "nhom": "muc-dich", "cau": "Video này chủ yếu dành cho ai xem?", "goi_y": "Chọn được nhiều nhóm.",
+     "truong": [
+       {"id": "nguoi_xem", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Khách hàng", "Đối tác, nhà đầu tư", "Nhân viên trong công ty", "Cơ quan nhà nước", "Người đang tìm việc"]}
+     ]},
+    {"so": 33, "nhom": "thong-tin", "cau": "Quý khách hàng đang tuyển những vị trí nào?",
+     "truong": [
+       {"id": "vi_tri", "kieu": "chu", "nhan": "Vị trí cần tuyển", "vi_du": "Nhân viên bán hàng, kỹ sư cơ khí", "bat_buoc": true},
+       {"id": "so_luong", "kieu": "mot", "nhan": "Số người cần tuyển", "bat_buoc": true, "lua_chon": ["1 đến 5 người", "6 đến 20 người", "Trên 20 người"]}
+     ]},
+    {"so": 34, "nhom": "muc-dich", "cau": "Ứng viên Quý khách hàng muốn tìm là ai?", "goi_y": "Chọn được nhiều nhóm.",
+     "truong": [
+       {"id": "ung_vien", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Sinh viên mới ra trường", "Người đã có kinh nghiệm", "Lao động phổ thông", "Cấp quản lý", "Người nước ngoài"]}
+     ]},
+    {"so": 35, "nhom": "muc-dich", "cau": "Quý khách hàng muốn ứng viên thấy điều gì nổi bật nhất ở đơn vị mình?", "goi_y": "Chọn tối đa ba.",
+     "truong": [
+       {"id": "diem_hut", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "toi_da": 3, "lua_chon": ["Lương, thưởng", "Môi trường làm việc", "Cơ hội thăng tiến", "Được đào tạo", "Phúc lợi, chế độ", "Văn hóa công ty"]}
+     ]},
+    {"so": 36, "nhom": "muc-dich", "cau": "Sau khi xem video, Quý khách hàng muốn ứng viên làm gì?",
+     "truong": [
+       {"id": "hanh_dong", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Nộp hồ sơ trên website", "Gọi điện hoặc nhắn Zalo", "Quét mã QR để ứng tuyển", "Đến phỏng vấn trực tiếp"]},
+       {"id": "hien_dung", "kieu": "chu", "nhan": "Thông tin cần hiện đúng từng chữ, nếu có", "vi_du": "tuyendung@nangviet.vn, hạn nộp 30/12", "bat_buoc": false}
+     ]},
+    {"so": 37, "nhom": "thong-tin", "cau": "Quý khách hàng muốn làm video mạng xã hội theo hướng nào?",
+     "truong": [
+       {"id": "huong", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Làm đều đặn cho kênh mỗi tuần, mỗi tháng", "Một chiến dịch ngắn", "Video bắt trend, giải trí", "Chia sẻ kiến thức, mẹo hay"]},
+       {"id": "kenh", "kieu": "mot", "nhan": "Kênh hiện tại", "bat_buoc": true, "lua_chon": ["Chưa có kênh", "Có kênh nhưng ít người xem", "Kênh đã có người xem đều"]}
+     ]},
+    {"so": 38, "nhom": "thong-tin", "cau": "Trường hoặc trung tâm của Quý khách hàng thuộc loại nào?",
+     "truong": [
+       {"id": "loai_truong", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Mầm non", "Tiểu học, trung học", "Cao đẳng, đại học", "Trung tâm ngoại ngữ", "Trung tâm kỹ năng, năng khiếu", "Tư vấn du học"]}
+     ]},
+    {"so": 39, "nhom": "muc-dich", "cau": "Video này Quý khách hàng định dùng để làm gì?",
+     "truong": [
+       {"id": "muc_dich", "kieu": "mot", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Tuyển sinh năm học mới", "Giới thiệu trường, cơ sở vật chất", "Giới thiệu khóa học", "Ghi lại sự kiện của trường"]}
+     ]},
+    {"so": 40, "nhom": "muc-dich", "cau": "Video này chủ yếu dành cho ai xem?", "goi_y": "Chọn được nhiều nhóm.",
+     "truong": [
+       {"id": "nguoi_xem", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Phụ huynh", "Học sinh, sinh viên", "Người đi làm", "Đối tác, nhà tài trợ"]}
+     ]},
+    {"so": 41, "nhom": "muc-dich", "cau": "Quý khách hàng muốn người xem thấy điểm mạnh nào nhất?", "goi_y": "Chọn tối đa ba.",
+     "truong": [
+       {"id": "diem_manh", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "toi_da": 3, "lua_chon": ["Chất lượng giảng dạy", "Cơ sở vật chất", "Học phí hợp lý", "Đầu ra, việc làm", "Hoạt động ngoại khóa", "Môi trường quốc tế"]}
+     ]},
+    {"so": 42, "nhom": "thong-tin", "cau": "Video đào tạo này nói về chủ đề gì?",
+     "truong": [
+       {"id": "chu_de", "kieu": "chu", "nhan": "Chủ đề đào tạo", "vi_du": "Quy trình an toàn khi vận hành máy ép", "bat_buoc": true},
+       {"id": "loai", "kieu": "mot", "nhan": "Thuộc nhóm", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Hội nhập nhân viên mới", "Quy trình, thao tác", "An toàn lao động", "Bán hàng, chăm sóc khách hàng", "Sử dụng phần mềm"]}
+     ]},
+    {"so": 43, "nhom": "muc-dich", "cau": "Xin hỏi, người học là những ai?",
+     "truong": [
+       {"id": "nguoi_hoc", "kieu": "nhieu", "nhan": "Người học", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Nhân viên mới", "Công nhân, kỹ thuật viên", "Nhân viên văn phòng", "Nhân viên bán hàng", "Cấp quản lý"]},
+       {"id": "so_nguoi", "kieu": "mot", "nhan": "Số người học", "bat_buoc": true, "lua_chon": ["Dưới 50 người", "50 đến 200 người", "Trên 200 người"]}
+     ]},
+    {"so": 44, "nhom": "muc-dich", "cau": "Quý khách hàng đã có tài liệu đào tạo chưa?",
+     "truong": [
+       {"id": "tai_lieu", "kieu": "mot", "bat_buoc": true, "lua_chon": ["Đã có tài liệu, cần chuyển thành video", "Có một phần", "Chưa có, cần chúng tôi cùng soạn"]}
+     ]},
+    {"so": 45, "nhom": "muc-dich", "cau": "Video đào tạo có cần thêm phần nào không?", "goi_y": "Nếu không cần, Quý khách hàng có thể bỏ qua câu này.",
+     "truong": [
+       {"id": "them", "kieu": "nhieu", "bat_buoc": false, "tu_dien": true, "lua_chon": ["Câu hỏi kiểm tra sau mỗi phần", "Phụ đề", "Chia thành nhiều video ngắn"]}
+     ]},
+    {"so": 46, "nhom": "thong-tin", "cau": "Xin cho biết về sự kiện của Quý khách hàng.",
+     "truong": [
+       {"id": "ten_su_kien", "kieu": "chu", "nhan": "Tên sự kiện", "vi_du": "Lễ kỷ niệm 10 năm thành lập", "bat_buoc": true},
+       {"id": "loai_su_kien", "kieu": "mot", "nhan": "Loại sự kiện", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Hội nghị, hội thảo", "Ra mắt sản phẩm", "Kỷ niệm, tất niên", "Lễ hội, triển lãm", "Thể thao, cộng đồng"]},
+       {"id": "ngay", "kieu": "chu", "nhan": "Ngày diễn ra", "vi_du": "20/12/2026", "bat_buoc": true},
+       {"id": "dia_diem", "kieu": "chu", "nhan": "Địa điểm, nếu đã có", "vi_du": "Trung tâm hội nghị ở Đà Nẵng", "bat_buoc": false},
+       {"id": "so_khach", "kieu": "mot", "nhan": "Số khách dự kiến", "bat_buoc": true, "lua_chon": ["Dưới 100 người", "100 đến 500 người", "Trên 500 người"]}
+     ]},
+    {"so": 47, "nhom": "muc-dich", "cau": "Quý khách hàng cần những video nào cho sự kiện?", "goi_y": "Chọn được nhiều mục.",
+     "truong": [
+       {"id": "can", "kieu": "nhieu", "bat_buoc": true, "tu_dien": true, "lua_chon": ["Video mời, quảng bá trước sự kiện", "Video mở màn chiếu tại sự kiện", "Quay lại sự kiện", "Video tóm tắt sau sự kiện"]}
+     ]},
+    {"so": 48, "nhom": "thong-tin", "cau": "Quý khách hàng muốn làm video về điều gì?",
+     "truong": [
+       {"id": "mo_ta", "kieu": "doan", "nhan": "Mô tả ngắn", "vi_du": "Video hướng dẫn khách lắp đặt máy lọc nước tại nhà", "bat_buoc": true},
+       {"id": "muc_dich", "kieu": "chu", "nhan": "Video dùng để làm gì, nếu đã rõ", "vi_du": "Gửi kèm khi giao hàng", "bat_buoc": false},
+       {"id": "nguoi_xem", "kieu": "chu", "nhan": "Người xem là ai, nếu đã rõ", "vi_du": "Khách đã mua máy", "bat_buoc": false}
      ]}
   ]
 }

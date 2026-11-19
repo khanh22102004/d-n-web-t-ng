@@ -37,6 +37,8 @@
   doNhipKhung();   // không chờ sự kiện "load": mạng chậm thì "load" đến rất muộn
   document.body.classList.toggle("tam-dung-nen", document.hidden);
   let cauHinh = null, nhom = [], cau = [], mau = {};
+  // Mỗi loại video một bộ câu hỏi. tatCaCau/tatCaNhom: kho chung; cau/nhom: của loại đang chọn (phần "Loại video" luôn đứng đầu).
+  let tatCaCau = [], tatCaNhom = [], dsLoai = [], boDangChon = "", boTuLink = "";
   let maPhieu = "", traLoi = {}, anh = [], viTri = 0, henLuu = 0, dangLuu = Promise.resolve();
   let lanSua = 0, canLuu = false, dangGuiLuu = false, dangGui = false, daGui = false, choThu = 1500, canTaiPhieu = false;
   let luotPhieu = crypto.randomUUID(), doSauLichSu = 0, doSauDaGui = 0, ketQuaDaGui = [];
@@ -1154,14 +1156,85 @@
     hop.addEventListener("close", () => { $("xem-form").hidden = true; $("xem-form").replaceChildren(); chonPhieu = null; nutXemTheoNoiMo(); });
     $("xem-chi-tiet").addEventListener("click", () => {
       kieuCho = dsXem[viTriXem].kieu; hop.close();
-      if ($("phieu").hidden) batDau(); else { apDungKieuCho(); doiNhom(nhom.findIndex(n => n.id === cau.find(c => c.so === 11).nhom)); $("cau-11").scrollIntoView({ block: "start" }); }
+      if ($("phieu").hidden) { batDau(); return; }
+      apDungKieuCho();
+      const c11 = cau.find(c => c.so === 11);
+      if (c11) { doiNhom(nhom.findIndex(n => n.id === c11.nhom)); $("cau-11").scrollIntoView({ block: "start" }); }
     });
   }
   // Ghi kiểu video khách vừa chọn trong trình xem vào câu 11 (tối đa hai kiểu, giữ kiểu mới nhất).
   function apDungKieuCho() {
     if (!kieuCho) return;
+    if (!cau.some(c => c.so === 11)) { kieuCho = ""; return; }
     const cu = (traLoi["11.kieu"] || []).filter(x => x !== kieuCho);
     ghi("11.kieu", [...cu, kieuCho].slice(-2)); kieuCho = "";
+  }
+
+  // ---------- Loại video ----------
+  // Đặt bộ câu hỏi theo loại video. Chưa chọn loại thì phiếu chỉ có phần "Loại video".
+  function datBo(id) {
+    const l = dsLoai.find(x => x.id === id);
+    boDangChon = l ? l.id : "";
+    cau = l ? l.cau.map(so => tatCaCau.find(c => c.so === so)).filter(Boolean) : [];
+    const co = new Set(cau.map(c => c.nhom));
+    nhom = tatCaNhom.filter(n => n.id === "loai-video" || co.has(n.id));
+  }
+  // Phiếu đang dở: theo loại đã lưu; phiếu cũ (trước khi có loại video) đã trả lời câu hỏi thì là bộ "Sản phẩm, dịch vụ".
+  function datBoTheoPhieu(tl, nhomDung) {
+    datBo(tl._bo || (nhomDung && nhomDung !== "loai-video" ? cauHinh.bo_cau_hoi.bo_mac_dinh : ""));
+  }
+  function chonBo(id, chuyenTiep = true) {
+    if (id !== boDangChon) { datBo(id); ghi("_bo", id); }
+    if (chuyenTiep) doiNhom(1);
+  }
+  const tenLoai = id => dsLoai.find(l => l.id === id)?.ten || "";
+  // Câu có "hien_khi" chỉ hiện khi câu khác có lựa chọn cần (thông tin buổi quay chỉ hỏi khi chọn "Quay thực tế").
+  const hienCau = c => { const dk = c.hien_khi; if (!dk) return true; const g = traLoi[dk.khoa]; return (Array.isArray(g) ? g : [g]).includes(dk.co); };
+  const cauHien = () => cau.filter(hienCau);
+  const soHien = c => cauHien().indexOf(c) + 1;
+
+  function veChonLoai() {
+    const hop = tao("div", "cau chon-loai"); hop.id = "cau-loai";
+    const khung = tao("fieldset"), tieuDe = tao("legend");
+    tieuDe.append(tao("span", "", "Quý khách hàng muốn làm loại video nào?"));
+    const day = tao("div", "chon loai-video-ds"); day.setAttribute("role", "group"); day.setAttribute("aria-label", "Loại video");
+    dsLoai.forEach(l => {
+      const b = tao("button", "the-loai"); b.type = "button"; b.setAttribute("aria-pressed", String(l.id === boDangChon));
+      b.append(tao("span", "the-loai-ten", l.ten), tao("span", "the-loai-mo-ta", l.mo_ta));
+      b.addEventListener("click", () => { hop.classList.remove("co-loi"); loi.hidden = true; chonBo(l.id); });
+      day.append(b);
+    });
+    const loi = tao("p", "loi-cau"); loi.hidden = true; loi.setAttribute("role", "alert");
+    khung.append(tieuDe, tao("p", "goi-y", "Mỗi loại có bộ câu hỏi riêng, khoảng 20 câu. Quý khách hàng có thể quay lại đổi loại sau."), day, loi);
+    hop.append(khung); return hop;
+  }
+
+  // Gửi link cho người khác: người nhận mở ra phiếu mới cùng loại video, không thấy câu trả lời của người gửi.
+  async function guiLink() {
+    const u = new URL("/", location.origin), dich = s => (window.dichChu ? window.dichChu(s) : s), bao = $("gui-link-bao");
+    if (boDangChon) u.searchParams.set("loai", boDangChon);
+    u.searchParams.set("nguon", "chia-se");
+    if (window.BP_NN && window.BP_NN !== "vi") u.searchParams.set("lang", window.BP_NN);
+    const url = u.href, chu = dich("Phiếu yêu cầu làm video") + (boDangChon ? `: ${dich(tenLoai(boDangChon))}` : "");
+    bao.hidden = true; $("gui-link-o").hidden = true;
+    if (navigator.share && matchMedia("(pointer: coarse)").matches) {
+      try { await navigator.share({ title: `${cauHinh.studio} · ${chu}`, text: chu, url }); return; }
+      catch (e) { if (e.name === "AbortError") return; }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      bao.textContent = "Đã chép link. Quý khách hàng dán vào Zalo, Messenger hoặc email để gửi."; bao.hidden = false;
+    } catch {
+      const o = $("gui-link-o"); o.value = url; o.hidden = false; o.focus(); o.select();
+      bao.textContent = "Quý khách hàng chép link dưới đây rồi gửi cho người cần điền."; bao.hidden = false;
+    }
+  }
+  // Mở trang từ link được gửi: hỏi đồng ý lưu bản nháp rồi vào thẳng phiếu đúng loại video. Mỗi phiên chỉ tự mở một lần.
+  function moTuLink() {
+    if (!boTuLink || maPhieu || daGui || !$("phieu").hidden || !$("cam-on").hidden) return;
+    try { if (sessionStorage.getItem("bp-mo-link") === boTuLink) return; sessionStorage.setItem("bp-mo-link", boTuLink); } catch { /* bỏ qua */ }
+    $("bat-dau-loai").textContent = `Loại video: ${tenLoai(boTuLink)}`; $("bat-dau-loai").hidden = false;
+    dungTatCa(); $("bat-dau-hop").showModal();
   }
 
   // ---------- Vẽ phiếu ----------
@@ -1223,9 +1296,11 @@
         else chon = [...chon.filter(x => x !== t.rieng), ten];
         ghi(k, nhieu ? chon : (chon[0] || "")); capNhat(); xoaLoi(c);
         if (c.truong.some(x => x.bo_qua_neu?.truong === t.id)) veNhom(false);
-        else if (cau.some(c2 => c2.truong.some(x => x.chi_khi?.khoa === k))) {
+        else if (cau.some(c2 => c2.truong.some(x => x.chi_khi?.khoa === k) || c2.hien_khi?.khoa === k)) {
           cau.forEach(c2 => c2.truong.forEach(x => { if (x.chi_khi?.khoa === k && !canHoi(x.chi_khi)) ghi(`${c2.so}.${x.id}`, ""); }));
+          cau.forEach(c2 => { if (c2.hien_khi?.khoa === k && !hienCau(c2)) Object.keys(traLoi).filter(x => x.startsWith(`${c2.so}.`)).forEach(x => ghi(x, "")); });
           veNhom(false);
+          [...($(`cau-${c.so}`)?.querySelectorAll("button") || [])].find(x => x.textContent === ten)?.focus({ preventScroll: true });
         }
       });
       let the = null;
@@ -1269,9 +1344,9 @@
     } catch { return tep; }
   }
 
-  function veOAnh() {
+  function veOAnh(c) {
     const hop = tao("div", "o-anh"), id = "chon-anh";
-    const nhan = tao("label", "nhan", `Gửi kèm ảnh sản phẩm, nếu có (tối đa ${cauHinh.anh.toi_da} ảnh; ảnh lớn được tự thu nhỏ)`); nhan.htmlFor = id;
+    const nhan = tao("label", "nhan", `${c.anh_nhan || "Gửi kèm ảnh sản phẩm, nếu có"} (tối đa ${cauHinh.anh.toi_da} ảnh; ảnh lớn được tự thu nhỏ)`); nhan.htmlFor = id;
     const o = tao("input", "an-tep"); o.type = "file"; o.id = id; o.accept = "image/jpeg,image/png,image/webp";
     const nutChon = tao("label", "nut-phu nut-chon-anh", "Chọn ảnh từ máy"); nutChon.htmlFor = id;
     const trangThai = tao("span", "trang-thai-anh");
@@ -1306,21 +1381,28 @@
   function veCau(c) {
     const hop = tao("div", "cau"); hop.id = `cau-${c.so}`;
     const khung = tao("fieldset"), tieuDe = tao("legend");
-    tieuDe.append(tao("span", "so-cau", String(c.so)), tao("span", "", c.cau));
+    tieuDe.append(tao("span", "so-cau", String(soHien(c))), tao("span", "", c.cau));
     khung.append(tieuDe);
     if (c.goi_y) khung.append(tao("p", "goi-y", c.goi_y));
     c.truong.forEach(t => { if (!biBoQua(c, t)) khung.append(t.kieu === "chu" || t.kieu === "doan" ? veTruongChu(c, t) : veTruongChon(c, t)); });
-    if (c.co_anh) khung.append(veOAnh());
+    if (c.co_anh) khung.append(veOAnh(c));
     const loi = tao("p", "loi-cau"); loi.hidden = true; loi.setAttribute("role", "alert");
     khung.append(loi); hop.append(khung); return hop;
   }
 
   function veNhom(cuon = true) {
-    const n = nhom[viTri], cuaNhom = cau.filter(c => c.nhom === n.id), cuoi = viTri === nhom.length - 1;
+    const n = nhom[viTri], hienCo = cauHien(), cuaNhom = hienCo.filter(c => c.nhom === n.id), cuoi = viTri === nhom.length - 1 && !!boDangChon;
     $("ten-nhom").textContent = n.ten; $("mo-ta-nhom").textContent = n.mo_ta;
-    $("cac-cau").replaceChildren(...cuaNhom.map(veCau));
-    $("tien-do-nhom").textContent = `Phần ${viTri + 1} trên ${nhom.length}, câu ${cuaNhom[0].so} đến ${cuaNhom[cuaNhom.length - 1].so}`;
-    $("tien-do-day").style.width = `${Math.round((cuaNhom[0].so - 1) / cau.length * 100)}%`;
+    if (n.id === "loai-video") {
+      $("cac-cau").replaceChildren(veChonLoai());
+      $("tien-do-nhom").textContent = boDangChon ? `Loại video: ${tenLoai(boDangChon)}` : "Chọn loại video";
+      $("tien-do-day").style.width = "0%";
+    } else {
+      $("cac-cau").replaceChildren(...cuaNhom.map(veCau));
+      const dau = hienCo.indexOf(cuaNhom[0]) + 1, cuoiNhom = hienCo.indexOf(cuaNhom[cuaNhom.length - 1]) + 1;
+      $("tien-do-nhom").textContent = `Phần ${viTri + 1} trên ${nhom.length}, câu ${dau} đến ${cuoiNhom}`;
+      $("tien-do-day").style.width = `${Math.round((dau - 1) / hienCo.length * 100)}%`;
+    }
     $("phieu-cac-buoc").replaceChildren(...nhom.map((buoc, i) => {
       const li = tao("li", i < viTri ? "da-qua" : ""), so = tao("span", "", i < viTri ? "✓" : String(i + 1).padStart(2, "0"));
       so.setAttribute("aria-hidden", "true");
@@ -1392,8 +1474,14 @@
   function baoLoi(c, chu) { const hop = $(`cau-${c.so}`), p = hop.querySelector("fieldset > .loi-cau:last-child"); hop.classList.add("co-loi"); p.textContent = chu; p.hidden = false; }
 
   function kiemTraNhom() {
+    if (nhom[viTri].id === "loai-video") {
+      if (boDangChon) return true;
+      const hop = $("cau-loai"), p = hop.querySelector(".loi-cau");
+      hop.classList.add("co-loi"); p.textContent = "Quý khách hàng vui lòng chọn một loại video."; p.hidden = false;
+      hop.querySelector("button")?.focus(); return false;
+    }
     let dau = null;
-    cau.filter(c => c.nhom === nhom[viTri].id).forEach(c => { const loi = loiCuaCau(c); if (loi) { baoLoi(c, loi); dau = dau || c; } });
+    cauHien().filter(c => c.nhom === nhom[viTri].id).forEach(c => { const loi = loiCuaCau(c); if (loi) { baoLoi(c, loi); dau = dau || c; } });
     if (dau) { $(`cau-${dau.so}`).scrollIntoView({ block: "start" }); const o = $(`cau-${dau.so}`).querySelector("input, textarea, button"); if (o) o.focus({ preventScroll: true }); }
     return !dau;
   }
@@ -1411,14 +1499,14 @@
       const thieu = e.chi_tiet?.thieu?.[0];
       if (thieu) { const c = cau.find(x => x.so === thieu.so); doiNhom(nhom.findIndex(n => n.id === c.nhom), { thayThe: true }); baoLoi(c, thieu.thong_bao); $(`cau-${c.so}`).scrollIntoView({ block: "start" }); }
       else { loi.textContent = e.message; loi.hidden = false; }
-    } finally { dangGui = false; if (canLuu && !daGui) henLuuLai(); $("tiep-tuc").disabled = false; if (!$("phieu").hidden) $("tiep-tuc").textContent = viTri === nhom.length - 1 ? "Gửi phiếu" : "Lưu và tiếp tục"; }
+    } finally { dangGui = false; if (canLuu && !daGui) henLuuLai(); $("tiep-tuc").disabled = false; if (!$("phieu").hidden) $("tiep-tuc").textContent = viTri === nhom.length - 1 && boDangChon ? "Gửi phiếu" : "Lưu và tiếp tục"; }
   }
 
   // ---------- Chuyển màn ----------
   function hien(man) {
     document.body.classList.toggle("man-phieu", man === "phieu");
     document.body.classList.toggle("man-cam-on", man === "cam-on");
-    ["mo-dau", "mau", "ve-b-productions", "danh-gia", "tu-van", "goc-chia-se", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
+    ["mo-dau", "mau", "ve-b-productions", "quy-trinh", "danh-gia", "tu-van", "goc-chia-se", "phieu", "cam-on"].forEach(id => { $(id).hidden = man === "dau" ? (id === "phieu" || id === "cam-on") : id !== man; });
     $("danh-gia").hidden = man !== "dau" || !(cauHinh.danh_gia || []).length;
     if (man !== "dau") dongMenu();
     document.querySelectorAll(".dau-trang nav").forEach(n => { n.hidden = man !== "dau"; });
@@ -1519,12 +1607,15 @@
     $("bat-dau-hop").close();
     document.querySelectorAll("[data-bat-dau]").forEach(b => { b.disabled = true; });
     try {
-      if (daGui) { maPhieu = ""; traLoi = {}; anh = []; viTri = 0; daGui = false; canLuu = false; ketQuaDaGui = []; $("dong-y").checked = false; }
+      if (daGui) { maPhieu = ""; traLoi = {}; anh = []; viTri = 0; daGui = false; canLuu = false; ketQuaDaGui = []; $("dong-y").checked = false; datBo(""); }
       if (!maPhieu) {
         maPhieu = (await goi("/api/phieu", { method: "POST", body: JSON.stringify({ nguon: nguon(), dong_y_luu: true }) })).id;
         luotPhieu = crypto.randomUUID(); nho.ghi(KHOA_PHIEU, maPhieu);
         dienTuTuVan();
+        const boDau = boTuLink || (kieuCho ? cauHinh.bo_cau_hoi.bo_mac_dinh : "");
+        if (boDau && !boDangChon) { chonBo(boDau, false); viTri = 1; }
       }
+      if (kieuCho && !boDangChon) { chonBo(cauHinh.bo_cau_hoi.bo_mac_dinh, false); viTri = 1; }
       apDungKieuCho(); doiNhom(viTri);
     } catch (e) { loi.textContent = e.message; loi.hidden = false; $("mo-dau").scrollIntoView(); }
     finally { document.querySelectorAll("[data-bat-dau]").forEach(b => { b.disabled = false; }); }
@@ -1544,7 +1635,7 @@
         // Cơ sở dữ liệu được thay mới: không bỏ mất nội dung đang lưu trên thiết bị.
         nho.xoa(KHOA_PHIEU); maPhieu = ""; canTaiPhieu = false;
         if (nhap) {
-          traLoi = nhap.tra_loi; viTri = Math.max(0, nhom.findIndex(n => n.id === nhap.nhom)); canLuu = true;
+          traLoi = nhap.tra_loi; datBoTheoPhieu(traLoi, nhap.nhom); viTri = Math.max(0, nhom.findIndex(n => n.id === nhap.nhom)); canLuu = true;
           $("dang-do").textContent = "Phiếu cũ không còn trên máy chủ. Bấm bắt đầu để tạo phiếu mới từ bản nháp trên thiết bị này.";
           $("dang-do").hidden = false;
         }
@@ -1562,13 +1653,14 @@
       canLuu = true;
     }
     maPhieu = ma; traLoi = p.tra_loi || {}; anh = p.anh || [];
+    datBoTheoPhieu(traLoi, p.nhom_dang_dung);
     viTri = Math.max(0, nhom.findIndex(n => n.id === p.nhom_dang_dung));
     if (nhap?.can_luu) {
-      traLoi = nhap.tra_loi; viTri = Math.max(0, nhom.findIndex(n => n.id === nhap.nhom)); canLuu = true;
+      traLoi = nhap.tra_loi; datBoTheoPhieu(traLoi, nhap.nhom); viTri = Math.max(0, nhom.findIndex(n => n.id === nhap.nhom)); canLuu = true;
     }
-    const so = new Set(Object.keys(traLoi).map(k => k.split(".")[0])).size;
+    const so = new Set(cauHien().filter(c => Object.keys(traLoi).some(k => k.startsWith(`${c.so}.`))).map(c => c.so)).size;
     if (so) {
-      $("dang-do").textContent = `Quý khách hàng đang điền dở một phiếu, đã trả lời ${so} trên ${cau.length} câu. Bấm “Tiếp tục điền phiếu” để làm tiếp từ chỗ đang dừng.`; $("dang-do").hidden = false;
+      $("dang-do").textContent = `Quý khách hàng đang điền dở một phiếu, đã trả lời ${so} trên ${cauHien().length} câu. Bấm “Tiếp tục điền phiếu” để làm tiếp từ chỗ đang dừng.`; $("dang-do").hidden = false;
       document.querySelectorAll("[data-bat-dau]").forEach(b => { b.textContent = "Tiếp tục điền phiếu"; });
     }
   }
@@ -1597,7 +1689,7 @@
     boSung = {}; $("bs-ten").value = ""; $("bs-loi").hidden = true; $("form-bo-sung").hidden = false; $("bs-xong").hidden = true;
     const daCo = docTuVan()?.them || {};   // câu nào khách đã trả lời ở phần gợi ý thì không hỏi lại
     $("bs-cau").replaceChildren(...CAU_BO_SUNG.filter(([, so, id]) => !daCo[`${so}.${id}`]).map(([ten, so, id]) => {
-      const c = cau.find(x => x.so === so), t = c?.truong.find(x => x.id === id); if (!t) return tao("span");
+      const c = tatCaCau.find(x => x.so === so), t = c?.truong.find(x => x.id === id); if (!t) return tao("span");
       const hop = tao("div", "truong"), day = tao("div", "chon"), nhieu = t.kieu === "nhieu";
       hop.append(tao("span", "nhan", c.cau)); day.setAttribute("role", "group"); day.setAttribute("aria-label", c.cau);
       t.lua_chon.map(tenLuaChon).forEach(lc => {
@@ -1744,7 +1836,9 @@
     try { cauHinh = JSON.parse($("cau-hinh").textContent); } catch { cauHinh = null; }
     try { if (!cauHinh || !cauHinh.bo_cau_hoi) cauHinh = await goi("/api/cau-hinh"); }
     catch (e) { const loi = $("loi-mo-dau"); loi.textContent = "Trang chưa tải được bộ câu hỏi. Quý khách hàng vui lòng tải lại trang."; loi.hidden = false; return; }
-    nhom = cauHinh.bo_cau_hoi.nhom; cau = cauHinh.bo_cau_hoi.cau_hoi;
+    tatCaCau = cauHinh.bo_cau_hoi.cau_hoi; tatCaNhom = cauHinh.bo_cau_hoi.nhom; dsLoai = cauHinh.bo_cau_hoi.loai; datBo("");
+    const loaiLink = new URLSearchParams(location.search).get("loai");
+    if (dsLoai.some(l => l.id === loaiLink)) boTuLink = loaiLink;
     document.querySelectorAll("[data-bat-dau]").forEach(b => { b.dataset.nhanGoc = b.textContent; });
     cauHinh.mau.forEach(m => { mau[m.ma] = m; });
     document.querySelectorAll("[data-studio]").forEach(e => { e.textContent = cauHinh.studio; });
@@ -1756,11 +1850,13 @@
     }
     if (cauHinh.zalo) { ["link-zalo", "zalo-cam-on"].forEach(id => { $(id).href = cauHinh.zalo; $(id).hidden = false; }); }
     veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); ganQuayLai(); ganQuyTrinh(); veMenu(); ganXemTruoc(); veDanhGia(); ganHieuUng(); ganNghieng(); gan3D();
-    await khoiPhuc(); khoiTaoLichSu();
+    await khoiPhuc(); khoiTaoLichSu(); moTuLink();
+    $("gui-link").addEventListener("click", guiLink);
+    $("bat-dau-hop").addEventListener("close", () => { $("bat-dau-loai").hidden = true; });
     document.querySelectorAll("[data-bat-dau]").forEach(b => b.addEventListener("click", batDau));
     $("tiep-tuc").addEventListener("click", async () => {
       if (!kiemTraNhom()) return;
-      if (viTri === nhom.length - 1) return gui();
+      if (viTri === nhom.length - 1 && boDangChon) return gui();
       doiNhom(viTri + 1);
     });
     $("quay-lai").addEventListener("click", () => {

@@ -1142,6 +1142,21 @@ body.parent-brand .tu-van .tu-van-chi-tiet .tvct-mo { margin: 0 0 12px; }
 
 /* Ngành và phong cách đã hiện thành thẻ ngay dưới tên mẫu, nên bỏ hai dòng lặp lại ở cột bên phải. */
 body.parent-brand .xem-huong-dan :is(#xem-nganh, #xem-kieu) { display: none; }
+/* Phiếu: bước đầu chọn loại video (8 loại, mỗi loại một bộ câu hỏi). Nút hai dòng: tên loại và mô tả ngắn. */
+.chon.loai-video-ds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.chon.loai-video-ds .the-loai { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px 16px; min-height: 76px; }
+.the-loai-ten { font-weight: 700; line-height: 1.3; }
+.the-loai-mo-ta { font-size: .88rem; line-height: 1.4; opacity: .78; font-weight: 400; }
+.the-loai[aria-pressed="true"] .the-loai-mo-ta { opacity: .9; }
+@media (max-width: 420px) { .chon.loai-video-ds { grid-template-columns: 1fr; } .chon.loai-video-ds .the-loai { min-height: 0; } }
+/* Gửi link phiếu cho người khác điền: dưới hàng nút điều hướng, chữ nhỏ để không lấn nút chính. */
+.gui-link { margin-top: 28px; padding-top: 18px; border-top: 1px solid #e4e3df; }
+.gui-link .nut-chu { padding: 0; min-height: 44px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.gui-link .goi-y { margin-top: 2px; font-size: .88rem; line-height: 1.5; }
+.gui-link-bao { margin-top: 8px; font-size: .9rem; font-weight: 700; color: #1d6b3a; }
+.gui-link input { width: 100%; margin-top: 8px; font: inherit; font-size: .9rem; padding: 10px 12px; border: 1.5px solid #c9c8c3; border-radius: 6px; }
+.bat-dau-loai { margin-top: 10px; font-weight: 700; }
+
 /* Trang chủ chèn sẵn CSS màn hình đầu và tạm ẩn các phần bên dưới cho tới khi tệp CSS đầy đủ (tệp này) tải xong,
    để các phần đó không bị vẽ khi chưa có kiểu rồi chạy hiệu ứng chuyển màu lúc kiểu tới. Quy tắc dưới đây hiện lại
    (độ ưu tiên bằng 0 nên mọi quy tắc display khác vẫn thắng; phần có thuộc tính hidden vẫn ẩn). */

@@ -37,9 +37,12 @@ class RegressionTests(unittest.TestCase):
         self.assertEqual(r.status_code, 201, r.text)
         return '/api/phieu/' + r.json()['id']
 
-    def answers(self):
-        a = {}
-        for c in m.CAU:
+    def answers(self, bo=None):
+        """Câu trả lời đủ các câu bắt buộc của một loại video (mặc định: bộ "Sản phẩm, dịch vụ" như phiếu cũ)."""
+        a = {'_bo': bo} if bo else {}
+        for c in m.CAU_CUA_BO[bo or m.BO_MAC_DINH]:
+            if not m.dang_hien(a, c):
+                continue
             for t in c['truong']:
                 if not t.get('bat_buoc'):
                     continue
@@ -169,7 +172,9 @@ class RegressionTests(unittest.TestCase):
         self.login()
         r = self.client.get('/api/nhan-vien/xuat-excel')
         workbook = load_workbook(io.BytesIO(r.content))
-        self.assertEqual(workbook['Phiếu đã gửi'].cell(2, 5).value, "'=1+1")
+        sheet = workbook['Phiếu đã gửi']
+        cot = [o.value for o in sheet[1]].index('Tên sản phẩm') + 1
+        self.assertEqual(sheet.cell(2, cot).value, "'=1+1")
         for path in ('/chinh-sach', '/chinh-sach.html'):
             text = self.client.get(path).text
             self.assertIn('studio@example.test', text)
@@ -345,6 +350,118 @@ class RegressionTests(unittest.TestCase):
         self.assertNotIn('18.ngan_sach', saved)   # chỉ nhận ba câu của phần gợi ý
         self.assertEqual(saved['_loai'], 'tu-van-nhanh')
         self.assertEqual(self.client.post('/api/tu-van', json=self.quick(them=['x'])).status_code, 400)
+
+    # ---------- Loại video: mỗi loại một bộ câu hỏi ----------
+    def test_question_sets_are_well_formed(self):
+        thu_tu = [n['id'] for n in m.BO_CAU_HOI['nhom']]
+        self.assertEqual(len(m.LOAI), 8)
+        self.assertEqual(len({c['so'] for c in m.CAU}), len(m.CAU))
+        for ma, l in m.LOAI.items():
+            ds = l['cau']
+            self.assertEqual(len(ds), len(set(ds)), ma)
+            self.assertLessEqual(len(ds), 20, ma)
+            self.assertTrue({19, 20} <= set(ds), ma)            # ai cũng phải để lại liên hệ
+            vi_tri = [thu_tu.index(m.CAU_THEO_SO[so]['nhom']) for so in ds]
+            self.assertEqual(vi_tri, sorted(vi_tri), ma)      # các phần đi đúng thứ tự, không xen kẽ
+            for so in ds:
+                c = m.CAU_THEO_SO[so]
+                dk = c.get('hien_khi')
+                if dk:
+                    self.assertIn(int(dk['khoa'].split('.')[0]), ds[:ds.index(so)], ma)
+                for t in c['truong']:
+                    if t.get('chi_khi'):
+                        self.assertIn(int(t['chi_khi']['khoa'].split('.')[0]), ds, ma)
+        self.assertEqual(m.LOAI[m.BO_MAC_DINH]['cau'], list(range(1, 21)))   # phiếu cũ vẫn đọc đúng
+
+    def test_every_video_type_submits_with_its_own_questions(self):
+        for ma in m.LOAI:
+            path = self.new()
+            a = self.answers(ma)
+            r = self.client.post(path + '/gui', json={'dong_y': True, 'tra_loi': a})
+            self.assertEqual(r.status_code, 200, (ma, r.text))
+            tom = r.json()['tom_tat']
+            self.assertEqual(tom[0], {'so': None, 'cau': 'Loại video', 'tra_loi': m.LOAI[ma]['ten']})
+            so = [d['so'] for d in tom if d['so'] is not None]
+            # Số câu là số khách thấy trên trang (1, 2, 3…), không phải số câu trong kho chung; câu tùy chọn để trống thì không có dòng.
+            self.assertEqual(so, sorted(so), ma)
+            self.assertLessEqual(max(so), len(m.cau_hien(a)), ma)
+            self.assertEqual(so[0], 1, ma)
+
+    def test_missing_answer_reports_number_the_client_sees(self):
+        path = self.new()
+        a = self.answers('tuyen-dung'); del a['33.vi_tri']
+        r = self.client.post(path + '/gui', json={'dong_y': True, 'tra_loi': a})
+        self.assertEqual(r.status_code, 422)
+        thieu = r.json()['loi']['thieu'][0]
+        self.assertEqual((thieu['so'], thieu['hien']), (33, 3))
+        self.assertEqual(r.json()['loi']['thong_bao'], 'Câu 3 chưa có câu trả lời.')
+
+    def test_answers_outside_chosen_type_are_dropped(self):
+        path = self.new()
+        a = self.answers('doanh-nghiep'); a['1.san_pham'] = 'không thuộc bộ này'; a['_bo'] = 'doanh-nghiep'
+        self.client.put(path, json={'tra_loi': a})
+        luu = self.client.get(path).json()['tra_loi']
+        self.assertNotIn('1.san_pham', luu)
+        self.assertEqual(luu['_bo'], 'doanh-nghiep')
+        self.client.put(path, json={'tra_loi': {**a, '_bo': 'khong-co'}})
+        self.assertNotIn('_bo', self.client.get(path).json()['tra_loi'])
+
+    def test_live_shooting_details_only_when_chosen(self):
+        a = self.answers('doanh-nghiep')
+        self.assertEqual(m.tim_thieu(a), [])
+        a['27.cach_lam'] = ['Quay thực tế']
+        self.assertEqual({t['so'] for t in m.tim_thieu(a)}, {28})
+        a.update({'28.dia_diem': 'Văn phòng', '28.so_ngay': '1 ngày', '28.nguoi': 'Dùng người của đơn vị', '28.flycam': 'Không cần'})
+        self.assertEqual(m.tim_thieu(a), [])
+        a['27.cach_lam'] = ['Hoạt hình']
+        self.assertFalse([k for k in m.lam_sach(a) if k.startswith('28.')])
+
+    def test_staff_filter_select_export_and_bulk_delete(self):
+        ma = {}
+        for bo in ('doanh-nghiep', 'su-kien', 'su-kien'):
+            path = self.new()
+            a = self.answers(bo); a['19.ten'] = f'Khách {bo} {len(ma)}'
+            self.assertEqual(self.client.post(path + '/gui', json={'dong_y': True, 'tra_loi': a}).status_code, 200)
+            ma[a['19.ten']] = path.rsplit('/', 1)[1]
+        self.assertEqual(self.client.post('/api/nhan-vien/phieu/xoa-nhieu', json={'ma': list(ma.values()), 'xac_nhan': True}).status_code, 401)
+        self.login()
+        du = self.client.get('/api/nhan-vien/phieu?bo=su-kien').json()
+        self.assertEqual(du['tong'], 2)
+        self.assertEqual({p['ten_bo'] for p in du['phieu']}, {'Sự kiện'})
+        self.assertEqual(len(du['loai']), 8)
+        # Xuất Excel đúng các phiếu đã chọn
+        chon = [ma['Khách doanh-nghiep 0']]
+        r = self.client.post('/api/nhan-vien/xuat-excel', json={'ma': chon})
+        self.assertEqual(r.status_code, 200)
+        wb = load_workbook(io.BytesIO(r.content))
+        self.assertEqual(wb['Phiếu đã gửi'].max_row, 2)
+        self.assertEqual(wb['Phiếu đã gửi'].cell(2, 5).value, 'Video doanh nghiệp')
+        self.assertEqual(self.client.post('/api/nhan-vien/xuat-excel', json={'ma': ['../x']}).status_code, 400)
+        # Xuất theo bộ lọc
+        r = self.client.post('/api/nhan-vien/xuat-excel', json={'loc': {'bo': 'su-kien'}})
+        self.assertEqual(load_workbook(io.BytesIO(r.content))['Phiếu đã gửi'].max_row, 3)
+        # Xóa phiếu đã chọn: phải xác nhận
+        self.assertEqual(self.client.post('/api/nhan-vien/phieu/xoa-nhieu', json={'ma': chon}).status_code, 400)
+        r = self.client.post('/api/nhan-vien/phieu/xoa-nhieu', json={'ma': chon, 'xac_nhan': True})
+        self.assertEqual(r.json(), {'da_xoa': 1})
+        # Xóa hết phiếu đang lọc: số phiếu nhân viên thấy phải khớp
+        r = self.client.post('/api/nhan-vien/phieu/xoa-nhieu', json={'loc': {'bo': 'su-kien'}, 'so_du_kien': 1, 'xac_nhan': True})
+        self.assertEqual(r.status_code, 409)
+        r = self.client.post('/api/nhan-vien/phieu/xoa-nhieu', json={'loc': {'bo': 'su-kien'}, 'so_du_kien': 2, 'xac_nhan': True})
+        self.assertEqual(r.json(), {'da_xoa': 2})
+        self.assertEqual(self.client.get('/api/nhan-vien/phieu').json()['tong'], 0)
+
+    def test_excel_sheet_for_other_video_type(self):
+        path = self.new()
+        a = self.answers('su-kien'); a['46.ten_su_kien'] = 'Lễ kỷ niệm 10 năm'
+        self.client.post(path + '/gui', json={'dong_y': True, 'tra_loi': a})
+        self.login()
+        wb = load_workbook(io.BytesIO(self.client.get('/api/nhan-vien/xuat-excel').content))
+        trang = wb[wb.sheetnames[1]]
+        chu = '\n'.join(str(o.value) for hang in trang.iter_rows() for o in hang if o.value)
+        self.assertIn('Loại video: Sự kiện', chu)
+        self.assertIn('Sự kiện: Lễ kỷ niệm 10 năm', chu)
+        self.assertEqual(wb['Tổng hợp'].cell(7, 4).value, 'Sự kiện')
 
     def test_concurrent_page_views(self):
         def view(_):

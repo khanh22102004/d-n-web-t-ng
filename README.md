@@ -36,7 +36,7 @@ Trang web công khai giúp chủ shop và doanh nghiệp xem video mẫu làm b�
 Màn hình đầu  →  Thư viện 13 video mẫu  →  Tư vấn nhanh (2 ô)  →  Studio liên hệ
      │                    │                        │
      │                    └─ Khung xem video ──────┤  (form ngay dưới video)
-     └─ "Tôi đã có yêu cầu cụ thể" → Phiếu chi tiết 20 câu → Xác nhận
+     └─ "Tôi đã có yêu cầu cụ thể" → Chọn loại video (8 loại) → Khoảng 20 câu của loại đó → Xác nhận
 ```
 
 **Người dùng:**
@@ -44,7 +44,7 @@ Màn hình đầu  →  Thư viện 13 video mẫu  →  Tư vấn nhanh (2 ô) 
 | Ai | Làm gì | Ở đâu |
 |---|---|---|
 | Khách | Xem mẫu, gửi tư vấn nhanh hoặc phiếu chi tiết | `/` |
-| Nhân viên studio | Xem, tìm, lọc, đánh dấu đã liên hệ, xuất Excel, xóa phiếu | `/nhan-vien` |
+| Nhân viên studio | Xem, tìm, lọc theo trạng thái và loại video, đánh dấu đã liên hệ, tích chọn nhiều phiếu để xuất Excel hoặc xóa, lấy link phiếu theo loại video | `/nhan-vien` |
 | Mọi người | Đọc cách dùng thông tin | `/chinh-sach` |
 
 **Giọng văn:** tiếng Việt, xưng "chúng tôi", gọi khách là "Quý khách hàng" (viết hoa chữ Q), lịch sự, không dùng "ạ"; câu đã có "Quý khách hàng" thì câu ngay sau không lặp lại (ví dụ "Vui lòng thử lại sau."). Trang nhân viên giữ cách gọi nội bộ. Không đưa lời chứng thực, số liệu, giá hay khách hàng chưa được studio xác nhận.
@@ -57,17 +57,20 @@ Màn hình đầu  →  Thư viện 13 video mẫu  →  Tư vấn nhanh (2 ô) 
 - **Điện thoại có tiếng:** video chạy không tiếng khi vào trang; tiếng chỉ bật khi khách bấm vào video trên điện thoại hoặc nút "Bật tiếng" (chạm chỗ khác, như ô điền thông tin, không bật tiếng). Đây là giới hạn của trình duyệt: không trang nào tự phát có tiếng khi khách chưa tương tác.
 - **Thư viện mẫu:** 13 mẫu, lọc "Tất cả / Mẫu nổi bật / Ngành hàng". Bấm ảnh mở khung xem video có tiếng, lướt qua các mẫu, và có nút "Nhận báo giá làm video kiểu này" mở form ngay dưới video.
 - **Tư vấn nhanh:** chỉ cần tên sản phẩm và số điện thoại, chọn Zalo hoặc gọi điện, đánh dấu đồng ý. Gửi xong có thể trả lời thêm (tên, thời hạn, ngân sách, nơi đăng), không bắt buộc, trong 24 giờ.
-- **Phiếu chi tiết:** 20 câu chia 6 phần, lưu nháp sau khi khách đồng ý, Back/Forward của trình duyệt dùng được, khôi phục khi tải lại hoặc mất mạng, gửi kèm tối đa 3 ảnh.
+- **Phiếu chi tiết theo loại video:** bước đầu khách chọn 1 trong 8 loại như trang công ty mẹ (Video doanh nghiệp, Video tuyển dụng, Sản phẩm, dịch vụ, Video mạng xã hội, Giáo dục, tuyển sinh, Video đào tạo nhân viên, Sự kiện, Khác); mỗi loại một bộ 18–20 câu, số câu đánh lại từ 1 theo bộ. Câu về buổi quay (địa điểm, số ngày, diễn viên, flycam) chỉ hiện khi khách chọn "Quay thực tế". Loại "Sản phẩm, dịch vụ" giữ nguyên 20 câu cũ, phiếu cũ vẫn mở và xuất đúng., lưu nháp sau khi khách đồng ý, Back/Forward của trình duyệt dùng được, khôi phục khi tải lại hoặc mất mạng, gửi kèm tối đa 3 ảnh.
 - Giới thiệu B PRODUCTIONS, Góc chia sẻ gồm đường dẫn blog công ty và một bài đọc thêm.
+- **Gửi link phiếu cho người khác:** nút "Gửi link phiếu này cho người khác" dưới phiếu (điện thoại mở bảng chia sẻ, máy tính chép link). Link dạng `/?loai=<mã loại>&nguon=chia-se`: người nhận được hỏi đồng ý lưu nháp rồi vào thẳng bộ câu hỏi của loại đó, điền phiếu mới của riêng họ (không thấy câu trả lời của người gửi). Phiếu gửi về cùng danh sách và Excel; nguồn ghi "chia-se".
 - **Gộp yêu cầu:** khách gửi tư vấn nhanh rồi gửi phiếu chi tiết với cùng số điện thoại thì hai yêu cầu thành một.
 - **Nguồn khách:** đọc `?nguon=tiktok|facebook|zalo` hoặc `utm_source`.
 
 ### Phía nhân viên
 
 - Đăng nhập bằng mật khẩu chung (`ADMIN_PASSWORD`).
-- Danh sách yêu cầu có tìm kiếm, lọc trạng thái, phân trang, xem chi tiết và ảnh, đánh dấu đã liên hệ, xóa phiếu kèm ảnh sau xác nhận.
+- Danh sách yêu cầu có tìm kiếm, lọc trạng thái và loại video, phân trang, xem chi tiết và ảnh, đánh dấu đã liên hệ, xóa phiếu kèm ảnh sau xác nhận.
+- Tích chọn nhiều phiếu (giữ khi chuyển trang, có "Chọn cả trang này"): tải Excel các phiếu đã chọn, xóa các phiếu đã chọn, hoặc xóa hết phiếu đang lọc. Xóa nhiều luôn hỏi lại ngay trên trang, ghi rõ số phiếu và có nút tải Excel các phiếu đó trước; xóa theo bộ lọc chỉ chạy khi số phiếu trên máy chủ đúng bằng số nhân viên đang thấy.
+- "Link phiếu theo loại video": 8 link có nút chép, để gửi khách qua Zalo, Messenger, email.
 - Thống kê lượt mở trang, phiếu bắt đầu/gửi, khách dừng ở phần nào, theo nguồn.
-- Xuất Excel toàn bộ yêu cầu (gồm cột "Loại yêu cầu" và "Mẫu tham khảo").
+- Xuất Excel toàn bộ yêu cầu, hoặc chỉ phiếu đã chọn / đang lọc (gồm cột "Loại video", "Loại yêu cầu" và "Mẫu tham khảo"). Trang từng khách theo khuôn 17 mục lấy câu trả lời của mọi loại video (buổi quay, khung hình, sự kiện, tuyển dụng…).
 
 ## 3. Nhận diện và giao diện
 
@@ -218,7 +221,7 @@ Máy chủ từ chối khởi động trên Vercel hoặc Render nếu thiếu `
 | Ba mẫu nổi bật, mẫu đầu tiên trên điện thoại | `web/app.js` → `maNoiBat` (mẫu đầu danh sách cũng đứng đầu thư viện) |
 | Ảnh bìa nét hơn | Thêm `"anh_bia": "/anh-mau/<mã>-hd.webp"` vào mẫu; nên dùng ảnh dọc 9:16 |
 | Video phát tại chỗ (có tiếng cả trên iPhone) | Đặt `web/video-mau/<mã>.mp4` hoặc `.webm` (xem `DOC-TOI.txt`) |
-| Câu hỏi phiếu chi tiết | `cau_hoi.json` (không đổi mã câu đã dùng để dữ liệu cũ vẫn đọc được) |
+| Câu hỏi phiếu chi tiết | `cau_hoi.json`: `cau_hoi` là kho câu chung, mỗi câu một số `so` riêng (khóa câu trả lời là `<so>.<trường>`); `loai` là 8 loại video, mỗi loại liệt kê số câu theo thứ tự hiện; `nhom` là thứ tự các phần. `hien_khi` cho câu chỉ hiện khi câu khác có lựa chọn cần; `anh_nhan` đổi nhãn ô gửi ảnh. Không đổi số câu đã dùng để dữ liệu cũ vẫn đọc được; thêm câu mới thì thêm bản dịch tiếng Nhật, tiếng Anh vào từ điển trong `web/ngon-ngu.js` (khóa là câu tiếng Việt) rồi chạy `cong-cu/dong_goi.py` |
 
 Sửa xong khởi động lại máy chủ.
 
@@ -259,9 +262,10 @@ Trang không tự tạo đánh giá, số sao hay số lượt tương tác. Khi
 | POST | `/api/nhan-vien/dang-nhap`, `/dang-xuat` | Đăng nhập / đăng xuất nhân viên |
 | GET | `/api/nhan-vien/phieu` | Danh sách, tìm, lọc, phân trang, thống kê |
 | DELETE | `/api/nhan-vien/phieu/{ma}` | Xóa phiếu kèm ảnh |
+| POST | `/api/nhan-vien/phieu/xoa-nhieu` | Xóa nhiều phiếu: `{"ma": [...], "xac_nhan": true}` hoặc theo bộ lọc `{"loc": {...}, "so_du_kien": n, "xac_nhan": true}` |
 | GET | `/api/nhan-vien/phieu/{ma}/anh`, `/api/nhan-vien/anh/{anh}` | Xem ảnh của phiếu |
 | POST | `/api/nhan-vien/phieu/{ma}/lien-he` | Đánh dấu đã liên hệ |
-| GET | `/api/nhan-vien/xuat-excel` | Tải Excel |
+| GET / POST | `/api/nhan-vien/xuat-excel` | Tải Excel: GET toàn bộ; POST `{"ma": [...]}` phiếu đã chọn hoặc `{"loc": {...}}` phiếu đang lọc |
 
 Mọi đường dẫn `/api/nhan-vien/*` (trừ đăng nhập) cần phiên đăng nhập.
 
@@ -307,7 +311,7 @@ python -m pip install -r requirements-test.txt
 python -m unittest discover -s tests -v
 ```
 
-28 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: ảnh (đồng thời, tệp giả, giới hạn), quyền xóa, lưu đến muộn, phân trang, Excel, tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn tần suất, gửi lại, gửi đồng thời, trả lời bổ sung, gộp với phiếu chi tiết), đánh giá chỉ hiện khi đủ điều kiện.
+36 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: ảnh (đồng thời, tệp giả, giới hạn), quyền xóa, lưu đến muộn, phân trang, Excel, tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn tần suất, gửi lại, gửi đồng thời, trả lời bổ sung, gộp với phiếu chi tiết), đánh giá chỉ hiện khi đủ điều kiện, 8 bộ câu hỏi theo loại video (cấu trúc, gửi đủ 8 loại, số câu khách thấy, câu ngoài bộ bị bỏ, câu quay thực tế), lọc, xuất Excel và xóa nhiều phiếu.
 
 **Back/Forward bằng Chromium** (chỉ chạy trên máy chủ thử có `DATA_DIR` riêng, vì bài thử tạo phiếu giả):
 
@@ -316,7 +320,10 @@ python -m pip install -r requirements-test.txt playwright
 python -m playwright install chromium
 python -m uvicorn may_chu:app --host 127.0.0.1 --port 8000     # cửa sổ khác, DATA_DIR thử
 python tests/browser_history.py --base-url http://127.0.0.1:8000
+python tests/browser_loai_video.py --base-url http://127.0.0.1:8000 --mat-khau <ADMIN_PASSWORD>   # link theo loại, câu hiện theo điều kiện, tiếng Nhật, trang nhân viên
 ```
+
+Cả hai bài thử tạo phiếu giả; máy chủ giới hạn 8 phiếu mới mỗi giờ cho một địa chỉ, nên chạy lại nhiều lần thì khởi động lại máy chủ thử với `DATA_DIR` trống.
 
 **Đóng gói sau khi sửa CSS hoặc JS.** Trang chủ dùng bản nén trong `web/da-nen/` và chèn thẳng CSS màn hình đầu vào trang (mã băm của nó tự thêm vào chính sách bảo mật CSP). Sửa `web/*.css`, `web/app.js` hoặc `web/ngon-ngu.js` xong thì chạy lại:
 
@@ -340,6 +347,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 19/11/2026 | Bộ câu hỏi theo loại video, gửi link phiếu, xuất và xóa nhiều phiếu | Theo yêu cầu của sếp: phiếu bắt đầu bằng bước chọn 1 trong 8 loại video như trang công ty mẹ, mỗi loại một bộ 18–20 câu (câu chung: đơn vị, ngành, nơi dùng, số lượng, độ dài, khung hình, cách làm, buổi quay khi chọn quay thực tế, tư liệu, ngôn ngữ, giọng, AI, thời hạn, ngân sách, liên hệ; câu riêng theo loại). Bộ "Sản phẩm, dịch vụ" giữ nguyên 20 câu cũ. Nút "Gửi link phiếu này cho người khác": người nhận mở phiếu mới cùng loại, phiếu về cùng Excel. Trang nhân viên: lọc theo loại video, tích chọn nhiều phiếu để tải Excel hoặc xóa, xóa hết phiếu đang lọc (hỏi lại kèm số phiếu, có nút tải Excel trước), 8 link phiếu theo loại để chép gửi khách. Excel thêm cột loại video, khuôn 17 mục lấy câu của mọi loại. Bản dịch Nhật, Anh cho 219 câu chữ mới và 3 mẫu câu. Sửa phần "Quy trình làm video" vẫn hiện phía trên phiếu khi đang điền. Đo máy yếu: điện thoại 483 → 496 KB, laptop 478 → 491 KB, cuộn 60/59 khung hình/giây, 0 lần giật |
 | 19/11/2026 | Báo đúng cỡ ảnh cho trình duyệt | Đo cỡ hiển thị thật ở 19 khổ màn hình rồi sửa sizes: thẻ thư viện (điện thoại 44vw, máy tính 196–236px), hai điện thoại bên (200px / 258px), điện thoại giữa (190px / 240px, trùng imagesizes của preload). Trước đây cửa sổ hẹp 500–760px báo thẻ rộng 172px trong khi thật là 238–334px nên trình duyệt lấy ảnh nhỏ và phóng lên (mờ). Máy tính phóng 100–150% giờ luôn có ảnh đủ điểm ảnh; máy yếu vẫn giữ ảnh 270 cho thẻ |
 | 19/11/2026 | Ảnh mẫu bớt mờ trên màn hình nét, máy yếu giữ nguyên | Thẻ thư viện và hai điện thoại bên dùng srcset: màn hình nét (máy tính phóng 125–150%, điện thoại mật độ cao) lấy ảnh 360×640 thay vì 270×480; màn hình thường và máy yếu vẫn lấy ảnh 270 (máy yếu bỏ srcset khi xoay). Mỗi ảnh nặng thêm khoảng 2 KB. Đo máy yếu: điện thoại 480 → 483 KB, laptop 477 → 478 KB, cuộn 60/56 khung hình/giây, 0 lần giật |
 | 19/11/2026 | Tiếng Anh theo chuẩn quốc tế, nhận số điện thoại nước ngoài | Rà 424 câu tiếng Anh: thống nhất tiếng Anh Mỹ (check the box, fill out, one business day, store), sửa cụm dễ hiểu nhầm ("Stop motion" → "Pause animations", "Let us advise" → "Not sure, please advise", "Please quote me" → "Not sure, please send a quote"), "Golf driving range ad", địa chỉ "134 30 Thang 4 Street…", Men/Women cho người xem, ví dụ thương hiệu không còn dấu tiếng Việt. Thẻ "Video AI" trong khung xem mẫu bị dịch nhầm thành "Realistic," (chữ đó dành cho tiêu đề màn hình đầu) → đổi thành "Làm bằng AI" / "Made with AI" / "AI制作". Số điện thoại: ngoài số Việt Nam, nhận số nước ngoài có mã nước (ví dụ +81 90 1234 5678) ở tư vấn nhanh và phiếu chi tiết; lời báo lỗi ghi rõ hai cách nhập |

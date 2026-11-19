@@ -39,14 +39,36 @@
 
     <ul class="so-lieu" id="so-lieu" aria-label="Tổng quan yêu cầu"></ul>
 
+    <details class="nv-link">
+      <summary>Link phiếu theo loại video, để gửi cho khách</summary>
+      <p class="dan">Khách mở link sẽ vào thẳng bộ câu hỏi của loại video đó. Phiếu khách gửi vẫn về danh sách và file Excel ở trang này.</p>
+      <ul id="ds-link"></ul>
+    </details>
+
     <section class="nv-danh-sach" aria-labelledby="nv-danh-sach-tieu-de">
     <h2 id="nv-danh-sach-tieu-de">Danh sách phiếu</h2>
     <form id="loc-phieu" class="hang-nut">
       <div><label class="nhan" for="tim-phieu">Tìm trong phiếu</label><input type="text" id="tim-phieu" maxlength="100" placeholder="Tên, sản phẩm, số điện thoại…"></div>
       <div><label class="nhan" for="trang-thai">Trạng thái</label><select id="trang-thai"><option value="">Tất cả</option><option value="dang-do">Đang dở</option><option value="cho-lien-he">Chờ liên hệ</option><option value="da-lien-he">Đã liên hệ</option></select></div>
+      <div><label class="nhan" for="loc-bo">Loại video</label><select id="loc-bo"><option value="">Tất cả</option></select></div>
       <div class="loc-thao-tac"><button type="submit" class="nut nho">Tìm phiếu</button><button type="button" class="nut-chu" id="dat-lai-loc">Xóa bộ lọc</button></div>
     </form>
     <p id="loi-tai" class="bao-loi" role="alert" hidden></p>
+    <div class="nv-chon" role="group" aria-label="Thao tác với nhiều phiếu">
+      <label class="nv-chon-ca"><input type="checkbox" id="chon-ca-trang"><span>Chọn cả trang này</span></label>
+      <span class="nv-so-chon" id="so-da-chon" aria-live="polite">Chưa chọn phiếu nào</span>
+      <button type="button" class="nut-chu" id="bo-chon" hidden>Bỏ chọn</button>
+      <span class="nv-chon-nut">
+        <button type="button" class="nut nho" id="xuat-da-chon" disabled>Tải Excel phiếu đã chọn</button>
+        <button type="button" class="nut nho nut-xoa" id="xoa-da-chon" disabled>Xóa phiếu đã chọn</button>
+        <button type="button" class="nut-chu nut-nguy-hiem" id="xoa-dang-loc">Xóa hết phiếu đang lọc</button>
+      </span>
+    </div>
+    <div class="nv-xac-nhan" id="nv-xac-nhan" role="alertdialog" aria-labelledby="xn-chu" hidden>
+      <p id="xn-chu"></p>
+      <div class="hang-nut"><button type="button" class="nut nho" id="xn-xuat">Tải Excel các phiếu này trước</button><button type="button" class="nut nho nut-xoa" id="xn-xoa">Xóa vĩnh viễn</button><button type="button" class="nut-chu" id="xn-huy">Hủy</button></div>
+    </div>
+    <p class="nv-bao" id="nv-bao" role="status" hidden></p>
     <nav class="nv-phan-trang" aria-label="Trang danh sách phiếu"><span id="phan-trang" aria-live="polite"></span><div><button type="button" class="nut nho" id="trang-truoc">← Trang trước</button><button type="button" class="nut nho" id="trang-sau">Trang sau →</button></div></nav>
     <div class="nv-trong" id="trong" hidden><h3>Không có phiếu phù hợp</h3><p>Thử đổi từ khóa hoặc trạng thái để xem các yêu cầu khác.</p></div>
     <div id="ds-phieu"></div>

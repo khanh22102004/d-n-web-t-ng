@@ -36,7 +36,7 @@ body.staff-page .dau-trang .nut-chu { font-size: .9rem; }
 .nv td:not(:first-child), .nv th:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
 .nv tbody tr:last-child td { border-bottom: 0; }
 .nv-danh-sach { margin-top: 32px; padding: 28px; background: #fff; border: 1px solid #dededb; border-radius: 10px; }
-#loc-phieu { display: grid; grid-template-columns: minmax(0, 1fr) 220px auto; align-items: end; gap: 16px; margin: 26px 0 20px; }
+#loc-phieu { display: grid; grid-template-columns: minmax(0, 1fr) 180px 220px auto; align-items: end; gap: 16px; margin: 26px 0 20px; }
 .loc-thao-tac { display: flex; gap: 12px; align-items: center; }
 .loc-thao-tac .nut-chu { padding-inline: 6px; white-space: nowrap; font-size: .875rem; }
 .loc-thao-tac .nut.nho { min-height: 48px; white-space: nowrap; }
@@ -71,10 +71,38 @@ body.staff-page .dau-trang .nut-chu { font-size: .9rem; }
 .nv .nut-nguy-hiem { color: #a32923; margin-top: 18px; font-size: .85rem; }
 .anh-khach { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
 .anh-khach img { width: 120px; height: 120px; object-fit: cover; border-radius: 5px; border: 1px solid #d2d2ce; }
+/* Link phiếu theo loại video để gửi khách */
+.nv-link { margin-top: 24px; padding: 18px 24px; background: #fff; border: 1px solid #dededb; border-radius: 10px; }
+.nv-link summary { cursor: pointer; font-weight: 700; min-height: 32px; display: flex; align-items: center; }
+.nv-link .dan { margin-top: 8px; font-size: .9rem; }
+#ds-link { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 10px; }
+#ds-link li { display: grid; grid-template-columns: 190px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+#ds-link span { font-weight: 600; font-size: .92rem; }
+#ds-link input { font: inherit; font-size: .85rem; padding: 9px 10px; border: 1px solid #d0d0cc; border-radius: 5px; background: #fafaf8; min-width: 0; }
+#ds-link .nut.nho { min-height: 40px; white-space: nowrap; }
+/* Tích chọn nhiều phiếu: tải Excel phiếu đã chọn, xóa phiếu đã chọn, xóa hết phiếu đang lọc */
+.nv-chon { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; padding: 12px 0 4px; }
+.nv-chon-ca { display: flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 600; cursor: pointer; min-height: 44px; }
+.nv-chon input[type="checkbox"], .nv-tich input { width: 20px; height: 20px; accent-color: #292b2d; cursor: pointer; }
+.nv-so-chon { font-size: .9rem; color: #56595c; }
+.nv-chon-nut { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-left: auto; }
+.nv-chon .nut.nho, .nv-xac-nhan .nut.nho { min-height: 40px; padding: 8px 14px; font-size: .875rem; }
+body.staff-page .nv .nut.nut-xoa { background: #a32923; border-color: #a32923; color: #fff; }
+body.staff-page .nv .nut.nut-xoa:hover:not(:disabled) { background: #8a211c; border-color: #8a211c; }
+.nv .nut-xoa:disabled, .nv-chon .nut:disabled { opacity: .45; cursor: not-allowed; }
+.nv-chon .nut-nguy-hiem { margin-top: 0; }
+.nv-xac-nhan { margin-top: 12px; padding: 16px 18px; border: 1.5px solid #a32923; border-radius: 8px; background: #fff6f5; }
+.nv-xac-nhan p { font-weight: 600; line-height: 1.55; }
+.nv-xac-nhan .hang-nut { margin-top: 12px; gap: 10px; }
+.nv-bao { margin-top: 10px; font-size: .9rem; font-weight: 600; color: #1d6b3a; }
+.nv-bao.loi { color: #a32923; }
+.nv-hang { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: start; gap: 6px; margin-top: 14px; }
+#ds-phieu .nv-hang details { margin-top: 0; }
+.nv-tich { display: grid; place-items: center; min-height: 66px; cursor: pointer; }
 .nv-chan-trang { max-width: 1344px; margin: 0 auto; padding: 24px 32px; border-top: 1px solid #dededb; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; font-size: .875rem; color: #737578; }
 .nv-chan-trang a { color: #56595c; text-underline-offset: 4px; }
 @media (max-width: 1100px) {
-  #loc-phieu { grid-template-columns: minmax(0, 1fr) 200px; }
+  #loc-phieu { grid-template-columns: minmax(0, 1fr) 180px 200px; }
   .loc-thao-tac { grid-column: 1 / -1; }
   .so-lieu li { padding: 20px; }
   #ds-phieu summary { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; }
@@ -94,6 +122,10 @@ body.staff-page .dau-trang .nut-chu { font-size: .9rem; }
   .hai-cot { grid-template-columns: 1fr; gap: 16px; }
   .nv-phan, .nv-danh-sach { padding: 20px; }
   #loc-phieu { grid-template-columns: 1fr; }
+  #ds-link li { grid-template-columns: 1fr auto; }
+  #ds-link span { grid-column: 1 / -1; }
+  .nv-chon-nut { margin-left: 0; }
+  .nv-hang { grid-template-columns: 32px minmax(0, 1fr); }
   .nv-phan-trang > div { width: 100%; justify-content: space-between; }
   #ds-phieu summary { grid-template-columns: minmax(0, 1fr) auto; padding: 18px 38px 18px 16px; gap: 10px; }
   #ds-phieu summary .phu { display: none; }

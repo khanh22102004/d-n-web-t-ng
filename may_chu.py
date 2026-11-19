@@ -1,4 +1,4 @@
-"""Web tiếp nhận yêu cầu làm video giới thiệu sản phẩm của B Productions.
+"""Web tiếp nhận yêu cầu làm video của B Productions (8 loại video, mỗi loại một bộ câu hỏi).
 
 Một máy chủ duy nhất: phục vụ trang khách, lưu phiếu, nhận ảnh sản phẩm,
 và trang nhân viên (xem phiếu, số liệu, tải Excel).
@@ -75,7 +75,13 @@ def doc_danh_gia(tep=None):
 
 
 DANH_GIA = doc_danh_gia()
+# Mọi câu của mọi bộ nằm chung một danh sách, mỗi câu một số "so" riêng (khóa câu trả lời là "<so>.<trường>").
+# Mỗi loại video là một bộ câu hỏi: danh sách số câu theo thứ tự hiện. Phiếu cũ (trước khi có loại video) là bộ mặc định.
 CAU = BO_CAU_HOI["cau_hoi"]
+CAU_THEO_SO = {c["so"]: c for c in CAU}
+LOAI = {l["id"]: l for l in BO_CAU_HOI["loai"]}
+BO_MAC_DINH = BO_CAU_HOI["bo_mac_dinh"]
+CAU_CUA_BO = {ma: [CAU_THEO_SO[so] for so in l["cau"]] for ma, l in LOAI.items()}
 THU_TU_NHOM = [n["id"] for n in BO_CAU_HOI["nhom"]]
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
@@ -166,7 +172,7 @@ def tao_bang():
         id TEXT PRIMARY KEY, phieu_id TEXT NOT NULL, ten TEXT NOT NULL, kieu TEXT NOT NULL,
         kich_thuoc INTEGER NOT NULL, du_lieu {nhi_phan} NOT NULL, tao_luc TEXT NOT NULL)"""]
     # Theo dõi sự đồng ý cho phiếu mới; giữ nguyên dữ liệu phiếu cũ.
-    cot_moi = ("lien_he_luc", "dong_y_luu_luc", "dong_y_gui_luc")
+    cot_moi = ("lien_he_luc", "dong_y_luu_luc", "dong_y_gui_luc", "bo")
     sau = ["CREATE INDEX IF NOT EXISTS anh_phieu_idx ON anh (phieu_id)",
            "CREATE INDEX IF NOT EXISTS phieu_tao_idx ON phieu (tao_luc, id)",
            """CREATE TABLE IF NOT EXISTS luot_xem (
@@ -264,12 +270,35 @@ def kiem_tra_lien_he(kenh, gia_tri):
     return None if len(gia_tri) >= 3 else "Quý khách hàng vui lòng nhập tên hoặc link Messenger."
 
 
+def bo_cua(tra_loi):
+    """Loại video (bộ câu hỏi) của phiếu. Phiếu chưa chọn loại, kể cả phiếu cũ, là bộ "Sản phẩm, dịch vụ"."""
+    ma = tra_loi.get("_bo") if isinstance(tra_loi, dict) else None
+    return ma if ma in LOAI else BO_MAC_DINH
+
+
+def dang_hien(tra_loi, cau):
+    """Câu có "hien_khi" chỉ hiện khi câu điều kiện đã có lựa chọn cần
+    (ví dụ: thông tin buổi quay chỉ hỏi khi khách chọn "Quay thực tế")."""
+    dk = cau.get("hien_khi")
+    if not dk:
+        return True
+    gia_tri = tra_loi.get(dk["khoa"])
+    return dk["co"] in (gia_tri if isinstance(gia_tri, list) else [gia_tri])
+
+
+def cau_hien(tra_loi):
+    """Các câu khách thấy trong phiếu, theo loại video, kèm số thứ tự hiện trên trang (1, 2, 3…)."""
+    return list(enumerate((c for c in CAU_CUA_BO[bo_cua(tra_loi)] if dang_hien(tra_loi, c)), start=1))
+
+
 def lam_sach(tra_loi):
-    """Chỉ giữ những khóa có trong bộ câu hỏi, đúng kiểu, đúng lựa chọn, đúng độ dài."""
+    """Chỉ giữ những khóa có trong bộ câu hỏi của loại video đã chọn, đúng kiểu, đúng lựa chọn, đúng độ dài."""
     sach = {}
     if not isinstance(tra_loi, dict):
         return sach
-    for cau in CAU:
+    if tra_loi.get("_bo") in LOAI:
+        sach["_bo"] = tra_loi["_bo"]
+    for cau in CAU_CUA_BO[bo_cua(tra_loi)]:
         for tr in cau["truong"]:
             khoa = f'{cau["so"]}.{tr["id"]}'
             gia_tri = tra_loi.get(khoa)
@@ -290,6 +319,11 @@ def lam_sach(tra_loi):
                 rieng = tra_loi.get(khoa + ".khac")
                 if isinstance(rieng, str) and rieng.strip():
                     sach[khoa + ".khac"] = rieng.strip()[:300]
+    # Câu đang ẩn (điều kiện không còn đúng) thì bỏ câu trả lời cũ của nó.
+    for cau in CAU_CUA_BO[bo_cua(sach)]:
+        if not dang_hien(sach, cau):
+            for k in [k for k in sach if k.startswith(f'{cau["so"]}.')]:
+                del sach[k]
     return sach
 
 
@@ -306,9 +340,9 @@ def can_hoi(tra_loi, chi_khi):
 
 
 def tim_thieu(tra_loi):
-    """Danh sách lỗi {so, truong, thong_bao} của một phiếu trước khi gửi."""
+    """Danh sách lỗi {so, hien, truong, thong_bao} của một phiếu trước khi gửi (so: số câu trong bộ; hien: số khách thấy)."""
     thieu = []
-    for cau in CAU:
+    for hien, cau in cau_hien(tra_loi):
         for tr in cau["truong"]:
             khoa = f'{cau["so"]}.{tr["id"]}'
             bo_qua = tr.get("bo_qua_neu")
@@ -318,11 +352,11 @@ def tim_thieu(tra_loi):
                 continue
             co = bool(tra_loi.get(khoa)) or bool(tra_loi.get(khoa + ".khac"))
             if tr.get("bat_buoc") and not co:
-                thieu.append({"so": cau["so"], "truong": tr["id"], "thong_bao": f'Câu {cau["so"]} chưa có câu trả lời.'})
+                thieu.append({"so": cau["so"], "hien": hien, "truong": tr["id"], "thong_bao": f"Câu {hien} chưa có câu trả lời."})
             elif tr.get("kiem_tra") == "lien_he" and co:
                 sai = kiem_tra_lien_he(tra_loi.get(f'{cau["so"]}.kenh', ""), tra_loi[khoa])
                 if sai:
-                    thieu.append({"so": cau["so"], "truong": tr["id"], "thong_bao": sai})
+                    thieu.append({"so": cau["so"], "hien": hien, "truong": tr["id"], "thong_bao": sai})
     return thieu
 
 
@@ -339,19 +373,21 @@ def tom_tat(tra_loi):
     dong = []
     if tra_loi.get("_loai") == "tu-van-nhanh":
         dong.append({"so": None, "cau": "Loại yêu cầu", "tra_loi": "Tư vấn nhanh — khách chưa điền phiếu chi tiết"})
+    else:
+        dong.append({"so": None, "cau": "Loại video", "tra_loi": LOAI[bo_cua(tra_loi)]["ten"]})
     if tra_loi.get("_tu_tu_van"):
         dong.append({"so": None, "cau": "Gộp từ yêu cầu tư vấn nhanh", "tra_loi": f'Khách gửi tư vấn nhanh lúc {tra_loi["_tu_tu_van"]}, sau đó điền phiếu chi tiết'})
     if tra_loi.get("_mau"):
         m = next((m for m in MAU if m["ma"] == tra_loi["_mau"]), None)
         dong.append({"so": None, "cau": "Mẫu khách quan tâm", "tra_loi": f'{m["ma"]} · {m["ten"]}' if m else tra_loi["_mau"]})
-    for cau in CAU:
+    for hien, cau in cau_hien(tra_loi):
         phan = []
         for tr in cau["truong"]:
             chu = gop(tra_loi, f'{cau["so"]}.{tr["id"]}')
             if chu:
                 phan.append(f'{tr["nhan"]}: {chu}' if tr.get("nhan") and len(cau["truong"]) > 1 else chu)
         if phan:
-            dong.append({"so": cau["so"], "cau": cau["cau"], "tra_loi": "; ".join(phan)})
+            dong.append({"so": hien, "cau": cau["cau"], "tra_loi": "; ".join(phan)})
     return dong
 
 
@@ -557,8 +593,8 @@ async def luu_phieu(request):
         with khoa_phieu(phieu["id"]) as (chay, dong):
             if not dong or dong[0]:
                 return False
-            chay("UPDATE phieu SET tra_loi=?, nhom_dang_dung=?, sua_luc=? WHERE id=?",
-                 (json.dumps(tra_loi, ensure_ascii=False), nhom, bay_gio(), phieu["id"]))
+            chay("UPDATE phieu SET tra_loi=?, nhom_dang_dung=?, sua_luc=?, bo=? WHERE id=?",
+                 (json.dumps(tra_loi, ensure_ascii=False), nhom, bay_gio(), tra_loi.get("_bo"), phieu["id"]))
             if du_lieu.get("dong_y_luu") is True:
                 chay("UPDATE phieu SET dong_y_luu_luc=COALESCE(dong_y_luu_luc, ?) WHERE id=?", (bay_gio(), phieu["id"]))
         return True
@@ -668,8 +704,8 @@ async def gui_phieu(request):
             if dong[0]:
                 return json.loads(chay("SELECT tra_loi FROM phieu WHERE id=?", (phieu["id"],)).fetchone()[0])
             luc = bay_gio()
-            chay("UPDATE phieu SET tra_loi=?, gui_luc=?, sua_luc=?, nhom_dang_dung=?, dong_y_gui_luc=? WHERE id=?",
-                 (json.dumps(tra_loi, ensure_ascii=False), luc, luc, THU_TU_NHOM[-1], luc, phieu["id"]))
+            chay("UPDATE phieu SET tra_loi=?, gui_luc=?, sua_luc=?, nhom_dang_dung=?, dong_y_gui_luc=?, bo=? WHERE id=?",
+                 (json.dumps(tra_loi, ensure_ascii=False), luc, luc, THU_TU_NHOM[-1], luc, tra_loi.get("_bo"), phieu["id"]))
         return gop_tu_van(phieu["id"], tra_loi, tu_van) if tu_van else tra_loi
     da_luu = await run_in_threadpool(ghi)
     if da_luu is None:
@@ -730,8 +766,10 @@ async def dang_xuat(request):
     return tra
 
 
-def tat_ca_phieu():
-    dong = sql("SELECT id, tao_luc, sua_luc, gui_luc, nguon, nhom_dang_dung, tra_loi, lien_he_luc FROM phieu ORDER BY tao_luc DESC", (), "tat")
+def tat_ca_phieu(dieu_kien="1=1", tham_so=()):
+    """Phiếu để xuất Excel: tất cả, hoặc chỉ những phiếu khớp điều kiện (phiếu đã chọn, phiếu đang lọc)."""
+    dong = sql("SELECT p.id, p.tao_luc, p.sua_luc, p.gui_luc, p.nguon, p.nhom_dang_dung, p.tra_loi, p.lien_he_luc FROM phieu p WHERE "
+               + dieu_kien + " ORDER BY p.tao_luc DESC", tuple(tham_so), "tat")
     so_anh = dict(sql("SELECT phieu_id, COUNT(*) FROM anh GROUP BY phieu_id", (), "tat"))
     return [{"id": d[0], "tao_luc": d[1], "sua_luc": d[2], "gui_luc": d[3], "nguon": d[4], "nhom_dang_dung": d[5],
              "tra_loi": json.loads(d[6] or "{}"), "lien_he_luc": d[7] or "", "so_anh": so_anh.get(d[0], 0)} for d in dong]
@@ -755,7 +793,9 @@ def thong_ke():
             "theo_nguon": [{"nguon": k, **v} for k, v in sorted(nguon.items())]}
 
 
-def trang_phieu(trang, tim, trang_thai):
+def dieu_kien_loc(tim, trang_thai, bo):
+    """Điều kiện SQL của bộ lọc trên trang nhân viên: dùng chung cho danh sách, xuất Excel và xóa phiếu đang lọc."""
+    tim, trang_thai, bo = (x if isinstance(x, str) else "" for x in (tim, trang_thai, bo))
     dieu_kien, tham_so = ["p.tra_loi<>'{}'"], []
     if tim:
         chu = tim.lower().replace("!", "!!").replace("%", "!%").replace("_", "!_")
@@ -765,7 +805,21 @@ def trang_phieu(trang, tim, trang_thai):
            "da-lien-he": "p.gui_luc IS NOT NULL AND p.lien_he_luc IS NOT NULL"}
     if trang_thai in loc:
         dieu_kien.append(loc[trang_thai])
-    where = " AND ".join(dieu_kien)
+    if bo in LOAI:
+        dieu_kien.append("COALESCE(p.bo, ?) = ?")
+        tham_so += [BO_MAC_DINH, bo]
+    return " AND ".join(dieu_kien), tham_so
+
+
+def ten_khach_va_viec(t):
+    """Dòng tiêu đề của phiếu trong danh sách: sản phẩm, đơn vị hoặc sự kiện; dòng phụ: thương hiệu hoặc tên sự kiện."""
+    chinh = t.get("1.san_pham") or t.get("21.ten_don_vi") or ""
+    phu = t.get("1.thuong_hieu") or t.get("46.ten_su_kien") or t.get("33.vi_tri") or t.get("42.chu_de") or ""
+    return chinh, phu
+
+
+def trang_phieu(trang, tim, trang_thai, bo=""):
+    where, tham_so = dieu_kien_loc(tim, trang_thai, bo)
     tong = sql("SELECT COUNT(*) FROM phieu p WHERE " + where, tham_so, "mot")[0]
     so_trang = max(1, (tong + 19) // 20)
     trang = min(trang, so_trang)
@@ -775,10 +829,11 @@ def trang_phieu(trang, tim, trang_thai):
     phieu = []
     for ma, tao_luc, gui_luc, lien_he_luc, nguon, tra_loi, so_anh in dong:
         t = json.loads(tra_loi or "{}")
+        chinh, phu = ten_khach_va_viec(t)
         phieu.append({"id": ma, "tao_luc": tao_luc, "gui_luc": gui_luc, "lien_he_luc": lien_he_luc or "",
-                      "loai": t.get("_loai", "chi-tiet"),
-                      "nguon": nguon or "trực tiếp", "so_anh": so_anh, "san_pham": t.get("1.san_pham", ""),
-                      "thuong_hieu": t.get("1.thuong_hieu", ""), "ten": t.get("19.ten", ""),
+                      "loai": t.get("_loai", "chi-tiet"), "bo": bo_cua(t), "ten_bo": LOAI[bo_cua(t)]["ten"],
+                      "nguon": nguon or "trực tiếp", "so_anh": so_anh, "san_pham": chinh,
+                      "thuong_hieu": phu, "ten": t.get("19.ten", ""),
                       "lien_he": gop(t, "19.dia_chi"), "kenh": t.get("19.kenh", ""), "tom_tat": tom_tat(t)})
     return {"phieu": phieu, "trang": trang, "so_trang": so_trang, "tong": tong}
 
@@ -790,8 +845,10 @@ async def nv_phieu(request):
         trang = max(1, int(request.query_params.get("trang", "1")))
     except ValueError:
         return loi("SAI_TRANG", "Số trang chưa đúng.")
-    du_lieu = await run_in_threadpool(trang_phieu, trang, request.query_params.get("tim", "")[:100], request.query_params.get("trang_thai", ""))
+    q = request.query_params
+    du_lieu = await run_in_threadpool(trang_phieu, trang, q.get("tim", "")[:100], q.get("trang_thai", ""), q.get("bo", ""))
     du_lieu["thong_ke"] = await run_in_threadpool(thong_ke)
+    du_lieu["loai"] = [{"id": l["id"], "ten": l["ten"]} for l in BO_CAU_HOI["loai"]]
     return JSONResponse(du_lieu)
 
 
@@ -825,6 +882,64 @@ async def nv_xoa_phieu(request):
     return JSONResponse({"da_xoa": True})
 
 
+MA_PHIEU = re.compile(r"[A-Za-z0-9_\-]{20,60}")
+
+
+def xoa_cac_phieu(ds_ma):
+    """Xóa vĩnh viễn nhiều phiếu cùng ảnh đính kèm trong một giao dịch, một kết nối (nhanh cả trên Neon)."""
+    con = ket_noi()
+    try:
+        if not LA_POSTGRES:
+            con.execute("BEGIN IMMEDIATE")
+        cur, so = con.cursor(), 0
+        for i in range(0, len(ds_ma), 200):
+            phan = ds_ma[i:i + 200]
+            dau = ",".join(["%s" if LA_POSTGRES else "?"] * len(phan))
+            cur.execute(f"DELETE FROM anh WHERE phieu_id IN ({dau})", phan)
+            cur.execute(f"DELETE FROM phieu WHERE id IN ({dau})", phan)
+            so += cur.rowcount
+        con.commit()
+        return so
+    except Exception:
+        con.rollback()
+        raise
+    finally:
+        con.close()
+
+
+def ma_trong_ds(du_lieu):
+    """Danh sách mã phiếu nhân viên đã tích chọn (tối đa 1000), hoặc None nếu sai."""
+    ds = du_lieu.get("ma")
+    if not isinstance(ds, list) or not 1 <= len(ds) <= 1000 or not all(isinstance(m, str) and MA_PHIEU.fullmatch(m) for m in ds):
+        return None
+    return list(dict.fromkeys(ds))
+
+
+async def nv_xoa_nhieu(request):
+    """Xóa các phiếu đã tích chọn, hoặc toàn bộ phiếu khớp bộ lọc đang dùng.
+    Xóa theo bộ lọc phải gửi kèm số phiếu nhân viên đang thấy: số trên máy chủ khác đi (vừa có phiếu mới) thì không xóa."""
+    if not la_nhan_vien(request):
+        return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
+    du_lieu = await doc_json(request, 100_000)
+    if du_lieu is None:
+        return loi("SAI_DU_LIEU", "Dữ liệu gửi lên chưa đúng.")
+    if du_lieu.get("xac_nhan") is not True:
+        return loi("CHUA_XAC_NHAN", "Cần xác nhận xóa phiếu và toàn bộ ảnh đính kèm.")
+    loc = du_lieu.get("loc")
+    if isinstance(loc, dict):
+        where, tham_so = dieu_kien_loc(str(loc.get("tim") or "")[:100], loc.get("trang_thai", ""), loc.get("bo", ""))
+        ds = [d[0] for d in await run_in_threadpool(sql, "SELECT p.id FROM phieu p WHERE " + where, tham_so, "tat")]
+        so_du_kien = du_lieu.get("so_du_kien")
+        if not isinstance(so_du_kien, int) or isinstance(so_du_kien, bool) or so_du_kien != len(ds):
+            return loi("DS_DA_DOI", f"Danh sách vừa thay đổi: hiện có {len(ds)} phiếu khớp bộ lọc. Anh chị xem lại danh sách rồi xóa lại.", 409)
+    else:
+        ds = ma_trong_ds(du_lieu)
+        if ds is None:
+            return loi("SAI_DS", "Danh sách phiếu cần xóa chưa đúng (tối đa 1000 phiếu mỗi lần).")
+    so = await run_in_threadpool(xoa_cac_phieu, ds) if ds else 0
+    return JSONResponse({"da_xoa": so})
+
+
 async def nv_anh_cua_phieu(request):
     if not la_nhan_vien(request):
         return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
@@ -853,30 +968,44 @@ def an_toan_excel(chu):
 XL_DEN, XL_KEM, XL_VIEN, XL_XAM = "111111", "F4F2EE", "D6D2CB", "6B6762"
 XL_CHU = "Arial"
 
-# Khuôn 17 mục của studio. Mỗi mục lấy câu trả lời tương ứng từ phiếu web (nhãn: khóa);
-# mục nào web không hỏi thì để trống để nhân viên điền khi gọi cho khách.
+# Khuôn 17 mục của studio. Mỗi mục lấy câu trả lời tương ứng từ phiếu web (nhãn: khóa), của mọi loại video;
+# câu nào phiếu không có thì bỏ qua; mục nào web không hỏi thì để trống để nhân viên điền khi gọi cho khách.
 KHUON_YEU_CAU = [
-    ("Mục đích của video là gì?", None, [("Dùng để", "4.muc_dich"), ("Sau khi xem, người xem cần", "5.hanh_dong"),
-                                         ("Điều muốn người xem nhớ nhất", "3.diem_nho"), ("Người xem: độ tuổi", "6.tuoi"), ("Người xem: giới tính", "6.gioi_tinh")]),
+    ("Mục đích của video là gì?", None, [("Dùng để", "4.muc_dich"), ("Dùng để", "30.muc_dich"), ("Dùng để", "39.muc_dich"), ("Dùng để", "48.muc_dich"),
+                                         ("Hướng làm video mạng xã hội", "37.huong"), ("Kênh hiện tại", "37.kenh"),
+                                         ("Video cần cho sự kiện", "47.can"), ("Sau khi xem, người xem cần", "5.hanh_dong"),
+                                         ("Sau khi xem, ứng viên cần", "36.hanh_dong"), ("Điều muốn người xem nhớ nhất", "3.diem_nho"),
+                                         ("Điều muốn ứng viên thấy", "35.diem_hut"), ("Điểm mạnh muốn nhấn", "41.diem_manh"),
+                                         ("Người xem: độ tuổi", "6.tuoi"), ("Người xem: giới tính", "6.gioi_tinh"), ("Người xem", "32.nguoi_xem"),
+                                         ("Người xem", "40.nguoi_xem"), ("Người xem", "48.nguoi_xem"), ("Ứng viên cần tìm", "34.ung_vien"),
+                                         ("Người học", "43.nguoi_hoc"), ("Số người học", "43.so_nguoi")]),
     ("Thể loại video là gì?", "Giới thiệu doanh nghiệp, sản phẩm, dịch vụ, sự kiện, đào tạo, tuyên truyền,…",
-     [("Sản phẩm", "1.san_pham"), ("Thương hiệu", "1.thuong_hieu"), ("Nhóm sản phẩm", "2.nhom"), ("Link sản phẩm", "1.link")]),
-    ("Loại hình video là gì?", "Quay dựng, Animation, Graphic,… hoặc kết hợp giữa các thể loại", [("Đồng ý dùng AI tạo hình ảnh", "16.ai")]),
+     [("Loại video", "_bo"), ("Sản phẩm", "1.san_pham"), ("Thương hiệu", "1.thuong_hieu"), ("Nhóm sản phẩm", "2.nhom"), ("Link sản phẩm", "1.link"),
+      ("Đơn vị", "21.ten_don_vi"), ("Website, trang mạng xã hội", "21.link"), ("Ngành", "22.nganh"), ("Loại trường", "38.loai_truong"),
+      ("Nội dung cần nói", "31.noi_dung"), ("Thông điệp chính", "31.thong_diep"), ("Vị trí cần tuyển", "33.vi_tri"), ("Số người cần tuyển", "33.so_luong"),
+      ("Chủ đề đào tạo", "42.chu_de"), ("Nhóm đào tạo", "42.loai"), ("Tài liệu đào tạo", "44.tai_lieu"), ("Phần cần thêm", "45.them"),
+      ("Sự kiện", "46.ten_su_kien"), ("Loại sự kiện", "46.loai_su_kien"), ("Ngày diễn ra", "46.ngay"), ("Địa điểm sự kiện", "46.dia_diem"),
+      ("Số khách", "46.so_khach"), ("Mô tả của khách", "48.mo_ta")]),
+    ("Loại hình video là gì?", "Quay dựng, Animation, Graphic,… hoặc kết hợp giữa các thể loại",
+     [("Cách làm", "27.cach_lam"), ("Đồng ý dùng AI tạo hình ảnh", "16.ai")]),
     ("Phong cách, nhịp điệu của video như thế nào?", "Nhanh, mạnh mẽ hay chậm rãi, nhẹ nhàng? Phong cách business, travel hay tình cảm,…",
      [("Kiểu video thích", "11.kieu"), ("Tốc độ đọc", "15.toc_do")]),
     ("Video mẫu mong muốn?", "Nếu có", [("Mẫu tham khảo trên web", "_mau")]),
     ("Khách hàng cung cấp cho Bpro những gì? Cần Bpro thực hiện những gì?", "Kịch bản, tư liệu, hình ảnh, video, thông tin sản phẩm,…",
-     [("Đã có sẵn", "12.da_co"), ("Ảnh gửi kèm phiếu", "_so_anh")]),
-    ("Cần quay bao nhiêu địa điểm? Vị trí, diện tích, số lượng người tại địa điểm quay?", "Đối với video quay dựng", []),
-    ("Thời gian quay kéo dài mấy ngày? Cách di chuyển? Ngày quay dự kiến?", "Đối với video quay dựng", []),
-    ("Video có cần diễn viên không?", "Nêu rõ giới tính, độ tuổi, quốc tịch và các yêu cầu khác", []),
-    ("Video có cần cảnh quay flycam không?", None, []),
-    ("Thời lượng video mong muốn", None, [("Mỗi video dài", "10.do_dai"), ("Số video", "9.so_video")]),
+     [("Đã có sẵn", "12.da_co"), ("Đã có sẵn", "29.da_co"), ("Ảnh gửi kèm phiếu", "_so_anh")]),
+    ("Cần quay bao nhiêu địa điểm? Vị trí, diện tích, số lượng người tại địa điểm quay?", "Đối với video quay dựng", [("Địa điểm quay", "28.dia_diem")]),
+    ("Thời gian quay kéo dài mấy ngày? Cách di chuyển? Ngày quay dự kiến?", "Đối với video quay dựng", [("Thời gian quay", "28.so_ngay")]),
+    ("Video có cần diễn viên không?", "Nêu rõ giới tính, độ tuổi, quốc tịch và các yêu cầu khác", [("Người xuất hiện", "28.nguoi")]),
+    ("Video có cần cảnh quay flycam không?", None, [("Flycam", "28.flycam")]),
+    ("Thời lượng video mong muốn", None, [("Mỗi video dài", "10.do_dai"), ("Mỗi video dài", "25.do_dai"), ("Số video", "9.so_video"), ("Số video", "24.so_video")]),
     ("Video có cần voice không?", "Ngôn ngữ nào, nam hay nữ, vùng miền nào", [("Ngôn ngữ", "14.ngon_ngu"), ("Giọng đọc", "15.giong"), ("Giọng vùng", "15.vung")]),
     ("Chất lượng video như thế nào?", "Full HD, 2K, 4K,…", []),
-    ("Tỷ lệ khung hình video", "16:9, 9:16, 1:1,…", [("Nơi đăng", "7.noi_dang"), ("Chạy quảng cáo trả phí", "8.quang_cao")]),
+    ("Tỷ lệ khung hình video", "16:9, 9:16, 1:1,…", [("Khung hình", "26.khung"), ("Nơi đăng", "7.noi_dang"), ("Nơi dùng", "23.dung_o"),
+                                                     ("Chạy quảng cáo trả phí", "8.quang_cao")]),
     ("Thời gian cần hoàn thiện video là lúc nào?", None, [("Cần có video", "17.han")]),
     ("Dự trù kinh phí", "Nếu có", [("Dự định chi", "18.ngan_sach")]),
-    ("Các yêu cầu khác", "Nếu có", [("Thông tin cần hiện đúng từng chữ", "5.hien_dung"), ("Điều cần tránh", "13.can_tranh"),
+    ("Các yêu cầu khác", "Nếu có", [("Thông tin cần hiện đúng từng chữ", "5.hien_dung"), ("Thông tin cần hiện đúng từng chữ", "36.hien_dung"),
+                                    ("Điều cần tránh", "13.can_tranh"),
                                     ("Câu chữ cần giữ nguyên", "13.giu_nguyen"), ("Biết đến B PRODUCTIONS qua", "20.nguon")]),
 ]
 
@@ -922,6 +1051,8 @@ def _xl_cao(o_rong, toi_thieu=20, dong=15):
 
 
 def _xl_gia_tri(p, khoa):
+    if khoa == "_bo":
+        return LOAI[bo_cua(p["tra_loi"])]["ten"]
     if khoa == "_mau":
         return p["tra_loi"].get("_mau", "")
     if khoa == "_so_anh":
@@ -987,6 +1118,7 @@ def _xl_trang_phieu(trang, p, k):
     # Khối thông tin khách
     thong_tin = [("Khách hàng", tl.get("19.ten", "")), ("Liên hệ", " · ".join(x for x in (gop(tl, "19.kenh"), tl.get("19.dia_chi", "")) if x)),
                  ("Loại yêu cầu", "Tư vấn nhanh" if tl.get("_loai") == "tu-van-nhanh" else "Phiếu chi tiết"),
+                 ("Loại video", LOAI[bo_cua(tl)]["ten"]),
                  ("Nguồn", p["nguon"] or "trực tiếp"), ("Đã liên hệ", p["lien_he_luc"] or "Chưa liên hệ")]
     d = 6
     for nhan, gia_tri in thong_tin:
@@ -1029,12 +1161,12 @@ def _xl_trang_phieu(trang, p, k):
     for c, chu in enumerate(("Câu", "Câu hỏi trên web", "Câu trả lời của khách"), start=1):
         o = trang.cell(row=d, column=c, value=chu); o.font = k["dau"]; o.fill = k["nen_dau"]; o.alignment = k["giua"]; o.border = k["khung"]
     trang.row_dimensions[d].height = 22
-    for cau in CAU:
+    for hien, cau in cau_hien(tl):
         for tr in cau["truong"]:
             gia = gop(tl, f'{cau["so"]}.{tr["id"]}')
             d += 1
             nhan = cau["cau"] + (f' — {tr["nhan"]}' if tr.get("nhan") else "")
-            o = trang.cell(row=d, column=1, value=cau["so"]); o.font = k["nho"]; o.alignment = k["giua"]
+            o = trang.cell(row=d, column=1, value=hien); o.font = k["nho"]; o.alignment = k["giua"]
             o = trang.cell(row=d, column=2, value=nhan); o.font = k["nho"]; o.alignment = k["trai_giua"]
             o = trang.cell(row=d, column=3, value=an_toan_excel(gia) if gia else "—"); o.font = k["chu"] if gia else k["nho"]; o.alignment = k["trai_giua"]
             for c in (1, 2, 3):
@@ -1052,7 +1184,7 @@ def tao_excel(danh_sach):
     # 1) Tổng hợp
     tong = so.active
     tong.title = "Tổng hợp"
-    cot_tong = [("STT", 6), ("Khách hàng", 22), ("Liên hệ", 24), ("Sản phẩm", 24), ("Loại yêu cầu", 15),
+    cot_tong = [("STT", 6), ("Khách hàng", 22), ("Liên hệ", 24), ("Loại video", 18), ("Sản phẩm hoặc đơn vị", 24), ("Loại yêu cầu", 15),
                 ("Cần có video", 18), ("Kinh phí", 18), ("Gửi lúc", 21), ("Trạng thái", 16)]
     for i, (_, rong) in enumerate(cot_tong, start=1):
         tong.column_dimensions[tong.cell(row=1, column=i).column_letter].width = rong
@@ -1071,21 +1203,21 @@ def tao_excel(danh_sach):
         trang_khach.append((ten_trang, p))
         d += 1
         hang = [i, tl.get("19.ten", "") or "(chưa có tên)", " · ".join(x for x in (gop(tl, "19.kenh"), tl.get("19.dia_chi", "")) if x),
-                tl.get("1.san_pham", ""), "Tư vấn nhanh" if tl.get("_loai") == "tu-van-nhanh" else "Phiếu chi tiết",
+                LOAI[bo_cua(tl)]["ten"], ten_khach_va_viec(tl)[0], "Tư vấn nhanh" if tl.get("_loai") == "tu-van-nhanh" else "Phiếu chi tiết",
                 gop(tl, "17.han"), gop(tl, "18.ngan_sach"), p["gui_luc"], "Đã liên hệ" if p["lien_he_luc"] else "Chờ liên hệ"]
         for c, gia in enumerate(hang, start=1):
             o = tong.cell(row=d, column=c, value=an_toan_excel(gia) if isinstance(gia, str) else gia)
-            o.font = k["chu"]; o.alignment = k["giua"] if c in (1, 5, 8, 9) else k["trai_giua"]; o.border = k["khung"]
+            o.font = k["chu"]; o.alignment = k["giua"] if c in (1, 6, 9, 10) else k["trai_giua"]; o.border = k["khung"]
             if i % 2 == 0:
                 o.fill = k["nen_kem"]
         o = tong.cell(row=d, column=2)
         o.hyperlink = f"#'{ten_trang}'!A1"; o.font = Font(name=XL_CHU, size=10.5, bold=True, color=XL_DEN, underline="single")
         if not p["lien_he_luc"]:
-            tong.cell(row=d, column=9).font = Font(name=XL_CHU, size=10.5, bold=True, color="B42318")
+            tong.cell(row=d, column=len(cot_tong)).font = Font(name=XL_CHU, size=10.5, bold=True, color="B42318")
         tong.row_dimensions[d].height = _xl_cao(list(zip([str(x) for x in hang], [r for _, r in cot_tong])), 22)
     if not da_gui:
         d += 1
-        tong.merge_cells(f"A{d}:I{d}")
+        tong.merge_cells(f"A{d}:{tong.cell(row=d, column=len(cot_tong)).column_letter}{d}")
         o = tong.cell(row=d, column=1, value="Chưa có phiếu nào được gửi."); o.font = k["phu"]; o.alignment = k["giua"]
     tong.cell(row=d + 2, column=1, value="Bấm tên khách hàng để mở trang yêu cầu của khách đó.").font = k["phu"]
     tong.freeze_panes = "A7"
@@ -1098,28 +1230,36 @@ def tao_excel(danh_sach):
 
     # 3) Dữ liệu thô để lọc và tìm
     trang = so.create_sheet("Phiếu đã gửi")
-    cot = [("Gửi lúc", None), ("Đã liên hệ lúc", None), ("Nguồn", None), ("Số ảnh", None)]
-    for cau in CAU:
-        for tr in cau["truong"]:
-            nhan = f'{cau["so"]}. {tr.get("nhan") or cau["cau"]}'
-            cot.append((nhan, f'{cau["so"]}.{tr["id"]}'))
-    trang.append([c[0] for c in cot] + ["Loại yêu cầu", "Mẫu tham khảo"])
+    co_bo = {bo_cua(p["tra_loi"]) for p in danh_sach if p["gui_luc"]}
+    cot = {}   # tên cột -> các khóa (câu cùng chữ ở nhiều loại video dùng chung cột)
+    for l in BO_CAU_HOI["loai"]:
+        if l["id"] not in co_bo:
+            continue
+        for c in CAU_CUA_BO[l["id"]]:
+            for tr in c["truong"]:
+                nhan = tr.get("nhan") or c["cau"]
+                khoa = f'{c["so"]}.{tr["id"]}'
+                if khoa not in cot.setdefault(nhan, []):
+                    cot[nhan].append(khoa)
+    trang.append(["Gửi lúc", "Đã liên hệ lúc", "Nguồn", "Số ảnh", "Loại video"] + list(cot) + ["Loại yêu cầu", "Mẫu tham khảo"])
     for p in danh_sach:
         if not p["gui_luc"]:
             continue
-        trang.append([p["gui_luc"], p["lien_he_luc"] or "Chưa liên hệ", p["nguon"] or "trực tiếp", p["so_anh"]] +
-                     [an_toan_excel(gop(p["tra_loi"], khoa)) for _, khoa in cot[4:]] +
-                     ["Tư vấn nhanh" if p["tra_loi"].get("_loai") == "tu-van-nhanh" else "Phiếu chi tiết", an_toan_excel(p["tra_loi"].get("_mau", ""))])
+        tl = p["tra_loi"]
+        trang.append([p["gui_luc"], p["lien_he_luc"] or "Chưa liên hệ", p["nguon"] or "trực tiếp", p["so_anh"], LOAI[bo_cua(tl)]["ten"]] +
+                     [an_toan_excel(next((g for g in (gop(tl, kh) for kh in ds) if g), "")) for ds in cot.values()] +
+                     ["Tư vấn nhanh" if tl.get("_loai") == "tu-van-nhanh" else "Phiếu chi tiết", an_toan_excel(tl.get("_mau", ""))])
     dang_do = so.create_sheet("Phiếu đang dở")
-    dang_do.append(["Mở lúc", "Sửa lúc", "Nguồn", "Dừng ở nhóm", "Sản phẩm", "Tên", "Liên hệ"])
+    dang_do.append(["Mở lúc", "Sửa lúc", "Nguồn", "Loại video", "Dừng ở nhóm", "Sản phẩm hoặc đơn vị", "Tên", "Liên hệ"])
     ten_nhom = {n["id"]: n["ten"] for n in BO_CAU_HOI["nhom"]}
     for p in danh_sach:
         if p["gui_luc"] or not p["tra_loi"]:
             continue
-        dang_do.append([p["tao_luc"], p["sua_luc"], p["nguon"] or "trực tiếp", ten_nhom.get(p["nhom_dang_dung"], ""),
-                        an_toan_excel(p["tra_loi"].get("1.san_pham", "")), an_toan_excel(p["tra_loi"].get("19.ten", "")),
+        dang_do.append([p["tao_luc"], p["sua_luc"], p["nguon"] or "trực tiếp", LOAI[bo_cua(p["tra_loi"])]["ten"],
+                        ten_nhom.get(p["nhom_dang_dung"], ""),
+                        an_toan_excel(ten_khach_va_viec(p["tra_loi"])[0]), an_toan_excel(p["tra_loi"].get("19.ten", "")),
                         an_toan_excel(gop(p["tra_loi"], "19.dia_chi"))])
-    for t, rong_dau in ((trang, 4), (dang_do, 0)):
+    for t, rong_dau in ((trang, 5), (dang_do, 0)):
         t.sheet_view.showGridLines = True
         for o in t[1]:
             o.font = k["dau"]; o.fill = k["nen_dau"]; o.alignment = Alignment(wrap_text=True, vertical="center"); o.border = k["khung"]
@@ -1134,7 +1274,7 @@ def tao_excel(danh_sach):
             t.row_dimensions[r].height = _xl_cao([(t.cell(row=r, column=i + 1).value, w) for i, w in enumerate(rong_cot)], 20)
         if t.max_row > 1:
             t.auto_filter.ref = t.dimensions
-    trang.freeze_panes = "E2"
+    trang.freeze_panes = "F2"
     dang_do.freeze_panes = "A2"
     tep = io.BytesIO()
     so.save(tep)
@@ -1144,7 +1284,23 @@ def tao_excel(danh_sach):
 async def nv_excel(request):
     if not la_nhan_vien(request):
         return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
-    danh_sach = await run_in_threadpool(tat_ca_phieu)
+    if request.method == "POST":
+        du_lieu = await doc_json(request, 100_000)
+        if du_lieu is None:
+            return loi("SAI_DU_LIEU", "Dữ liệu gửi lên chưa đúng.")
+        if isinstance(du_lieu.get("loc"), dict):
+            loc = du_lieu["loc"]
+            where, tham_so = dieu_kien_loc(str(loc.get("tim") or "")[:100], loc.get("trang_thai", ""), loc.get("bo", ""))
+        else:
+            ds = ma_trong_ds(du_lieu)
+            if ds is None:
+                return loi("SAI_DS", "Danh sách phiếu cần xuất chưa đúng (tối đa 1000 phiếu mỗi lần).")
+            where, tham_so = f'p.id IN ({",".join("?" * len(ds))})', ds
+        danh_sach = await run_in_threadpool(tat_ca_phieu, where, tham_so)
+        if not danh_sach:
+            return loi("TRONG", "Không còn phiếu nào trong danh sách đã chọn.", 404)
+    else:
+        danh_sach = await run_in_threadpool(tat_ca_phieu)
     du_lieu = await run_in_threadpool(tao_excel, danh_sach)
     ten = f'phieu-khach-{bay_gio()[:10]}.xlsx'
     return Response(du_lieu, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1390,10 +1546,11 @@ app = BaoVe(GZipMiddleware(Starlette(routes=[
     Route("/api/nhan-vien/dang-nhap", dang_nhap, methods=["POST"]),
     Route("/api/nhan-vien/dang-xuat", dang_xuat, methods=["POST"]),
     Route("/api/nhan-vien/phieu", nv_phieu),
+    Route("/api/nhan-vien/phieu/xoa-nhieu", nv_xoa_nhieu, methods=["POST"]),
     Route("/api/nhan-vien/phieu/{ma}", nv_xoa_phieu, methods=["DELETE"]),
     Route("/api/nhan-vien/phieu/{ma}/anh", nv_anh_cua_phieu),
     Route("/api/nhan-vien/phieu/{ma}/lien-he", nv_danh_dau_lien_he, methods=["POST"]),
     Route("/api/nhan-vien/anh/{anh}", nv_anh),
-    Route("/api/nhan-vien/xuat-excel", nv_excel),
+    Route("/api/nhan-vien/xuat-excel", nv_excel, methods=["GET", "POST"]),
     Mount("/", StaticFiles(directory=WEB), name="web"),
 ]), minimum_size=600))
