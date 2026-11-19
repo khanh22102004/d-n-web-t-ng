@@ -1055,3 +1055,13 @@ body.parent-brand .quy-trinh-ds.chay li:nth-child(4)::before, body.parent-brand 
   body.parent-brand .quy-trinh-ds.cho-chay li:not(:last-child)::after { background: linear-gradient(var(--bp-muc), var(--bp-muc)) top / 100% 0% no-repeat, var(--bp-vien); }
   body.parent-brand .quy-trinh-ds.chay li:not(:last-child)::after { background-size: 100% 100%, auto; }
 }
+
+/* Quy trình: 4 cột chia hàng chung (vòng số, tiêu đề, mô tả, ô dẫn chứng) để các ô dẫn chứng thẳng hàng và cao bằng nhau */
+@media (min-width: 761px) {
+  @supports (grid-template-rows: subgrid) {
+    body.parent-brand .quy-trinh-ds li, body.parent-brand .quy-trinh-ds li + li, body.parent-brand .quy-trinh-ds li:nth-child(n) {
+      display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 0; align-content: start; }
+    body.parent-brand .quy-trinh-ds li > .qt-chung { align-self: stretch; max-width: none; }
+  }
+  body.parent-brand .quy-trinh-ds p { max-width: none; }
+}
