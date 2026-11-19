@@ -87,6 +87,10 @@
     ganDuPhong(k, i, m);
     // Ảnh đủ nét (net === true, điện thoại mẫu giữa): trình duyệt tự chọn ảnh 270 hay 360 điểm ảnh theo cỡ khung và mật độ màn hình.
     if (!anhRieng && net === true) { i.srcset = `/anh-mau/nho/${m.ma}.webp 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 140px, 240px"; }
+    // Thẻ thư viện ("the"): màn hình nét (máy tính phóng 125–150%, điện thoại mật độ cao) lấy ảnh 360 cho khỏi mờ,
+    // màn hình thường vẫn lấy ảnh 270; máy yếu luôn giữ ảnh 270 (ít bộ nhớ, không lag thêm).
+    if (!anhRieng && net === "the" && !mayYeu) { i.srcset = `/anh-mau/nho/${m.ma}.webp 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 172px, 236px"; }
+    if (net === "the") net = "nho";
     i.src = anhRieng || (net === "nho" ? `/anh-mau/nho/${m.ma}.webp` : net === "tuong" ? `/anh-mau/tuong/${m.ma}.webp` : taiCho);   // "tuong": ảnh 180×320 chỉ cho tường nền
     // Không còn đổi sang ảnh bìa YouTube độ nét cao: ảnh WebP của trang đã đủ nét cho khung điện thoại,
     // và việc đổi ảnh muộn làm chỉ số "nội dung lớn nhất" (LCP) của PageSpeed bị tính trễ.
@@ -211,7 +215,7 @@
     const li = tao("li"), tuVan = tao("button", "tu-van-mau", "Tư vấn kiểu này ↗"); tuVan.type = "button";
     tuVan.setAttribute("aria-label", `Tư vấn theo mẫu ${m.ma}: ${m.ten}`);
     tuVan.addEventListener("click", () => chonTuVan(m));
-    const the = nutMau(m, mauDangLoc, true, true, "nho");
+    const the = nutMau(m, mauDangLoc, true, true, "the");
     the.querySelector(".khung").append(tao("span", "nhan-nganh", m.nhom)); ganDoan(the);
     li.append(the, tao("p", "phong-cach-mau", m.kieu || m.nhom), tuVan); return li;
   }
@@ -602,7 +606,12 @@
     // Hai máy hai bên: ảnh bìa của mẫu trước và mẫu kế.
     [["dt-ben-trai", dt.ds[(viTri - 1 + n) % n]], ["dt-ben-phai", dt.ds[(viTri + 1) % n]]].forEach(([id, mb]) => {
       const anh = $(id).querySelector("img"), src = `/anh-mau/nho/${encodeURIComponent(mb.ma)}.webp`;
-      if (anh.getAttribute("src") !== src) { anh.classList.remove("doi"); void anh.offsetWidth; anh.src = src; anh.classList.add("doi"); }
+      if (anh.getAttribute("src") !== src) {
+        anh.classList.remove("doi"); void anh.offsetWidth;
+        if (mayYeu) anh.removeAttribute("srcset");                                                       // máy yếu: luôn ảnh 270
+        else if (anh.hasAttribute("srcset")) anh.srcset = `${src} 270w, /anh-mau/${encodeURIComponent(mb.ma)}.webp 360w`;   // màn hình nét lấy ảnh 360
+        anh.src = src; anh.classList.add("doi");
+      }
     });
     $("dt-nganh").textContent = m.nhom; $("dt-ten").textContent = m.ten; $("dt-kieu").textContent = m.kieu || "";
     $("dt-tim").classList.toggle("da-thich", !!timCuaKhach[m.ma]); $("dt-tim").setAttribute("aria-label", "Thả tim cho mẫu này");
