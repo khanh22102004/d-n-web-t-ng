@@ -217,10 +217,14 @@
   }
 
   const maNoiBat = ["ST025", "ST029", "ST056"];
-  let locNhom = "";
-  // Mẫu đứng đầu danh sách nổi bật cũng đứng đầu thư viện (thứ tự ngành hàng trong menu vẫn theo mau.json).
+  // Bộ lọc thư viện, giống "Tìm dự án tiêu biểu" của trang công ty mẹ: loại video (mục đích), ngành, phong cách.
+  // Mỗi nhóm chọn một mục; bấm lại mục đang chọn là bỏ chọn. Các nhóm kết hợp với nhau.
+  const loc = { loai: "", nganh: "", phong: "" };
+  // Mẫu đứng đầu danh sách nổi bật cũng đứng đầu thư viện (thứ tự ngành hàng vẫn theo mau.json).
   const dauTien = ds => { const k = ds.findIndex(m => m.ma === maNoiBat[0]); return k > 0 ? [ds[k], ...ds.slice(0, k), ...ds.slice(k + 1)] : ds; };
-  const mauDangLoc = () => locNhom === "noi-bat" ? maNoiBat.map(ma => mau[ma]).filter(Boolean) : dauTien(cauHinh.mau.filter(m => !locNhom || m.nhom === locNhom));
+  const hopLoc = (m, l = loc) => (!l.loai || m.loai === l.loai) && (!l.nganh || m.nhom === l.nganh) && (!l.phong || m.phong_cach === l.phong);
+  const coLoc = () => !!(loc.loai || loc.nganh || loc.phong);
+  const mauDangLoc = () => dauTien(cauHinh.mau.filter(m => hopLoc(m)));
 
   // Thư viện chia theo ngành hàng: mỗi ngành một hàng thẻ lướt ngang (vuốt, kéo thanh cuộn hoặc bấm ‹ ›).
   function theMau(m) {
@@ -228,28 +232,73 @@
     tuVan.setAttribute("aria-label", `Tư vấn theo mẫu ${m.ma}: ${m.ten}`);
     tuVan.addEventListener("click", () => chonTuVan(m));
     const the = nutMau(m, mauDangLoc, true, true, "the");
-    the.querySelector(".khung").append(tao("span", "nhan-nganh", m.nhom)); ganDoan(the);
-    li.append(the, tao("p", "phong-cach-mau", m.kieu || m.nhom), tuVan); return li;
+    ganDoan(the);
+    // Nhãn dưới tên mẫu (loại video, ngành, phong cách) để khách nhận ra ngay video thuộc nhóm nào.
+    const nhan = tao("p", "nhan-mau");
+    [tenLoai(m.loai), m.nhom, m.phong_cach].filter(Boolean).forEach(x => nhan.append(tao("span", "", x)));
+    li.append(the, nhan, tuVan); return li;
   }
-  // Thư viện: hàng nút ngành phía trên ("Tất cả" và từng ngành). Bấm ngành nào thì dải thẻ chỉ còn mẫu của ngành đó
-  // (khung xem lớn cũng chỉ lướt trong ngành đó); bấm "Tất cả" để xem lại toàn bộ.
-  function veRay(nganh = locNhom) {
+  // Thư viện: bộ lọc ba nhóm phía trên (loại video, ngành, phong cách), dải thẻ lướt ngang bên dưới
+  // (khung xem lớn cũng chỉ lướt trong các mẫu đang lọc). Không mẫu nào hợp thì mời điền phiếu đúng loại video đã chọn.
+  function chonLoc(khoa, gt) {
+    loc[khoa] = loc[khoa] === gt ? "" : gt;
+    // Đổi loại video mà ngành, phong cách đang chọn không còn mẫu nào: bỏ hai lựa chọn đó để khách thấy mẫu của loại mới.
+    if (khoa === "loai" && loc.loai && !cauHinh.mau.some(m => hopLoc(m))) { loc.nganh = ""; loc.phong = ""; }
+    veRay();
+    $("hang-mau").querySelector(`[data-loc="${khoa}"][data-gt="${CSS.escape(gt)}"]`)?.focus({ preventScroll: true });
+  }
+  function boLoc(tatCa) {
+    const khoi = tao("div", "tim-mau"), dau = tao("div", "tim-dau");
+    dau.append(tao("h3", "", "Tìm video mẫu"), tao("p", "", "Chọn mục đích, ngành hoặc phong cách để xem video tương ứng."));
+    const nut = (khoa, gt, ten, so) => {
+      const b = tao("button", khoa === "loai" ? "tim-loai-nut" : "tim-chip"); b.type = "button";
+      b.dataset.loc = khoa; b.dataset.gt = gt; b.setAttribute("aria-pressed", String(loc[khoa] === gt));
+      b.append(tao("span", "", ten)); if (so != null) b.append(tao("span", "nganh-so", String(so)));
+      b.addEventListener("click", () => chonLoc(khoa, gt));
+      return b;
+    };
+    const hangLoai = tao("div", "tim-loai"); hangLoai.setAttribute("role", "group"); hangLoai.setAttribute("aria-label", "Tìm theo mục đích");
+    hangLoai.append(...dsLoai.map(l => nut("loai", l.id, l.ten)));
+    khoi.append(dau, hangLoai);
+    // Ngành, phong cách: chỉ hiện mục có mẫu (theo các nhóm đang chọn), kèm số mẫu.
+    [["nganh", "Tìm theo ngành", cauHinh.phan_loai?.nganh || []], ["phong", "Tìm theo phong cách", cauHinh.phan_loai?.phong_cach || []]].forEach(([khoa, ten, ds]) => {
+      const dem = gt => tatCa.filter(m => hopLoc(m, { ...loc, [khoa]: gt })).length;
+      const cac = ds.filter(gt => loc[khoa] === gt || dem(gt) > 0);
+      if (!cac.length) return;
+      const hang = tao("div", "tim-hang"), nhom = tao("div", "tim-chip-ds");
+      nhom.setAttribute("role", "group"); nhom.setAttribute("aria-label", ten);
+      nhom.append(...cac.map(gt => nut(khoa, gt, gt, dem(gt))));
+      hang.append(tao("span", "tim-nhan", ten), nhom); khoi.append(hang);
+    });
+    if (coLoc() && mauDangLoc().length) {
+      const kq = tao("div", "tim-ket-qua"), xoa = tao("button", "nut-chu", "Xóa bộ lọc"); xoa.type = "button";
+      xoa.addEventListener("click", () => { Object.assign(loc, { loai: "", nganh: "", phong: "" }); veRay(); $("hang-mau").querySelector(".tim-loai-nut")?.focus({ preventScroll: true }); });
+      kq.append(tao("p", "", `Có ${mauDangLoc().length} video phù hợp`), xoa); khoi.append(kq);
+    }
+    return khoi;
+  }
+  // Link mở phiếu đúng loại video (trang điền phiếu riêng); có phong cách thì phiếu điền sẵn câu "cách làm video".
+  const linkPhieu = (loai, phong = "") => `/phieu/${encodeURIComponent(loai)}${phong ? `?phong=${encodeURIComponent(phong)}` : ""}`;
+  function veRay() {
     const hop = $("hang-mau"); if (!hop) return;
     dungTatCa();
-    locNhom = nganh === "noi-bat" ? "" : nganh;
     const tatCa = dauTien(cauHinh.mau), thuTu = [...new Set(tatCa.map(m => m.nhom))];
-    const ds = mauDangLoc(), xep = locNhom ? ds : thuTu.flatMap(n => ds.filter(m => m.nhom === n));
-    const hangNut = tao("div", "nganh-ds"); hangNut.setAttribute("role", "group"); hangNut.setAttribute("aria-label", "Lọc mẫu theo ngành hàng");
+    const ds = mauDangLoc(), xep = coLoc() ? ds : thuTu.flatMap(n => ds.filter(m => m.nhom === n));
     const ul = tao("ul", "ray ray-hang"); ul.id = "ray-mau"; ul.tabIndex = 0;
-    ul.setAttribute("aria-label", locNhom ? `Mẫu video ngành ${locNhom}` : "Danh sách mẫu video");
+    ul.setAttribute("aria-label", "Danh sách mẫu video");
     ul.append(...xep.map(m => { const li = theMau(m); li.dataset.nhom = m.nhom; return li; }));
-    const cacNut = ["", ...thuTu].map(n => {
-      const b = tao("button", "nganh-nut"); b.type = "button"; b.dataset.nhom = n; b.setAttribute("aria-pressed", String(n === locNhom));
-      b.append(tao("span", "nganh-ten", n || "Tất cả"), tao("span", "nganh-so", String(n ? tatCa.filter(m => m.nhom === n).length : tatCa.length)));
-      b.addEventListener("click", () => { if (n === locNhom) return; veRay(n); hop.querySelector(`.nganh-nut[data-nhom="${CSS.escape(n)}"]`)?.focus({ preventScroll: true }); });
-      return b;
-    });
-    hangNut.append(...cacNut);
+    if (!xep.length) {
+      const trong = tao("div", "tim-trong"), hang = tao("div", "hang-nut");
+      trong.append(tao("p", "", "Chưa có video mẫu đúng lựa chọn này. Quý khách hàng vẫn có thể điền phiếu để chúng tôi tư vấn."));
+      if (loc.loai) { const a = tao("a", "nut", `Điền phiếu ${tenLoai(loc.loai)}`); a.href = linkPhieu(loc.loai, loc.phong); hang.append(a); }
+      const xoa = tao("button", "nut-chu", "Xóa bộ lọc"); xoa.type = "button";
+      xoa.addEventListener("click", () => { Object.assign(loc, { loai: "", nganh: "", phong: "" }); veRay(); });
+      hang.append(xoa); trong.append(hang);
+      hop._capNhat = null;
+      hop.replaceChildren(boLoc(tatCa), trong);
+      $("dem-mau").textContent = "Chưa có video mẫu đúng lựa chọn này";
+      return;
+    }
     const khung = tao("div", "ray-khung"), truoc = tao("button", "ray-nut hang-truoc", "‹"), sau = tao("button", "ray-nut hang-sau", "›");
     truoc.type = "button"; sau.type = "button"; truoc.setAttribute("aria-label", "Xem mẫu trước"); sau.setAttribute("aria-label", "Xem mẫu tiếp theo");
     const cuon = huong => ul.scrollBy({ left: huong * Math.max(220, ul.clientWidth * 0.8), behavior: itChuyenDong ? "instant" : "smooth" });
@@ -266,12 +315,91 @@
     };
     ul.addEventListener("scroll", () => { if (!hen) hen = requestAnimationFrame(capNhat); }, { passive: true });
     hop._capNhat = capNhat;
-    hop.replaceChildren(hangNut, khung);
-    $("dem-mau").textContent = `Tất cả ${tatCa.length} mẫu trong thư viện`;
+    hop.replaceChildren(boLoc(tatCa), khung);
+    $("dem-mau").textContent = coLoc() ? `Có ${ds.length} video phù hợp` : `Tất cả ${tatCa.length} mẫu trong thư viện`;
     // ResizeObserver báo sau khi trình duyệt đã tính bố cục, nên đọc kích thước lúc đó không tốn thêm một lượt tính.
     if ("ResizeObserver" in window) new ResizeObserver(() => capNhat()).observe(ul); else requestAnimationFrame(capNhat);
   }
   function capNhatNutRay() { $("hang-mau")?._capNhat?.(); }
+
+  // ---------- Ba câu hỏi gợi ý loại video (cho khách chưa biết chọn) ----------
+  // Câu 1 mục đích (8 loại video của phiếu), câu 2 ngành, câu 3 phong cách. Kết quả: loại video hợp, vài video mẫu gần nhất,
+  // nút mở phiếu đúng loại (điền sẵn phong cách) và nút lọc thư viện theo lựa chọn.
+  const goiY = { buoc: 0, loai: "", nganh: "", phong: "" };
+  const MO_TA_PHONG = { "Video bằng AI": "Hình ảnh và nhân vật do AI tạo", "Quay thực tế": "Quay người, sản phẩm, địa điểm thật",
+    "Hoạt hình": "Nhân vật và cảnh vẽ chuyển động", "Infographic": "Chữ, số liệu và biểu đồ chuyển động" };
+  function moGoiY() {
+    const hop = $("goi-y-loai");
+    if (!hop.hidden) { dongGoiY(); return; }
+    Object.assign(goiY, { buoc: 0, loai: "", nganh: "", phong: "" });
+    hop.hidden = false; veGoiY();
+    $("goi-y-mo").setAttribute("aria-expanded", "true");
+  }
+  function dongGoiY(veNut = true) {
+    $("goi-y-loai").hidden = true;
+    $("goi-y-mo").setAttribute("aria-expanded", "false"); if (veNut) $("goi-y-mo").focus({ preventScroll: true });
+  }
+  function veGoiY() {
+    const hop = $("goi-y-loai"), dau = tao("div", "goi-y-dau"), dong = tao("button", "nut-chu goi-y-dong", "Đóng"); dong.type = "button";
+    dong.addEventListener("click", dongGoiY);
+    const tieuDe = tao("h3"); tieuDe.id = "goi-y-tieu-de"; tieuDe.tabIndex = -1;
+    const chon = tao("div", "goi-y-chon"), duoi = tao("div", "goi-y-duoi");
+    const luaChon = (ten, moTa, khiChon, dangChon) => {
+      const b = tao("button", "goi-y-nut"); b.type = "button"; b.setAttribute("aria-pressed", String(!!dangChon));
+      b.append(tao("span", "goi-y-ten", ten)); if (moTa) b.append(tao("span", "goi-y-mo-ta", moTa));
+      b.addEventListener("click", khiChon); return b;
+    };
+    const tiep = () => { goiY.buoc += 1; veGoiY(); };
+    if (goiY.buoc === 0) {
+      tieuDe.textContent = "Quý khách hàng muốn làm video để làm gì?";
+      chon.append(...dsLoai.map(l => luaChon(l.ten, l.mo_ta, () => { goiY.loai = l.id; tiep(); }, goiY.loai === l.id)));
+    } else if (goiY.buoc === 1) {
+      tieuDe.textContent = "Đơn vị của Quý khách hàng thuộc ngành nào?";
+      chon.classList.add("goi-y-chip");
+      chon.append(...(cauHinh.phan_loai?.nganh || []).map(n => luaChon(n, "", () => { goiY.nganh = n; tiep(); }, goiY.nganh === n)));
+    } else if (goiY.buoc === 2) {
+      tieuDe.textContent = "Quý khách hàng thích video theo phong cách nào?";
+      chon.append(...(cauHinh.phan_loai?.phong_cach || []).map(p => luaChon(p, MO_TA_PHONG[p] || "", () => { goiY.phong = p; tiep(); }, goiY.phong === p)),
+        luaChon("Chưa biết, nhờ chúng tôi gợi ý", "", () => { goiY.phong = ""; tiep(); }, false));
+    }
+    if (goiY.buoc < 3) {
+      dau.append(tao("p", "goi-y-buoc", `Câu ${goiY.buoc + 1}/3`), tieuDe, dong);
+      chon.setAttribute("role", "group"); chon.setAttribute("aria-labelledby", "goi-y-tieu-de");
+      if (goiY.buoc > 0) { const lai = tao("button", "nut-chu", "← Câu trước"); lai.type = "button"; lai.addEventListener("click", () => { goiY.buoc -= 1; veGoiY(); }); duoi.append(lai); }
+      hop.replaceChildren(dau, chon, duoi);
+    } else {
+      // Kết quả: video mẫu gần nhất (đúng loại video quan trọng nhất, rồi ngành, rồi phong cách).
+      const diem = m => (m.loai === goiY.loai ? 4 : 0) + (m.nhom === goiY.nganh ? 2 : 0) + (goiY.phong && m.phong_cach === goiY.phong ? 1 : 0);
+      // Đúng loại video hoặc đúng ngành mới tính là gần; không có thì lấy video cùng phong cách.
+      let ds = cauHinh.mau.filter(m => diem(m) >= 2).sort((a, b) => diem(b) - diem(a)).slice(0, 4), nhanDs = "Video mẫu gần với lựa chọn của Quý khách hàng";
+      if (!ds.length && goiY.phong) { ds = cauHinh.mau.filter(m => m.phong_cach === goiY.phong).slice(0, 4); nhanDs = "Video mẫu cùng phong cách"; }
+      tieuDe.textContent = tenLoai(goiY.loai);
+      dau.append(tao("p", "goi-y-buoc", "Gợi ý cho Quý khách hàng"), tieuDe, dong);
+      const chiTiet = tao("p", "goi-y-chi-tiet");
+      chiTiet.append(tao("span", "", goiY.nganh), tao("span", "", goiY.phong || "Phong cách: chúng tôi gợi ý khi liên hệ"));
+      const ket = tao("div", "goi-y-ket");
+      ket.append(chiTiet, tao("p", "dan", `Phiếu ${tenLoai(goiY.loai)} có các câu hỏi riêng cho loại video này. Chúng tôi gửi phương án và báo giá trong ${cauHinh.hen_phan_hoi}.`));
+      if (ds.length) {
+        const ul = tao("ul", "goi-y-mau");
+        ds.forEach(m => { const li = tao("li"); li.append(nutMau(m, () => ds, true, false, "nho")); ul.append(li); });
+        ket.append(tao("p", "goi-y-nhan", nhanDs), ul);
+      } else ket.append(tao("p", "goi-y-nhan", "Chưa có video mẫu đúng loại này. Chúng tôi sẽ tư vấn khi liên hệ."));
+      const hang = tao("div", "hang-nut"), dien = tao("a", "nut", `Điền phiếu ${tenLoai(goiY.loai)}`);
+      dien.href = linkPhieu(goiY.loai, goiY.phong || "goi-y");
+      const xem = tao("button", "nut-phu", "Xem video mẫu cùng loại"); xem.type = "button";
+      xem.addEventListener("click", () => {
+        Object.assign(loc, { loai: goiY.loai, nganh: "", phong: cauHinh.mau.some(m => m.loai === goiY.loai && m.phong_cach === goiY.phong) ? goiY.phong : "" });
+        dongGoiY(false); veRay();
+        $("hang-mau").scrollIntoView({ block: "start", behavior: itChuyenDong ? "instant" : "smooth" });
+      });
+      const lai = tao("button", "nut-chu", "Trả lời lại"); lai.type = "button";
+      lai.addEventListener("click", () => { Object.assign(goiY, { buoc: 0, loai: "", nganh: "", phong: "" }); veGoiY(); });
+      hang.append(dien); if (cauHinh.mau.some(m => m.loai === goiY.loai)) hang.append(xem); hang.append(lai); ket.append(hang);
+      hop.replaceChildren(dau, ket);
+    }
+    tieuDe.focus({ preventScroll: true });
+    if (hop.getBoundingClientRect().top < 0) hop.scrollIntoView({ block: "start", behavior: itChuyenDong ? "instant" : "smooth" });
+  }
 
   // Màn hình đầu: tường mẫu đang chạy để khách thấy ngay nhiều kiểu video, không phải một mẫu duy nhất.
   // Máy tính: năm cột. Điện thoại: bốn cột ô nhỏ so le, trôi dọc xuống.
@@ -944,31 +1072,6 @@
       document.body.classList.toggle("tam-dung-nen", document.hidden);
       if (document.hidden) dungTatCa(); else chayLaiDoan();
     });
-    const cacNhom = [...new Set(cauHinh.mau.map(m => m.nhom))];
-    const them = tao("button", "loc-them", "Ngành hàng"); them.type = "button"; them.id = "loc-them";
-    them.setAttribute("aria-expanded", "false"); them.setAttribute("aria-controls", "loc-nganh");
-    function dongNganh() { $("loc-nganh").hidden = true; them.setAttribute("aria-expanded", "false"); }
-    function taoLoc(n) {
-      const b = tao("button", "", n === "noi-bat" ? "Mẫu nổi bật" : n || "Tất cả"); b.type = "button"; b.dataset.loc = n;
-      b.setAttribute("aria-pressed", String(n === locNhom));
-      b.addEventListener("click", () => {
-        locNhom = n;
-        document.querySelectorAll("[data-loc]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-        const laNganh = !!n && n !== "noi-bat";
-        them.classList.toggle("co-chon", laNganh);
-        them.setAttribute("aria-label", laNganh ? `Ngành hàng, đang chọn ${n}` : "Chọn ngành hàng");
-        $("loc-dang-chon").textContent = laNganh ? `Đang xem: ${n}` : ""; $("loc-dang-chon").hidden = !laNganh;
-        dongNganh(); veRay();
-        if (laNganh) them.focus({ preventScroll: true });
-      });
-      return b;
-    }
-    ["", "noi-bat"].forEach(n => $("loc").append(taoLoc(n)));
-    $("loc").append(them);
-    cacNhom.forEach(n => $("loc-nganh").append(taoLoc(n)));
-    them.addEventListener("click", () => { const mo = $("loc-nganh").hidden; $("loc-nganh").hidden = !mo; them.setAttribute("aria-expanded", String(mo)); });
-    them.addEventListener("keydown", e => { if (e.key === "Escape") dongNganh(); });
-    $("loc-nganh").addEventListener("keydown", e => { if (e.key === "Escape") { dongNganh(); them.focus(); } });
     const ray = $("luoi-mau");
     $("xem-them-mau").addEventListener("click", () => {
       ray.classList.remove("thu-gon"); $("xem-them-mau").hidden = true;
@@ -983,6 +1086,7 @@
     $("ray-sau").addEventListener("click", () => cuonMau(1));
     ray.addEventListener("scroll", capNhatNutRay, { passive: true }); window.addEventListener("resize", capNhatNutRay);
     veRay();
+    $("goi-y-mo").addEventListener("click", moGoiY);
   }
 
   // ---------- Thanh nút dưới đáy màn hình điện thoại ----------
@@ -1087,11 +1191,12 @@
       if (m.nhom) {
         const b = tao("button", "xem-the-nganh", m.nhom); b.type = "button"; b.title = "Xem các mẫu cùng ngành";
         b.setAttribute("aria-label", `Ngành ${m.nhom}: xem các mẫu cùng ngành`);
-        b.addEventListener("click", () => { $("xem").close(); veRay(m.nhom); $("mau").scrollIntoView({ block: "start", behavior: itChuyenDong ? "instant" : "smooth" }); });
+        b.addEventListener("click", () => { $("xem").close(); Object.assign(loc, { loai: "", nganh: m.nhom, phong: "" }); veRay(); $("mau").scrollIntoView({ block: "start", behavior: itChuyenDong ? "instant" : "smooth" }); });
         cac.push(b);
       }
-      if (m.kieu) cac.push(tao("span", "", m.kieu));
-      cac.push(tao("span", "", "Làm bằng AI"));   // không dùng chữ "Video AI": bản dịch của chữ đó dành riêng cho tiêu đề màn hình đầu
+      if (tenLoai(m.loai)) cac.push(tao("span", "", tenLoai(m.loai)));
+      // Không dùng chữ "Video AI": bản dịch của chữ đó dành riêng cho tiêu đề màn hình đầu.
+      cac.push(tao("span", "", m.phong_cach || "Làm bằng AI"));
       the.replaceChildren(...cac.map(x => { const li = tao("li"); li.append(x); return li; }));
     }
     $("xem-kieu").textContent = m.kieu || "";
@@ -1649,7 +1754,7 @@
         luotPhieu = crypto.randomUUID(); nho.ghi(KHOA_PHIEU, maPhieu);
         dienTuTuVan();
         const boDau = boTuLink || (kieuCho ? cauHinh.bo_cau_hoi.bo_mac_dinh : "");
-        if (boDau && !boDangChon) { chonBo(boDau, false); viTri = 1; }
+        if (boDau && !boDangChon) { chonBo(boDau, false); viTri = 1; dienPhongGoiY(); }
       }
       if (kieuCho && !boDangChon) { chonBo(cauHinh.bo_cau_hoi.bo_mac_dinh, false); viTri = 1; }
       apDungKieuCho(); doiNhom(viTri);
@@ -1658,6 +1763,14 @@
       if (cheDoPhieu) { hien("dau"); hienKhungBatDau(); } else $("mo-dau").scrollIntoView();
     }
     finally { document.querySelectorAll("[data-bat-dau]").forEach(b => { b.disabled = false; }); }
+  }
+
+  // Khách đến từ ba câu hỏi gợi ý: điền sẵn câu "cách làm video" theo phong cách đã chọn ("goi-y": nhờ chúng tôi tư vấn).
+  function dienPhongGoiY() {
+    const phong = new URLSearchParams(location.search).get("phong"); if (!phong) return;
+    const o = cau.find(c => c.so === 27)?.truong.find(t => t.id === "cach_lam"); if (!o) return;
+    const gt = phong === "goi-y" ? "Nhờ chúng tôi tư vấn" : phong;
+    if ((o.lua_chon || []).map(tenLuaChon).includes(gt)) ghi(`27.${o.id}`, o.kieu === "nhieu" ? [gt] : gt);
   }
 
   async function khoiPhuc() {

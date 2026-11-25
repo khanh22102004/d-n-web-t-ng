@@ -680,7 +680,7 @@ class RegressionTests(unittest.TestCase):
         self.assertEqual(self.tai_anh_bia('ST900', b'khong phai anh').status_code, 400)
         self.assertEqual(self.tai_anh_bia('st-9').status_code, 400)
         ds = du['mau']
-        ds.append({'ma': 'ST900', 'ten': 'Quảng cáo quán cà phê', 'nhom': 'Thực phẩm', 'kieu': 'Người thật, đời thường',
+        ds.append({'ma': 'ST900', 'ten': 'Quảng cáo quán cà phê', 'nhom': 'Ẩm thực', 'loai': 'san-pham-dich-vu', 'phong_cach': 'Quay thực tế', 'kieu': 'Người thật, đời thường',
                    'id': 'https://youtube.com/shorts/abcDEF12345?feature=share', 'hien': 'dong', 'anh_moi': ban, 'so_lieu': {'tim': 1200, 'chia_se': ''}})
         st053 = next(x for x in ds if x['ma'] == 'ST053'); st053['ten'] = 'Quảng cáo game di động'; st053['an'] = True
         r = self.client.put('/api/nhan-vien/mau', json={'mau': ds, 'phien_ban': 'goc', 'ghi_chu': 'thêm quán cà phê'})
@@ -688,7 +688,7 @@ class RegressionTests(unittest.TestCase):
         moi = r.json()
         self.assertEqual(moi['lan_sua']['ghi_chu'], 'thêm quán cà phê')
         self.assertEqual(next(x for x in moi['mau'] if x['ma'] == 'ST900'),
-                         {'ma': 'ST900', 'ten': 'Quảng cáo quán cà phê', 'nhom': 'Thực phẩm', 'kieu': 'Người thật, đời thường',
+                         {'ma': 'ST900', 'ten': 'Quảng cáo quán cà phê', 'nhom': 'Ẩm thực', 'loai': 'san-pham-dich-vu', 'phong_cach': 'Quay thực tế', 'kieu': 'Người thật, đời thường',
                           'id': 'abcDEF12345', 'hien': 'dong', 'so_lieu': {'tim': 1200}, 'anh_moi': ban})
         # Khách thấy video mới, không thấy video đã ẩn; tư vấn nhanh theo video đã ẩn bị từ chối.
         cfg = [x['ma'] for x in self.client.get('/api/cau-hinh').json()['mau']]
@@ -720,10 +720,39 @@ class RegressionTests(unittest.TestCase):
         thu(lambda ds: mau(ds, 'ST011').update(id='https://vimeo.com/123'), 'Link YouTube')
         thu(lambda ds: mau(ds, 'ST011').update(ten=''), 'không được để trống')
         thu(lambda ds: ds.append(dict(mau(ds, 'ST011'))), 'bị trùng')
-        thu(lambda ds: ds.append({'ma': 'ST901', 'ten': 'Video mới', 'nhom': 'Khác', 'id': 'abcDEF12345'}), 'chưa có ảnh bìa')
-        thu(lambda ds: ds.append({'ma': 'ST901', 'ten': 'Video mới', 'nhom': 'Khác', 'id': 'abcDEF12345', 'anh_moi': '0123456789ab'}), 'chưa tải lên xong')
-        thu(lambda ds: ds.append({'ma': 'st 901', 'ten': 'Video mới', 'nhom': 'Khác', 'id': 'abcDEF12345'}), 'Mã mẫu')
+        moi = {'ma': 'ST901', 'ten': 'Video mới', 'nhom': 'Khác', 'loai': 'khac', 'phong_cach': 'Hoạt hình', 'id': 'abcDEF12345'}
+        thu(lambda ds: ds.append(dict(moi)), 'chưa có ảnh bìa')
+        thu(lambda ds: ds.append({**moi, 'anh_moi': '0123456789ab'}), 'chưa tải lên xong')
+        thu(lambda ds: ds.append({**moi, 'ma': 'st 901'}), 'Mã mẫu')
+        thu(lambda ds: mau(ds, 'ST011').update(loai='quang-cao'), 'loại video')
+        thu(lambda ds: mau(ds, 'ST011').update(nhom='Thực phẩm'), 'ngành')
+        thu(lambda ds: mau(ds, 'ST011').pop('phong_cach'), 'phong cách')
         thu(lambda ds: mau(ds, 'ST011').update(so_lieu={'tim': -5}), 'Số liệu')
+
+    def test_every_sample_has_type_industry_and_style(self):
+        # Thư viện lọc theo ba nhóm như trang công ty mẹ: mỗi mẫu đúng một loại video, một ngành, một phong cách trong danh sách.
+        cfg = self.client.get('/api/cau-hinh').json()
+        loai = {l['id'] for l in cfg['phan_loai']['loai']}
+        for x in cfg['mau']:
+            self.assertIn(x['loai'], loai, x['ma']); self.assertIn(x['nhom'], cfg['phan_loai']['nganh'], x['ma'])
+            self.assertIn(x['phong_cach'], cfg['phan_loai']['phong_cach'], x['ma'])
+        # Phong cách trùng lựa chọn câu "cách làm video", để phiếu mở từ câu hỏi gợi ý điền sẵn được.
+        c27 = next(c for c in m.CAU if c['so'] == 27)['truong'][0]['lua_chon']
+        self.assertTrue(set(cfg['phan_loai']['phong_cach']) <= set(c27))
+        self.assertIn('Nhờ chúng tôi tư vấn', c27)
+
+    def test_saved_sample_list_from_before_tags_gets_tags_from_mau_json(self):
+        # Danh sách video mẫu nhân viên đã lưu trước khi có loại video, ngành, phong cách: lấy theo mau.json cùng mã.
+        cu = [{k: v for k, v in x.items() if k not in ('loai', 'phong_cach')} | {'nhom': 'Thực phẩm' if x['ma'] == 'ST025' else x['nhom']} for x in m.MAU_GOC]
+        cu.append({'ma': 'ST950', 'ten': 'Mẫu nhân viên thêm', 'nhom': 'Quán ăn', 'kieu': '', 'id': 'abcDEF12345', 'hien': 'anh', 'anh_moi': '0123456789ab'})
+        m.sql("INSERT INTO mau_video (id, tao_luc, noi_dung, ghi_chu) VALUES (?, ?, ?, ?)", ('1', m.bay_gio(), json.dumps(cu, ensure_ascii=False), ''))
+        m.dam_bao_mau(ngay=True)
+        st025 = next(x for x in m.MAU if x['ma'] == 'ST025')
+        self.assertEqual((st025['nhom'], st025['loai'], st025['phong_cach']), ('Ẩm thực', 'san-pham-dich-vu', 'Hoạt hình'))
+        self.assertNotIn('loai', next(x for x in m.MAU if x['ma'] == 'ST950'))     # mẫu không có trong mau.json: nhân viên chọn khi sửa
+        cfg = self.client.get('/api/cau-hinh').json()
+        self.assertEqual(cfg['phan_loai']['phong_cach'], ['Video bằng AI', 'Quay thực tế', 'Hoạt hình', 'Infographic'])
+        self.assertEqual(len(cfg['phan_loai']['nganh']), 13); self.assertEqual(len(cfg['phan_loai']['loai']), 8)
 
     def test_home_uses_uploaded_cover_for_first_phone(self):
         self.login()

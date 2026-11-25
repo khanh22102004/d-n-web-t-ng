@@ -679,6 +679,11 @@ async def bo_cau_hoi_moi(request):
 # Mỗi mẫu là một video YouTube kèm ảnh bìa dọc. Ảnh bìa của mẫu gốc nằm trong web/anh-mau/; ảnh nhân viên tải lên nằm trong
 # bảng anh_mau, phục vụ ở /anh-mau-tai/<mã>/<bản>/<cỡ> (mỗi lần tải là một bản mới nên trình duyệt giữ ảnh lâu được).
 # Không xóa hẳn mẫu (phiếu cũ, Excel còn nhắc mã mẫu): xóa là ẩn khỏi trang khách, hiện lại được.
+# Phân loại video mẫu theo trang công ty mẹ (bprovn.com, "Tìm dự án tiêu biểu"): loại video là 8 loại của bộ câu hỏi,
+# ngành và phong cách theo hai danh sách dưới. Khách lọc thư viện và trả lời câu hỏi gợi ý theo đúng các nhóm này.
+NGANH = ["Doanh nghiệp", "Sản xuất, xây dựng, logistics", "Cơ sở giáo dục", "Ẩm thực", "Làm đẹp", "Chăm sóc, y tế", "Du lịch",
+         "CNTT, ứng dụng", "Bất động sản", "Khu vực công", "Sự kiện", "Giải trí", "Khác"]
+PHONG_CACH = ["Video bằng AI", "Quay thực tế", "Hoạt hình", "Infographic"]   # trùng lựa chọn câu 27 (cách làm video)
 CO_ANH_MAU = {"goc": (360, 640, "WEBP"), "nho": (270, 480, "WEBP"), "tuong": (180, 320, "WEBP"), "jpg": (360, 640, "JPEG")}
 CACH_HIEN = {"video": "Tự phát thử khi khách lướt tới", "dong": "Ảnh bìa trôi chậm", "anh": "Ảnh tĩnh"}
 MAU_NOI_BAT = ["ST025", "ST029", "ST056"]   # phải trùng maNoiBat trong web/app.js; MAU_DAU là mẫu đầu
@@ -703,6 +708,9 @@ def dam_bao_mau(ngay=False):
     ma = dong[0] if dong else "goc"
     if ma != MAU_PHIEN_BAN:
         ds = json.loads(dong[1]) if dong else MAU_GOC
+        goc = {m["ma"]: m for m in MAU_GOC}
+        # Danh sách lưu trước khi có phân loại: lấy loại video, ngành, phong cách của mẫu gốc cùng mã.
+        ds = [{**m, **{k: goc[m["ma"]][k] for k in ("nhom", "loai", "phong_cach")}} if "loai" not in m and m["ma"] in goc else m for m in ds]
         co = {m["ma"] for m in ds}
         # Mẫu mới thêm vào mau.json (sau lần nhân viên sửa) vẫn hiện, xếp cuối danh sách.
         MAU, MAU_PHIEN_BAN = ds + [m for m in MAU_GOC if m["ma"] not in co], ma
@@ -771,7 +779,13 @@ def kiem_mau(moi):
         if not yt:
             raise ValueError(f"Link YouTube của {ma} chưa đúng. Anh chị dán link dạng youtube.com/shorts/… hoặc youtu.be/….")
         hien = m.get("hien") if m.get("hien") in CACH_HIEN else "video"
-        sach = {"ma": ma, "ten": ten, "nhom": _chu_bo(m.get("nhom"), 40, f"Ngành của video {ma}"),
+        if m.get("loai") not in LOAI:
+            raise ValueError(f"Video {ma} chưa chọn loại video.")
+        if m.get("nhom") not in NGANH:
+            raise ValueError(f"Video {ma} chưa chọn ngành.")
+        if m.get("phong_cach") not in PHONG_CACH:
+            raise ValueError(f"Video {ma} chưa chọn phong cách.")
+        sach = {"ma": ma, "ten": ten, "nhom": m["nhom"], "loai": m["loai"], "phong_cach": m["phong_cach"],
                 "kieu": _chu_bo(m.get("kieu"), 60, f"Kiểu video {ma}", False), "id": yt, "hien": hien}
         so_lieu = {}
         for k in ("tim", "binh_luan", "chia_se"):
@@ -806,12 +820,15 @@ def kiem_mau(moi):
 
 def du_lieu_sua_mau():
     dong = sql("SELECT tao_luc, ghi_chu FROM mau_video ORDER BY tao_luc DESC, id DESC LIMIT 1", lay="mot")
-    nhom = list(dict.fromkeys(m["nhom"] for m in MAU if m.get("nhom")))
     kieu = list(dict.fromkeys([m["kieu"] for m in MAU if m.get("kieu")] + [
         ten_lua_chon(lc) for so in (11,) if so in CAU_THEO_SO for lc in CAU_THEO_SO[so]["truong"][0].get("lua_chon", [])]))
     return {"mau": MAU, "phien_ban": MAU_PHIEN_BAN, "lan_sua": {"luc": dong[0], "ghi_chu": dong[1]} if dong else None,
             "khoa": {"trong_cau_hoi": mau_trong_cau_hoi(), "noi_bat": MAU_NOI_BAT, "anh_san": [m["ma"] for m in MAU_GOC]},
-            "goi_y": {"nhom": nhom, "kieu": kieu}, "cach_hien": CACH_HIEN}
+            "goi_y": {"kieu": kieu}, "cach_hien": CACH_HIEN, "phan_loai": phan_loai()}
+
+
+def phan_loai():
+    return {"loai": [{"id": l["id"], "ten": l["ten"]} for l in LOAI.values()], "nganh": NGANH, "phong_cach": PHONG_CACH}
 
 
 async def nv_mau(request):
@@ -905,7 +922,7 @@ def mau_kem_doan_ngan():
 
 def du_lieu_cau_hinh():
     return {"studio": TEN_STUDIO, "hen_phan_hoi": HEN_PHAN_HOI, "zalo": LINK_ZALO, "lien_he": LIEN_HE_HIEN_THI, "lien_he_url": LINK_LIEN_HE,
-            "bo_cau_hoi": BO_CAU_HOI, "mau": mau_kem_doan_ngan(), "danh_gia": DANH_GIA,
+            "bo_cau_hoi": BO_CAU_HOI, "mau": mau_kem_doan_ngan(), "danh_gia": DANH_GIA, "phan_loai": phan_loai(),
             "anh": {"toi_da": ANH_TOI_DA, "nang_nhat": ANH_NANG_NHAT}}
 
 

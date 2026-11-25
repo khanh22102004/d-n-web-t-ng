@@ -57,7 +57,6 @@
   function nhan(d) {
     du = d; ds = sao(d.mau); dsLuu = JSON.stringify(ds); moi.clear();
     $("vm-dang-dung").textContent = d.lan_sua ? `Trang khách đang dùng danh sách sửa lúc ${luc(d.lan_sua.luc)}${d.lan_sua.ghi_chu ? `: ${d.lan_sua.ghi_chu}` : ""}.` : "Trang khách đang dùng danh sách video mẫu gốc, chưa sửa lần nào.";
-    $("vm-goi-y-nhom").replaceChildren(...d.goi_y.nhom.map(x => { const o = tao("option"); o.value = x; return o; }));
     $("vm-goi-y-kieu").replaceChildren(...d.goi_y.kieu.map(x => { const o = tao("option"); o.value = x; return o; }));
     ve(); capNhatLuu(); $("vm-khung").hidden = false;
   }
@@ -75,7 +74,7 @@
     li.dataset.ma = m.ma; li.classList.toggle("an", !!m.an);
     const anh = coAnh(m) ? tao("img", "vm-anh") : tao("div", "vm-anh vm-chua-anh", "Chưa có ảnh bìa");
     if (anh.tagName === "IMG") { anh.src = anhMau(m, "nho"); anh.alt = ""; anh.width = 90; anh.height = 160; anh.loading = "lazy"; }
-    const chu = tao("div", "vm-chu"), ten = tao("b", "", m.ten || "Video mới, chưa có tên"), phu = tao("small", "", [m.ma, m.nhom, m.kieu].filter(Boolean).join(" · "));
+    const chu = tao("div", "vm-chu"), ten = tao("b", "", m.ten || "Video mới, chưa có tên"), phu = tao("small", "", moTa(m));
     const nhan = tao("span", "sc-nhan-ds");
     if (laMoi) nhan.append(tao("span", "sc-nhan moi", "Mới, chưa lưu"));
     if (m.an) nhan.append(tao("span", "sc-nhan", "Đang ẩn"));
@@ -131,8 +130,23 @@
     return hop;
   }
 
+  const tenLoai = id => du.phan_loai.loai.find(l => l.id === id)?.ten || "";
+  const moTa = m => [m.ma, tenLoai(m.loai), m.nhom, m.phong_cach].filter(Boolean).join(" · ");
+  // Ô chọn trong một danh sách cố định (loại video, ngành, phong cách). Giá trị cũ không có trong danh sách thì hiện "Chưa chọn".
+  function oChon(nhan, giaTri, ds, khiDoi, { truong = "", goiY = "" } = {}) {
+    const hop = tao("div", "sc-o"), id = maMoi(), l = tao("label", "nhan", nhan), chon = tao("select");
+    l.htmlFor = id; chon.id = id; chon.dataset.truong = truong;
+    const trong = tao("option", "", "Chưa chọn"); trong.value = ""; chon.append(trong);
+    ds.forEach(([v, chu]) => { const o = tao("option", "", chu); o.value = v; chon.append(o); });
+    chon.value = ds.some(([v]) => v === giaTri) ? giaTri : "";
+    chon.addEventListener("change", () => khiDoi(chon.value));
+    hop.append(l, chon);
+    if (goiY) hop.append(tao("small", "sc-ghi-nho", goiY));
+    return hop;
+  }
+
   function oSua(m, laMoi, ten, phu) {
-    const khung = tao("div", "vm-sua"), capPhu = () => { phu.textContent = [m.ma, m.nhom, m.kieu].filter(Boolean).join(" · "); };
+    const khung = tao("div", "vm-sua"), capPhu = () => { phu.textContent = moTa(m); };
     if (laMoi) {
       const o = oChu("Mã mẫu", m.ma, (v, inp) => { inp.value = v.toUpperCase().replace(/[^A-Z0-9]/g, ""); const cu = m.ma; m.ma = inp.value;
         if (dangMo.delete(cu)) dangMo.add(m.ma); moi.delete(cu); moi.add(m.ma); timThe(cu).dataset.ma = m.ma; capPhu(); capNhatLuu(); },
@@ -146,8 +160,10 @@
     ytO.append(ytGoiY); capYt(m.id || "");
     khung.append(ytO,
       oChu("Tên video", m.ten, v => { m.ten = v; ten.textContent = v || "Video mới, chưa có tên"; capNhatLuu(); }, { rong: true, truong: "ten" }),
-      oChu("Ngành", m.nhom, v => { m.nhom = v; capPhu(); capNhatLuu(); }, { toiDa: 40, truong: "nhom", list: "vm-goi-y-nhom", goiY: "Thư viện ở trang chủ chia hàng theo ngành." }),
-      oChu("Kiểu video (không bắt buộc)", m.kieu, v => { m.kieu = v; capPhu(); capNhatLuu(); }, { toiDa: 60, list: "vm-goi-y-kieu" }));
+      oChon("Loại video", m.loai, du.phan_loai.loai.map(l => [l.id, l.ten]), v => { m.loai = v; capPhu(); capNhatLuu(); }, { truong: "loai", goiY: "Khách lọc theo mục đích và câu hỏi gợi ý dùng loại này." }),
+      oChon("Ngành", m.nhom, du.phan_loai.nganh.map(x => [x, x]), v => { m.nhom = v; capPhu(); capNhatLuu(); }, { truong: "nhom" }),
+      oChon("Phong cách", m.phong_cach, du.phan_loai.phong_cach.map(x => [x, x]), v => { m.phong_cach = v; capPhu(); capNhatLuu(); }, { truong: "phong_cach" }),
+      oChu("Kiểu chi tiết (không bắt buộc)", m.kieu, v => { m.kieu = v; capNhatLuu(); }, { toiDa: 60, list: "vm-goi-y-kieu", goiY: "Hiện dưới điện thoại mẫu ở đầu trang chủ, ví dụ: Người mẫu giới thiệu sản phẩm." }));
     const hopHien = tao("div", "sc-o"), idHien = maMoi(), nhanHien = tao("label", "nhan", "Cách hiện trên thẻ"), chon = tao("select");
     nhanHien.htmlFor = idHien; chon.id = idHien;
     Object.entries(du.cach_hien).forEach(([k, v]) => { const o = tao("option", "", v); o.value = k; chon.append(o); });
@@ -212,7 +228,7 @@
 
   $("vm-them").addEventListener("click", () => {
     const so = Math.max(0, ...ds.map(m => /^ST(\d+)$/.exec(m.ma)).filter(Boolean).map(x => Number(x[1]))) + 1;
-    const m = { ma: `ST${String(so).padStart(3, "0")}`, ten: "", nhom: "", kieu: "", id: "", hien: "video" };
+    const m = { ma: `ST${String(so).padStart(3, "0")}`, ten: "", nhom: "", loai: "", phong_cach: "", kieu: "", id: "", hien: "video" };
     ds.push(m); moi.add(m.ma); dangMo.add(m.ma); bao("");
     ve(() => { const t = timThe(m.ma); t?.scrollIntoView({ block: "center" }); t?.querySelector('.vm-sua input[type="text"]:not([readonly])')?.focus(); });
     capNhatLuu();
@@ -227,7 +243,9 @@
       daCo.add(m.ma);
       if (!m.id) return { ma: m.ma, truong: "id", loi: `Video ${m.ma} chưa có link YouTube đúng.` };
       if ((m.ten || "").trim().length < 3) return { ma: m.ma, truong: "ten", loi: `Video ${m.ma} chưa có tên.` };
-      if (!(m.nhom || "").trim()) return { ma: m.ma, truong: "nhom", loi: `Video ${m.ma} chưa ghi ngành.` };
+      if (!tenLoai(m.loai)) return { ma: m.ma, truong: "loai", loi: `Video ${m.ma} chưa chọn loại video.` };
+      if (!du.phan_loai.nganh.includes(m.nhom)) return { ma: m.ma, truong: "nhom", loi: `Video ${m.ma} chưa chọn ngành.` };
+      if (!du.phan_loai.phong_cach.includes(m.phong_cach)) return { ma: m.ma, truong: "phong_cach", loi: `Video ${m.ma} chưa chọn phong cách.` };
       if (!coAnh(m)) return { ma: m.ma, truong: "anh", loi: `Video ${m.ma} chưa có ảnh bìa.` };
     }
     if (ds.filter(m => !m.an).length < 3) return { loi: "Trang khách cần ít nhất 3 video mẫu đang hiện." };
