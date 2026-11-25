@@ -25,7 +25,7 @@ GOC = Path(__file__).resolve().parent.parent
 WEB = GOC / "web"
 RA = WEB / "da-nen"
 GOI_CSS = ("style.css", "brand.css", "desktop.css", "can-doi.css")
-JS = ("app.js", "ngon-ngu.js")
+JS = ("app.js", "ngon-ngu.js", "tu-dien.js")
 
 
 def ma_nguon(*ten):
@@ -162,6 +162,49 @@ THU_KHOP = """([ds, gia]) => {
 }"""
 
 
+# ---------- Bỏ quy tắc CSS của lớp, id không còn dùng ----------
+# CSS gộp mang theo quy tắc của các phần đã gỡ qua nhiều đợt sửa (menu cũ, showcase, so sánh…). Quy tắc nào mà MỌI bộ chọn
+# đều nhắc tới một lớp hoặc id không xuất hiện ở bất kỳ tệp nguồn nào (HTML, JS, Python, JSON) thì không thể khớp phần tử nào:
+# bỏ khỏi bản đóng gói. Tệp CSS gốc giữ nguyên (trang nhân viên vẫn dùng tệp gốc). Lớp ghép bằng chuỗi trong mã
+# (ví dụ `bay-${loai}`, "goc-" + …) được giữ theo tiền tố.
+NGUON_LOP = ("web/*.html", "web/*.js", "*.py", "*.json")
+
+
+def tu_trong_nguon():
+    chu = "\n".join(f.read_text(encoding="utf-8") for mau in NGUON_LOP for f in GOC.glob(mau)
+                    if f.name not in ("tu-dien.js",))
+    tu = set(re.findall(r"[A-Za-z_][\w-]*", chu))
+    tien_to = set(re.findall(r"([A-Za-z][\w-]*-)\$\{", chu)) | set(re.findall(r"[\"'`]([A-Za-z][\w-]*-)[\"'`]\s*\+", chu))
+    return tu, tuple(tien_to)
+
+
+def con_dung(bo_chon, tu, tien_to):
+    for s in re.split(r",(?![^()]*\))", bo_chon):
+        if re.search(r":(?:is|where|not|has|matches|-webkit-any)\(", s):
+            return True                                          # :is(.a, .b) chỉ cần một lớp còn dùng: không xét, giữ lại
+        s = re.sub(r"\[[^\]]*\]", "", s)                       # [thuộc tính] không xét
+        if all(t in tu or t.startswith(tien_to) for t in re.findall(r"[.#]([A-Za-z_][\w-]*)", s)):
+            return True
+    return False
+
+
+def bo_quy_tac_chet(muc, tu, tien_to, bo):
+    ra = []
+    for m in muc:
+        if m[0] == "quy-tac":
+            if con_dung(m[1], tu, tien_to):
+                ra.append(f"{m[1]}{{{m[2]}}}")
+            else:
+                bo.append(m[1])
+        elif m[0] == "nhom":
+            con = bo_quy_tac_chet(m[2], tu, tien_to, bo)
+            if con:
+                ra.append(f"{m[1]}{{{con}}}")
+        else:
+            ra.append(m[1])
+    return "".join(ra)
+
+
 def chon_css_dau(goi, dia_chi):
     from playwright.sync_api import sync_playwright
     muc = tach(goi)
@@ -204,15 +247,17 @@ def main():
         (RA / t).write_text(f"/*nguon:{ma_nguon(t)}*/{chu}\n", encoding="utf-8")
     goi = "\n".join((WEB / t).read_text(encoding="utf-8") for t in GOI_CSS)
     ma = ma_nguon(*GOI_CSS)
-    (RA / "goi.css").write_text(f"/*nguon:{ma}*/{nen(goi, 'css')}\n", encoding="utf-8")
+    bo = []
+    goi_gon = bo_quy_tac_chet(tach(re.sub(r"/\*.*?\*/", "", goi, flags=re.S)), *tu_trong_nguon(), bo)
+    (RA / "goi.css").write_text(f"/*nguon:{ma}*/{nen(goi_gon, 'css')}\n", encoding="utf-8")
     chay_may_chu()
-    goi_gon = re.sub(r"/\*.*?\*/", "", goi, flags=re.S)
     dau, so_giu, tong = chon_css_dau(goi_gon, "http://127.0.0.1:8799/")
     # Tạm ẩn các phần dưới màn hình đầu cho tới khi goi.css tới (goi.css có quy tắc hiện lại, cuối can-doi.css).
     dau += ":where(main > section:not(#mo-dau), body > footer){display:none}"
     (RA / "dau.css").write_text(f"/*nguon:{ma}*/{nen(dau, 'css')}", encoding="utf-8")
     for t in sorted(RA.iterdir()):
         print(f"{t.name:12} {t.stat().st_size:>8} byte")
+    print(f"CSS gộp: bỏ {len(bo)} quy tắc của lớp không còn dùng")
     print(f"CSS màn hình đầu: giữ {so_giu}/{tong} bộ chọn")
 
 

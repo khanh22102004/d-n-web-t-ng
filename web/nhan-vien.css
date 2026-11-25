@@ -61,6 +61,7 @@ body.staff-page .dau-trang .nut-chu { font-size: .9rem; }
 .nhan-tt.do { color: #626569; background: #f4f4f1; }
 .nhan-tt.gui { background: #292b2d; border-color: #292b2d; color: #fff; }
 .nhan-tt.xong { color: #343638; background: #e9e9e4; }
+.nhan-tt.xoa { color: #a32923; background: #fff6f5; border-color: #e7b9b5; }
 .chi-tiet { padding: 4px 24px 24px; border-top: 1px solid #dededb; background: #fafaf8; border-radius: 0 0 8px 8px; }
 .chi-tiet .tom-tat { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; margin-top: 4px; border-top: 0; }
 .chi-tiet .tom-tat > div { min-width: 0; }
@@ -102,6 +103,30 @@ body.staff-page .nv .nut.nut-xoa:hover:not(:disabled) { background: #8a211c; bor
 .nv-xac-nhan { margin-top: 12px; padding: 16px 18px; border: 1.5px solid #a32923; border-radius: 8px; background: #fff6f5; }
 .nv-xac-nhan p { font-weight: 600; line-height: 1.55; }
 .nv-xac-nhan .hang-nut { margin-top: 12px; gap: 10px; }
+/* Thùng rác: dải giải thích phía trên danh sách, nút khôi phục, xóa vĩnh viễn trong từng phiếu */
+.nv-thung-rac { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; margin-top: 14px; padding: 14px 18px;
+  border: 1px solid #d6d6d2; border-left: 4px solid #292b2d; border-radius: 6px; background: #f6f6f3; }
+.nv-thung-rac p { margin: 0; max-width: 78ch; font-size: .9rem; line-height: 1.55; color: #3d4043; }
+.nv-thung-rac .nut-chu { min-height: 40px; font-size: .875rem; white-space: nowrap; }
+.thung-rac-phieu { margin: 20px 0 16px; align-items: center; gap: 10px 16px; }
+.thung-rac-phieu .nut-nguy-hiem { margin-top: 0; }
+/* Hỏi xác nhận ngay trong phiếu: đánh dấu, bỏ đánh dấu đã liên hệ, xóa phiếu */
+.nv-hoi { margin: 4px 0 18px; padding: 16px 18px; border: 1.5px solid #292b2d; border-radius: 8px; background: #fff; max-width: 720px; }
+.nv-hoi.nguy-hiem { border-color: #a32923; background: #fff6f5; }
+.nv-hoi > p { margin: 0 0 12px; font-weight: 600; line-height: 1.55; }
+.nv-hoi-o { display: grid; gap: 6px; margin-bottom: 12px; font-size: .875rem; font-weight: 600; color: #3d4043; }
+.nv-hoi-o input, .nv-hoi-o textarea { font: inherit; font-weight: 400; font-size: .94rem; padding: 9px 11px; border: 1px solid #c9c9c5; border-radius: 5px; background: #fff; resize: vertical; }
+.nv-hoi-o input:focus-visible, .nv-hoi-o textarea:focus-visible { outline: 2px solid #292b2d; outline-offset: 1px; }
+.nv-hoi .hang-nut { gap: 10px; margin-top: 4px; }
+.nv-hoi .nut.nho { min-height: 40px; padding: 8px 14px; font-size: .875rem; }
+/* Lịch sử xử lý phiếu: mới nhất trên cùng */
+.lich-su { margin-top: 22px; padding-top: 14px; border-top: 1px solid #e2e2de; }
+.lich-su h4 { margin: 0 0 8px; font-size: .9rem; }
+.lich-su ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lich-su li { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 2px 14px; font-size: .875rem; line-height: 1.5; }
+.lich-su time { color: #696c6f; font-variant-numeric: tabular-nums; }
+.lich-su .viec { font-weight: 600; }
+.lich-su .ghi-chu-ls { grid-column: 2; color: #4a4d50; white-space: pre-line; overflow-wrap: anywhere; }
 .nv-bao { margin-top: 10px; font-size: .9rem; font-weight: 600; color: #1d6b3a; }
 .nv-bao.loi { color: #a32923; }
 .nv-hang { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: start; gap: 6px; margin-top: 14px; }
@@ -258,6 +283,8 @@ body.staff-page .nv .nut.nho.nut-phu:hover { background: #e9e9e6; border-color: 
   #ds-phieu summary .phu { display: none; }
   .chi-tiet { padding-inline: 18px; }
   .chi-tiet .tom-tat { grid-template-columns: 1fr; }
+  .lich-su li { grid-template-columns: 1fr; }
+  .lich-su .ghi-chu-ls { grid-column: 1; }
   .nv-chan-trang { padding-inline: 18px; }
   .nv-the [role="tab"] { flex: 1 1 0; padding-inline: 8px; }
   .sc-khung { padding: 18px; }

@@ -63,16 +63,21 @@
     <h2 id="nv-danh-sach-tieu-de">Danh sách phiếu</h2>
     <form id="loc-phieu" class="hang-nut">
       <div><label class="nhan" for="tim-phieu">Tìm trong phiếu</label><input type="text" id="tim-phieu" maxlength="100" placeholder="Tên, sản phẩm, số điện thoại…"></div>
-      <div><label class="nhan" for="trang-thai">Trạng thái</label><select id="trang-thai"><option value="">Tất cả</option><option value="dang-do">Đang dở</option><option value="cho-lien-he">Chờ liên hệ</option><option value="da-lien-he">Đã liên hệ</option></select></div>
+      <div><label class="nhan" for="trang-thai">Trạng thái</label><select id="trang-thai"><option value="">Tất cả</option><option value="dang-do">Đang dở</option><option value="cho-lien-he">Chờ liên hệ</option><option value="da-lien-he">Đã liên hệ</option><option value="da-xoa">Thùng rác</option></select></div>
       <div><label class="nhan" for="loc-bo">Loại video</label><select id="loc-bo"><option value="">Tất cả</option></select></div>
-      <div class="loc-thao-tac"><button type="submit" class="nut nho">Tìm phiếu</button><button type="button" class="nut-chu" id="dat-lai-loc">Xóa bộ lọc</button></div>
+      <div class="loc-thao-tac"><button type="submit" class="nut nho">Tìm phiếu</button><button type="button" class="nut-chu" id="dat-lai-loc">Xóa bộ lọc</button><button type="button" class="nut-chu" id="mo-thung-rac">Thùng rác</button></div>
     </form>
     <p id="loi-tai" class="bao-loi" role="alert" hidden></p>
+    <div class="nv-thung-rac" id="nv-thung-rac" hidden>
+      <p><strong>Thùng rác.</strong> Phiếu đã xóa được giữ 30 ngày cùng ảnh đính kèm, rồi tự xóa hẳn. Khôi phục để đưa phiếu về danh sách; khách yêu cầu xóa thông tin thì chọn Xóa vĩnh viễn.</p>
+      <button type="button" class="nut-chu" id="ra-thung-rac">← Về danh sách phiếu</button>
+    </div>
     <div class="nv-chon" role="group" aria-label="Thao tác với nhiều phiếu">
-      <label class="nv-chon-ca"><input type="checkbox" id="chon-ca-trang"><span>Chọn cả trang này</span></label>
+      <label class="nv-chon-ca"><input type="checkbox" id="chon-ca-trang"><span id="chon-ca-chu">Chọn tất cả</span></label>
       <span class="nv-so-chon" id="so-da-chon" aria-live="polite">Chưa chọn phiếu nào</span>
       <button type="button" class="nut-chu" id="bo-chon" hidden>Bỏ chọn</button>
       <span class="nv-chon-nut">
+        <button type="button" class="nut nho" id="khoi-phuc-da-chon" hidden disabled>Khôi phục phiếu đã chọn</button>
         <button type="button" class="nut nho" id="xuat-da-chon" disabled>Tải Excel phiếu đã chọn</button>
         <button type="button" class="nut nho nut-xoa" id="xoa-da-chon" disabled>Xóa phiếu đã chọn</button>
         <button type="button" class="nut-chu nut-nguy-hiem" id="xoa-dang-loc">Xóa hết phiếu đang lọc</button>
@@ -80,7 +85,7 @@
     </div>
     <div class="nv-xac-nhan" id="nv-xac-nhan" role="alertdialog" aria-labelledby="xn-chu" hidden>
       <p id="xn-chu"></p>
-      <div class="hang-nut"><button type="button" class="nut nho" id="xn-xuat">Tải Excel các phiếu này trước</button><button type="button" class="nut nho nut-xoa" id="xn-xoa">Xóa vĩnh viễn</button><button type="button" class="nut-chu" id="xn-huy">Hủy</button></div>
+      <div class="hang-nut"><button type="button" class="nut nho" id="xn-xuat">Tải Excel các phiếu này trước</button><button type="button" class="nut nho nut-xoa" id="xn-xoa">Xóa</button><button type="button" class="nut-chu" id="xn-huy">Hủy</button></div>
     </div>
     <p class="nv-bao" id="nv-bao" role="status" hidden></p>
     <nav class="nv-phan-trang" aria-label="Trang danh sách phiếu"><span id="phan-trang" aria-live="polite"></span><div><button type="button" class="nut nho" id="trang-truoc">← Trang trước</button><button type="button" class="nut nho" id="trang-sau">Trang sau →</button></div></nav>

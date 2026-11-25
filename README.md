@@ -70,13 +70,15 @@ Màn hình đầu  →  Thư viện 13 video mẫu  →  Tư vấn nhanh (2 ô) 
 ### Phía nhân viên
 
 - Đăng nhập bằng mật khẩu chung (`ADMIN_PASSWORD`).
-- Danh sách yêu cầu có tìm kiếm, lọc trạng thái và loại video, phân trang, xem chi tiết và ảnh, đánh dấu đã liên hệ, xóa phiếu kèm ảnh sau xác nhận.
-- Tích chọn nhiều phiếu (giữ khi chuyển trang, có "Chọn cả trang này"): tải Excel các phiếu đã chọn, xóa các phiếu đã chọn, hoặc xóa hết phiếu đang lọc. Xóa nhiều luôn hỏi lại ngay trên trang, ghi rõ số phiếu và có nút tải Excel các phiếu đó trước; xóa theo bộ lọc chỉ chạy khi số phiếu trên máy chủ đúng bằng số nhân viên đang thấy.
+- Danh sách yêu cầu có tìm kiếm, lọc trạng thái và loại video, phân trang, xem chi tiết và ảnh.
+- **Đánh dấu đã liên hệ** phải xác nhận ngay trong phiếu: ghi tên người liên hệ (trang nhớ tên trên máy đó) và ghi chú không bắt buộc; bỏ đánh dấu cũng hỏi lại, có ô lý do. Mỗi phiếu có **Lịch sử**: khách gửi phiếu, đánh dấu, bỏ đánh dấu, xóa, khôi phục (lúc nào, ai làm, ghi chú). Trang nhân viên dùng mật khẩu chung nên "ai làm" là tên nhân viên tự ghi.
+- **Thùng rác:** xóa phiếu (một phiếu, phiếu đã chọn, hay hết phiếu đang lọc) là chuyển vào thùng rác cùng ảnh, khôi phục được trong 30 ngày rồi tự xóa hẳn. Nút "Thùng rác (n)" cạnh bộ lọc; trong thùng rác có "Khôi phục phiếu đã chọn", "Xóa vĩnh viễn" (cho khách yêu cầu xóa thông tin; có nút tải Excel trước). Khách không mở, không sửa được phiếu đang nằm trong thùng rác.
+- Tích chọn nhiều phiếu (giữ khi chuyển trang). Ô **"Chọn tất cả n phiếu"** chọn mọi phiếu khớp bộ lọc, ở mọi trang, ngay lần bấm đầu (tối đa 1000 mỗi lần); bỏ tích là bỏ chọn hết. Rồi tải Excel, xóa, hoặc khôi phục các phiếu đã chọn. Làm theo bộ lọc chỉ chạy khi số phiếu trên máy chủ đúng bằng số nhân viên đang thấy.
 - Khung "Mã QR điền phiếu": ảnh mã QR có logo B PRODUCTIONS ở giữa và dòng chữ "Phiếu câu hỏi làm video" bên dưới, theo tên miền đang mở trang nhân viên (đổi tên miền thì mã tự đổi theo); nút "Tải ảnh gửi Zalo" (1080 × 1350) và "Tải ảnh để in" (2480 × 3100, 300 dpi); link `/phieu` có nút chép; 8 link riêng từng loại video, mỗi loại có ảnh mã QR riêng. Khách quét mã được ghi nguồn "ma-qr".
 - Thẻ **Video mẫu**: thêm video mẫu bằng link YouTube và ảnh bìa dọc (máy chủ cắt giữa về khổ 9:16 và làm đủ các cỡ ảnh trang dùng); sửa tên, loại video, ngành, phong cách (chọn trong danh sách, là các nhóm khách lọc ở trang chủ), kiểu chi tiết, cách hiện trên thẻ, ảnh bìa, số liệu bài đăng thật; đổi thứ tự; ẩn khỏi trang khách và hiện lại (không xóa hẳn, vì phiếu cũ và Excel còn nhắc mã mẫu). Video đang là lựa chọn ở câu chọn kiểu video của phiếu không ẩn được; trang khách cần ít nhất 3 video đang hiện. Bấm "Lưu và áp dụng" thì trang khách đổi theo trong khoảng 5 phút (CDN giữ trang 5 phút rồi làm mới ngầm).
 - Thẻ **Bộ câu hỏi**: xem câu hỏi của từng loại video và sửa ngay trên trang: chữ câu hỏi, gợi ý, tên ô, chữ mẫu trong ô, các lựa chọn (thêm, bớt, đổi tên), bắt buộc hay không, ô cho khách tự ghi, số lựa chọn tối đa; thêm câu mới (chọn một, chọn nhiều, chữ ngắn, đoạn văn) hoặc câu có sẵn trong kho vào một phần; bỏ câu khỏi một loại; đổi thứ tự câu trong cùng phần; đổi tên và mô tả loại video. Bấm "Lưu và áp dụng" là khách thấy ngay; mỗi lần lưu có ghi chú và nằm trong lịch sử (30 bản gần nhất), khôi phục được bản cũ hoặc bản gốc. Ai đăng nhập trang nhân viên cũng sửa được. Chỉ sửa tiếng Việt: câu sửa chữ hoặc câu mới hiện bằng tiếng Việt cả ở trang tiếng Nhật và tiếng Anh.
 - Thống kê lượt mở trang, phiếu bắt đầu/gửi, khách dừng ở phần nào, theo nguồn.
-- Xuất Excel toàn bộ yêu cầu, hoặc chỉ phiếu đã chọn / đang lọc (gồm cột "Loại video", "Loại yêu cầu" và "Mẫu tham khảo"). Trang từng khách theo khuôn 17 mục lấy câu trả lời của mọi loại video (buổi quay, khung hình, sự kiện, tuyển dụng…).
+- Xuất Excel toàn bộ yêu cầu, hoặc chỉ phiếu đã chọn / đang lọc (gồm cột "Loại video", "Loại yêu cầu" và "Mẫu tham khảo"). Trang từng khách theo khuôn 17 mục lấy câu trả lời của mọi loại video (buổi quay, khung hình, sự kiện, tuyển dụng…). **Ảnh khách gửi nằm ngay trong trang của khách** (mục "ẢNH KHÁCH GỬI", ảnh thu nhỏ tối đa 380 × 300, xem được khi gửi file cho người khác); bấm tên ảnh để mở ảnh gốc (cần đăng nhập trang nhân viên). Tổng ảnh trong một file giữ dưới 3 MB vì Vercel trả tối đa 4,5 MB mỗi lần; quá mức thì ảnh còn lại chỉ có link.
 
 ## 3. Nhận diện và giao diện
 
@@ -160,7 +162,8 @@ web-b-productions/
 │   ├── browser_loai_video.py  # Trang điền phiếu riêng, loại video, trang nhân viên
 │   ├── browser_sua_cau_hoi.py # Thẻ Bộ câu hỏi ở trang nhân viên
 │   ├── browser_video_mau.py   # Thẻ Video mẫu ở trang nhân viên
-│   └── browser_tim_mau.py     # Bộ lọc thư viện mẫu, ba câu hỏi gợi ý loại video
+│   ├── browser_tim_mau.py     # Bộ lọc thư viện mẫu, ba câu hỏi gợi ý loại video
+│   └── browser_nhan_vien.py   # Chọn tất cả, xác nhận và lịch sử liên hệ, thùng rác
 └── web/
     ├── index.html          # Trang khách
     ├── chinh-sach.html     # Cách dùng thông tin
@@ -168,7 +171,9 @@ web-b-productions/
     ├── sua-cau-hoi.js      # Thẻ Bộ câu hỏi ở trang nhân viên
     ├── sua-video-mau.js    # Thẻ Video mẫu ở trang nhân viên
     ├── app.js              # Toàn bộ tương tác phía khách
-    ├── da-nen/             # Bản nén do cong-cu/dong_goi.py tạo: app.js, ngon-ngu.js, goi.css, dau.css (CSS màn hình đầu)
+    ├── ngon-ngu.js         # Đổi ngôn ngữ Việt / Nhật / Anh (nhỏ, tải mọi lần)
+    ├── tu-dien.js          # Từ điển Nhật, Anh: chỉ tải khi khách chọn hai thứ tiếng này (ngon-ngu.js, tu-dien.js do /tmp/i18n/tao.py sinh)
+    ├── da-nen/             # Bản nén do cong-cu/dong_goi.py tạo: app.js, ngon-ngu.js, tu-dien.js, goi.css (đã bỏ quy tắc của lớp không còn dùng), dau.css (CSS màn hình đầu)
     ├── style.css, brand.css, desktop.css, can-doi.css, nhan-vien.css
     ├── logo-b-productions.png/.webp, bieu-tuong.png
     ├── ma-vach.svg            # Mã vạch đo từ logo, dùng làm họa tiết điểm nhấn
@@ -190,6 +195,7 @@ web-b-productions/
 
 - **Nhận biết máy yếu** (`app.js`, biến `mayYeu`, lớp `html.may-yeu`): RAM từ 4 GB trở xuống, CPU từ 4 nhân trở xuống, hoặc bật tiết kiệm dữ liệu. Khi đó: tường ảnh nền đứng yên, không làm mờ nền (`backdrop-filter`), tiêu đề thư viện không dùng làm mờ khi lấy nét, không có ánh kim và vạch quét lặp, ảnh mẫu không trôi kiểu Ken Burns, không có tim/bình luận bay lên, không nghiêng 3D theo chuột, và **không tự tải trình phát YouTube**, ở cả điện thoại đầu trang lẫn thẻ thư viện: khách bấm vào thì video mới tải và phát. Điện thoại đổi mẫu thưa hơn (6,5 giây thay vì 4 giây), không có thanh đếm giờ, sóng âm và con trỏ chữ đứng yên.
 - **Mọi máy:** tường ảnh nền chỉ dựng cho loại màn hình đang xem (máy tính cột dọc, điện thoại hàng ngang), tự dựng lại khi đổi khổ qua 760px; số ảnh lặp vừa đủ cho vòng trôi liền mạch; bỏ lớp tường thứ hai chỉ để vẽ viền, bỏ bộ lọc màu và bóng đổ trên tường. Phần nào khuất khỏi màn hình thì dừng mọi hiệu ứng CSS bên trong (lớp `.khuat`); các phần phía dưới dùng `content-visibility: auto`.
+- **Tải về nhẹ hơn (25/11/2026):** phông chữ WOFF2 (4 kiểu 129 → 105 KB; WOFF giữ làm dự phòng và để vẽ ảnh mã QR); từ điển Nhật, Anh tách ra `tu-dien.js`, khách đọc tiếng Việt không tải (mã JS 57 → 29 KB khi nén); `dong_goi.py` bỏ 249 quy tắc CSS của lớp không còn xuất hiện trong mã nguồn (CSS gộp 40,8 → 37,4 KB khi nén); logo phần "Về B PRODUCTIONS" và ảnh quy trình chỉ tải khi cách màn hình dưới 600px (`data-src`, `taiKhiGan` trong `app.js`). Đã thử hoãn cả ảnh dải thẻ thư viện (đỡ thêm khoảng 150 KB trên điện thoại) nhưng bỏ: trên mạng 3G, thẻ chưa có ảnh làm trình duyệt vẽ lại liên tục, CPU khi đứng yên của điện thoại yếu tăng 0,8% → 4,4%.
 - **Tải về nhẹ hơn:** ảnh mẫu dùng WebP 360×640 (13 ảnh từ 464KB còn 205KB, JPG giữ làm dự phòng); logo dùng `logo-b-productions.webp` 560px (8,7KB thay vì PNG 54KB); máy yếu không tải ảnh bìa YouTube độ nét cao.
 - **Lưu đệm:** máy chủ gắn mã phiên bản (băm nội dung) vào đường dẫn CSS, JS, logo trong trang (`/style.css?v=…`, hàm `gan_phien_ban` trong `may_chu.py`); tệp có mã được giữ 1 năm (`immutable`), tệp đổi thì mã đổi. Phông chữ và ảnh mẫu giữ 30 ngày như trước.
 - **Số đo** (Chromium, CPU chậm 4 lần): máy yếu từ 17 lên 60 khung/giây khi cuộn trên máy tính, 0 khung giật; số phần tử trên trang từ 1.728 còn khoảng 850–980; ảnh từ 160 còn 62–84. Máy mạnh từ 17 lên 43 khung/giây (máy tính), 46 lên 58 (điện thoại).
@@ -280,10 +286,14 @@ Trang không tự tạo đánh giá, số sao hay số lượt tương tác. Khi
 | POST | `/api/phieu/{ma}/gui` | Gửi phiếu |
 | POST | `/api/nhan-vien/dang-nhap`, `/dang-xuat` | Đăng nhập / đăng xuất nhân viên |
 | GET | `/api/nhan-vien/phieu` | Danh sách, tìm, lọc, phân trang, thống kê |
-| DELETE | `/api/nhan-vien/phieu/{ma}` | Xóa phiếu kèm ảnh |
-| POST | `/api/nhan-vien/phieu/xoa-nhieu` | Xóa nhiều phiếu: `{"ma": [...], "xac_nhan": true}` hoặc theo bộ lọc `{"loc": {...}, "so_du_kien": n, "xac_nhan": true}` |
+| GET | `/api/nhan-vien/phieu?trang_thai=da-xoa` | Thùng rác (các trạng thái khác chỉ xét phiếu chưa xóa); `thong_ke.thung_rac` là số phiếu trong thùng rác; mỗi phiếu có `xoa_luc`, `lich_su` |
+| GET | `/api/nhan-vien/phieu/ma?tim=&trang_thai=&bo=` | Mã và tên mọi phiếu khớp bộ lọc (tối đa 1000), cho "Chọn tất cả" |
+| DELETE | `/api/nhan-vien/phieu/{ma}` | Chuyển một phiếu vào thùng rác `{"xac_nhan": true, "nguoi": "…"}` |
+| POST | `/api/nhan-vien/phieu/xoa-nhieu` | Chuyển nhiều phiếu vào thùng rác: `{"ma": [...], "xac_nhan": true}` hoặc theo bộ lọc `{"loc": {...}, "so_du_kien": n, "xac_nhan": true}` |
+| POST | `/api/nhan-vien/phieu/khoi-phuc` | Khôi phục từ thùng rác (cùng dạng dữ liệu như trên) |
+| POST | `/api/nhan-vien/phieu/xoa-vinh-vien` | Xóa hẳn phiếu, ảnh, lịch sử; chỉ phiếu đang trong thùng rác (cùng dạng dữ liệu như trên) |
 | GET | `/api/nhan-vien/phieu/{ma}/anh`, `/api/nhan-vien/anh/{anh}` | Xem ảnh của phiếu |
-| POST | `/api/nhan-vien/phieu/{ma}/lien-he` | Đánh dấu đã liên hệ |
+| POST | `/api/nhan-vien/phieu/{ma}/lien-he` | Đánh dấu / bỏ đánh dấu đã liên hệ `{"da_lien_he": true/false, "xac_nhan": true, "nguoi": "…", "ghi_chu": "…"}`; ghi lịch sử, trả `lien_he_luc` và `lich_su` |
 | GET / POST | `/api/nhan-vien/xuat-excel` | Tải Excel: GET toàn bộ; POST `{"ma": [...]}` phiếu đã chọn hoặc `{"loc": {...}}` phiếu đang lọc |
 | GET | `/api/bo-cau-hoi?v=<phiên bản>` | Bộ câu hỏi mới nhất; cùng phiên bản thì trả 204. Trang gọi khi mở, vì trang có thể lấy từ bản lưu sẵn của CDN |
 | GET / PUT | `/api/nhan-vien/bo-cau-hoi` | Xem bộ câu hỏi đang dùng, lịch sử, các phần bị khóa / lưu bản sửa `{"bo": …, "phien_ban": …, "ghi_chu": …}` (409 nếu người khác vừa lưu, 422 kèm câu báo lỗi nếu sửa không hợp lệ) |
@@ -325,7 +335,7 @@ Trong GitHub Desktop: kiểm tra danh sách tệp đổi → ghi tóm tắt → 
 - Phiếu chi tiết chỉ lưu nháp sau khi khách đồng ý; nhân viên xem được phiếu dở như đã thông báo. Lưu đến muộn không ghi đè phiếu đã gửi.
 - Ảnh: tối đa 3 ảnh/phiếu, mỗi ảnh 5 MB (4 MB trên Vercel), tối đa 20 triệu điểm ảnh. Trình duyệt tự thu nhỏ ảnh trên 3 MB. Máy chủ chỉ nhận JPEG/PNG/WebP, tạo lại ảnh để bỏ metadata và chặn tệp giả.
 - Lịch sử trình duyệt không chứa mã truy cập phiếu hay câu trả lời.
-- Không tự xóa dữ liệu theo lịch. Studio tự quyết thời hạn lưu, quản lý bản Excel và xử lý yêu cầu xóa.
+- Không tự xóa phiếu theo lịch, trừ thùng rác: phiếu nhân viên đã xóa được giữ 30 ngày rồi tự xóa hẳn cùng ảnh và lịch sử (`don_thung_rac`, chạy khi mở trang nhân viên, tối đa 6 giờ một lần). Khách yêu cầu xóa thông tin thì vào Thùng rác, chọn Xóa vĩnh viễn. Trang `/chinh-sach` có ghi việc giữ 30 ngày này. Studio tự quyết thời hạn lưu phiếu, quản lý bản Excel.
 - Nội dung `/chinh-sach` ghi rõ thu gì, dùng để làm gì và quyền của khách; cần kiểm lại trước khi chạy quảng cáo.
 
 ## 13. Kiểm thử
@@ -335,7 +345,7 @@ python -m pip install -r requirements-test.txt
 python -m unittest discover -s tests -v
 ```
 
-49 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: ảnh (đồng thời, tệp giả, giới hạn), quyền xóa, lưu đến muộn, phân trang, Excel, tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn tần suất, gửi lại, gửi đồng thời, trả lời bổ sung, gộp với phiếu chi tiết), đánh giá chỉ hiện khi đủ điều kiện, 8 bộ câu hỏi theo loại video (cấu trúc, gửi đủ 8 loại, số câu khách thấy, câu ngoài bộ bị bỏ, câu quay thực tế), lọc, xuất Excel và xóa nhiều phiếu, trang điền phiếu riêng, mã QR (đọc thử bằng OpenCV nếu máy có), mã QR có logo, sửa bộ câu hỏi (khách thấy ngay, phiếu cũ vẫn đọc được câu đã bỏ, các sửa đổi làm hỏng trang bị từ chối, lịch sử và khôi phục), video mẫu (thêm với ảnh bìa tải lên, ẩn, hiện lại, ảnh bìa ở màn hình đầu, các sửa đổi bị từ chối).
+51 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: ảnh (đồng thời, tệp giả, giới hạn), quyền xóa, lưu đến muộn, phân trang, Excel, tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn tần suất, gửi lại, gửi đồng thời, trả lời bổ sung, gộp với phiếu chi tiết), đánh giá chỉ hiện khi đủ điều kiện, 8 bộ câu hỏi theo loại video (cấu trúc, gửi đủ 8 loại, số câu khách thấy, câu ngoài bộ bị bỏ, câu quay thực tế), lọc, xuất Excel và xóa nhiều phiếu, trang điền phiếu riêng, mã QR (đọc thử bằng OpenCV nếu máy có), mã QR có logo, sửa bộ câu hỏi (khách thấy ngay, phiếu cũ vẫn đọc được câu đã bỏ, các sửa đổi làm hỏng trang bị từ chối, lịch sử và khôi phục), video mẫu (thêm với ảnh bìa tải lên, ẩn, hiện lại, ảnh bìa ở màn hình đầu, các sửa đổi bị từ chối).
 
 **Back/Forward bằng Chromium** (chỉ chạy trên máy chủ thử có `DATA_DIR` riêng, vì bài thử tạo phiếu giả):
 
@@ -348,6 +358,7 @@ python tests/browser_loai_video.py --base-url http://127.0.0.1:8000 --mat-khau <
 python tests/browser_sua_cau_hoi.py --base-url http://127.0.0.1:8000 --mat-khau <ADMIN_PASSWORD>  # thẻ Bộ câu hỏi; cần máy chủ thử mới tạo (bộ câu hỏi là bản gốc)
 python tests/browser_video_mau.py --base-url http://127.0.0.1:8000 --mat-khau <ADMIN_PASSWORD>    # thẻ Video mẫu; cần máy chủ thử mới tạo
 python tests/browser_tim_mau.py --base-url http://127.0.0.1:8000     # bộ lọc thư viện (thấy ngay tên, nhãn ở 1536×730, 390×700), ba câu hỏi gợi ý, Facebook, tiếng Nhật/Anh
+python tests/browser_nhan_vien.py --base-url http://127.0.0.1:8000 --mat-khau <ADMIN_PASSWORD> --du-lieu <DATA_DIR>/du_lieu.db   # chọn tất cả, xác nhận và lịch sử liên hệ, thùng rác; ghi 23 phiếu giả vào tệp dữ liệu thử
 ```
 
 Các bài thử tạo phiếu giả; máy chủ giới hạn 8 phiếu mới mỗi giờ cho một địa chỉ, nên chạy lại nhiều lần thì khởi động lại máy chủ thử với `DATA_DIR` trống.
@@ -374,6 +385,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 25/11/2026 | Trang nhân viên: ảnh trong Excel, chọn tất cả, xác nhận và lịch sử liên hệ, thùng rác; khung lọc gọn; trang nhẹ hơn | Góp ý của Khánh. **Excel**: ảnh khách gửi nằm ngay trong trang của từng khách (trước chỉ có số ảnh), bấm tên ảnh mở ảnh gốc. **Chọn tất cả** chọn hết phiếu khớp bộ lọc ở mọi trang ngay lần bấm đầu (trước chỉ chọn trang đang xem). **Đánh dấu đã liên hệ** phải xác nhận, ghi người liên hệ và ghi chú; bỏ đánh dấu hỏi lại kèm lý do; mỗi phiếu có Lịch sử. **Thùng rác**: xóa là chuyển vào thùng rác 30 ngày, khôi phục được, xóa vĩnh viễn khi cần; `/chinh-sach` ghi thêm việc giữ 30 ngày. **Khung "Tìm video mẫu"** còn hai dòng: tiêu đề cùng ô chọn Ngành, Phong cách (kèm số mẫu) và số video phù hợp; 8 loại video là nút tròn một dòng. Cao 221 → 122 px ở khổ 1680 và 1366, điện thoại 242 → 203 px (đang lọc). **Nhẹ hơn**: phông WOFF2, từ điển Nhật/Anh chỉ tải khi cần, bỏ CSS không dùng, hoãn ảnh tĩnh phía dưới. Lần mở đầu: điện thoại yếu 549 → 490 KB, laptop 548 → 456 KB, máy tính 1920 px 491 → 399 KB. Máy yếu: điện thoại 446 KB, LCP 556 ms, 60 khung/giây, 0 lần giật, CPU đứng yên 0,8% |
 | 25/11/2026 | Dải thẻ video mẫu cân đối | Góp ý: tên mẫu dài 1 dòng hay 2 dòng làm nhãn ở các thẻ lệch nhau. Tên mẫu luôn chiếm đủ 2 dòng (tối đa 2 dòng), nên nhãn ở mọi thẻ bắt đầu cùng một hàng; nút "Tư vấn kiểu này" vẫn sát đáy thẻ. Độ lệch đầu nhãn giữa các thẻ: 23 → 0 px (khổ 1880, 1366, 390). Kiểm thử trình duyệt mới cho việc này |
 | 25/11/2026 | Lối vào phiếu không nêu số câu, số phút | Góp ý: thấy "khoảng 20 câu, 5–7 phút" nhiều người ngại, bỏ qua. Ba chỗ bỏ con số: khung bắt đầu phiếu (cả trang `/phieu` của mã QR) thành "Video của Quý khách hàng sẽ trông thế nào? Chọn loại video, trả lời các câu hỏi dành riêng cho loại đó, chúng tôi gửi lại phương án và báo giá. Có thể dừng và quay lại làm tiếp."; khung "Quý khách đã có yêu cầu rõ ràng?" ở trang chủ; dòng gợi ý ở bước chọn loại video. Không viết "vài câu" hay "1 phút" để không hứa sai. Thanh tiến độ trong phiếu vẫn ghi phần, câu đang làm. Bản dịch tiếng Nhật, tiếng Anh |
 | 25/11/2026 | Kết quả lọc hiện ngay thông tin video | Góp ý: chọn "Video mạng xã hội" thì khung lọc chiếm gần hết màn hình, không thấy tên và nhãn video. Khung lọc gọn lại (số video phù hợp và "Xóa bộ lọc" lên dòng tiêu đề, ngành và phong cách chung một hàng; điện thoại: 8 loại video thành hàng lướt ngang, loại đang chọn tự cuộn vào giữa). Khi đang lọc, kết quả là thẻ ngang: ảnh nhỏ bên trái; mã, tên, nhãn, kiểu video, nút "Xem video" và "Tư vấn kiểu này" bên phải. Đo khi khung lọc nằm sát dưới thanh đầu trang: laptop 1536 × 730 khung lọc cao 351 → 187 px, nhãn video kết thúc ở 988 → 418 px (trong màn hình); điện thoại 390 × 700 khung lọc 615 → 242 px, nhãn 1098 → 481 px. Kiểm thử trình duyệt mới cho hai khổ này. Máy yếu: điện thoại 501 KB, LCP 576 ms, 59 khung/giây, 0 lần giật |

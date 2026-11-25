@@ -91,6 +91,23 @@
     if (m.anh_moi) return `/anh-mau-tai/${ma}/${encodeURIComponent(m.anh_moi)}/${co}.${co === "jpg" ? "jpg" : "webp"}`;
     return co === "goc" ? `/anh-mau/${ma}.webp` : co === "jpg" ? `/anh-mau/${ma}.jpg` : `/anh-mau/${co}/${ma}.webp`;
   };
+  // Ảnh ghi sẵn trong trang ở xa phía dưới (logo phần Về chúng tôi, ảnh quy trình) chỉ tải khi cách màn hình dưới 600px:
+  // loading="lazy" của trình duyệt vẫn tải chúng ngay lúc mở trang trên điện thoại (trình duyệt tải trước cả vùng cách màn
+  // hình 1250–2500px). Ảnh trong danh sách: tải kèm 2 mục kế tiếp.
+  // Không dùng cách này cho dải thẻ thư viện: đo trên điện thoại yếu, mạng 3G, thẻ chưa có ảnh làm trình duyệt vẽ lại
+  // liên tục (CPU lúc đứng yên 0,7% → 4,4%).
+  const taiKhiGan = "IntersectionObserver" in window ? new IntersectionObserver(muc => muc.forEach(e => {
+    if (!e.isIntersecting) return;
+    napAnh(e.target);
+    for (let li = e.target.closest("li")?.nextElementSibling, n = 0; li && n < 2; li = li.nextElementSibling, n++) li.querySelectorAll("[data-src]").forEach(napAnh);
+  }), { rootMargin: "600px 0px" }) : null;
+  function napAnh(el) {
+    const i = el.tagName === "IMG" ? el : el.querySelector("img[data-src]");
+    taiKhiGan?.unobserve(el);
+    if (!i?.dataset.src) return;
+    if (i.dataset.srcset) { i.sizes = i.dataset.sizes; i.srcset = i.dataset.srcset; }
+    i.src = i.dataset.src; delete i.dataset.src; delete i.dataset.srcset; delete i.dataset.sizes;
+  }
   // Hiện ảnh tại chỗ ngay; nâng lên ảnh dọc nét hơn khi tải được.
   function khungAnh(m, net = false) {
     const k = tao("div", "khung"), i = tao("img"), taiCho = anhMau(m);   // WebP nhẹ hơn ~56%; JPG dự phòng
@@ -261,33 +278,38 @@
     $("hang-mau").querySelector(`[data-loc="${khoa}"][data-gt="${CSS.escape(gt)}"]`)?.focus({ preventScroll: true });
   }
   function boLoc(tatCa) {
-    const khoi = tao("div", "tim-mau"), dau = tao("div", "tim-dau");
-    dau.append(tao("h3", "", "Tìm video mẫu"), tao("p", "", "Chọn mục đích, ngành hoặc phong cách để xem video tương ứng."));
+    // Khung gọn: dòng đầu là tiêu đề, hai ô chọn Ngành, Phong cách và số video phù hợp; dòng dưới là các loại video.
+    const khoi = tao("div", "tim-mau"), dau = tao("div", "tim-dau"), hangNhom = tao("div", "tim-hang-ds");
+    dau.append(tao("h3", "", "Tìm video mẫu"), hangNhom);
     if (coLoc() && mauDangLoc().length) {
       const kq = tao("div", "tim-ket-qua"), xoa = tao("button", "nut-chu", "Xóa bộ lọc"); xoa.type = "button";
       xoa.addEventListener("click", () => { Object.assign(loc, { loai: "", nganh: "", phong: "" }); veRay(); $("hang-mau").querySelector(".tim-loai-nut")?.focus({ preventScroll: true }); });
       kq.append(tao("p", "", `Có ${mauDangLoc().length} video phù hợp`), xoa); dau.append(kq);
     }
-    const nut = (khoa, gt, ten, so) => {
-      const b = tao("button", khoa === "loai" ? "tim-loai-nut" : "tim-chip"); b.type = "button";
-      b.dataset.loc = khoa; b.dataset.gt = gt; b.setAttribute("aria-pressed", String(loc[khoa] === gt));
-      b.append(tao("span", "", ten)); if (so != null) b.append(tao("span", "nganh-so", String(so)));
-      b.addEventListener("click", () => chonLoc(khoa, gt));
+    const nut = (gt, ten) => {
+      const b = tao("button", "tim-loai-nut", ten); b.type = "button";
+      b.dataset.loc = "loai"; b.dataset.gt = gt; b.setAttribute("aria-pressed", String(loc.loai === gt));
+      b.addEventListener("click", () => chonLoc("loai", gt));
       return b;
     };
     const hangLoai = tao("div", "tim-loai"); hangLoai.setAttribute("role", "group"); hangLoai.setAttribute("aria-label", "Tìm theo mục đích");
-    hangLoai.append(...dsLoai.map(l => nut("loai", l.id, l.ten)));
-    const hangNhom = tao("div", "tim-hang-ds");
-    khoi.append(dau, hangLoai, hangNhom);
-    // Ngành, phong cách: chỉ hiện mục có mẫu (theo các nhóm đang chọn), kèm số mẫu.
-    [["nganh", "Tìm theo ngành", cauHinh.phan_loai?.nganh || []], ["phong", "Tìm theo phong cách", cauHinh.phan_loai?.phong_cach || []]].forEach(([khoa, ten, ds]) => {
+    hangLoai.append(...dsLoai.map(l => nut(l.id, l.ten)));
+    khoi.append(dau, hangLoai);
+    // Ngành, phong cách: ô chọn (gọn hơn hàng nút); chỉ liệt kê mục có mẫu theo các lựa chọn khác, kèm số mẫu.
+    [["nganh", "Ngành", "Tất cả ngành", cauHinh.phan_loai?.nganh || []], ["phong", "Phong cách", "Tất cả phong cách", cauHinh.phan_loai?.phong_cach || []]].forEach(([khoa, ten, tatCaChu, ds]) => {
       const dem = gt => tatCa.filter(m => hopLoc(m, { ...loc, [khoa]: gt })).length;
       const cac = ds.filter(gt => loc[khoa] === gt || dem(gt) > 0);
       if (!cac.length) return;
-      const hang = tao("div", "tim-hang"), nhom = tao("div", "tim-chip-ds");
-      nhom.setAttribute("role", "group"); nhom.setAttribute("aria-label", ten);
-      nhom.append(...cac.map(gt => nut(khoa, gt, gt, dem(gt))));
-      hang.append(tao("span", "tim-nhan", ten), nhom); hangNhom.append(hang);
+      const nhan = tao("label", "tim-chon"), chon = tao("select");
+      chon.dataset.loc = khoa; chon.classList.toggle("dang-chon", !!loc[khoa]);
+      const dau0 = tao("option", "", tatCaChu); dau0.value = ""; chon.append(dau0);
+      cac.forEach(gt => { const o = tao("option", "", `${gt} (${dem(gt)})`); o.value = gt; chon.append(o); });
+      chon.value = loc[khoa];
+      chon.addEventListener("change", () => {
+        loc[khoa] = chon.value; veRay();
+        $("hang-mau").querySelector(`select[data-loc="${khoa}"]`)?.focus({ preventScroll: true });
+      });
+      nhan.append(tao("span", "", ten), chon); hangNhom.append(nhan);
     });
     return khoi;
   }
@@ -2005,6 +2027,8 @@
   }
 
   async function khoiDong() {
+    // Khách chọn tiếng Nhật hoặc tiếng Anh: chờ ngon-ngu.js tải xong từ điển rồi mới dựng phần động (dòng "Ví dụ", thẻ mẫu…).
+    if (window.BP_CHO_DICH) await window.BP_CHO_DICH;
     // Bộ câu hỏi và danh sách mẫu được máy chủ gắn sẵn vào trang; chỉ gọi thêm khi phần gắn sẵn bị thiếu.
     try { cauHinh = JSON.parse($("cau-hinh").textContent); } catch { cauHinh = null; }
     try { if (!cauHinh || !cauHinh.bo_cau_hoi) cauHinh = await goi("/api/cau-hinh"); }
@@ -2021,6 +2045,7 @@
       }
     }
     if (cauHinh.zalo) { ["link-zalo", "zalo-cam-on"].forEach(id => { $(id).href = cauHinh.zalo; $(id).hidden = false; }); }
+    document.querySelectorAll("img[data-src]").forEach(i => taiKhiGan ? taiKhiGan.observe(i) : napAnh(i));   // ảnh ghi sẵn trong trang (logo phần Về chúng tôi, ảnh quy trình)
     veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); ganQuayLai(); ganQuyTrinh(); veMenu(); ganXemTruoc(); veDanhGia(); ganHieuUng(); ganNghieng(); gan3D();
     napBoMoi();
     if (nho.doc(KHOA_PHIEU)) await choBoMoi();   // không có phiếu dở thì không chờ: phiếu mới chờ ở batDau, trước khi tạo phiếu

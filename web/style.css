@@ -1,11 +1,12 @@
 /* B Productions: giấy trắng, mực xanh đậm, hổ phách cho mã mẫu và tiến độ.
    Hình khung dọc 9:16 là họa tiết chính, vì đó là thứ studio làm ra. */
 /* Một họ chữ: Inter cho nội dung, Inter Display rất đậm cho tiêu đề — gọn, rõ dấu tiếng Việt, hợp chất video mạng xã hội.
-   Phông đã cắt gọn, chỉ giữ chữ Latin và tiếng Việt (khoảng 130 KB cho 4 kiểu). */
-@font-face { font-family: "Inter"; src: url("/fonts/Inter-Regular.woff") format("woff"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("/fonts/Inter-SemiBold.woff") format("woff"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("/fonts/Inter-Bold.woff") format("woff"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "Inter Display"; src: url("/fonts/InterDisplay-ExtraBold.woff") format("woff"); font-weight: 800; font-display: swap; }
+   Phông đã cắt gọn, chỉ giữ chữ Latin và tiếng Việt (khoảng 105 KB cho 4 kiểu dạng WOFF2). */
+/* Phông WOFF2 nhẹ hơn WOFF khoảng 18%; WOFF để dự phòng cho trình duyệt rất cũ (và the_qr.py vẽ ảnh mã QR bằng tệp WOFF). */
+@font-face { font-family: "Inter"; src: url("/fonts/Inter-Regular.woff2") format("woff2"), url("/fonts/Inter-Regular.woff") format("woff"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("/fonts/Inter-SemiBold.woff2") format("woff2"), url("/fonts/Inter-SemiBold.woff") format("woff"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("/fonts/Inter-Bold.woff2") format("woff2"), url("/fonts/Inter-Bold.woff") format("woff"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Inter Display"; src: url("/fonts/InterDisplay-ExtraBold.woff2") format("woff2"), url("/fonts/InterDisplay-ExtraBold.woff") format("woff"); font-weight: 800; font-display: swap; }
 
 :root {
   --giay: #ffffff;

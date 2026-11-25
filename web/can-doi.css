@@ -1210,29 +1210,33 @@ body.parent-brand .mau-toi .goi-y-mau .ten-mau { color: #fff; font-size: .9rem; 
 body.parent-brand .goi-y-ket .hang-nut { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 20px; }
 body.parent-brand .mau-toi .goi-y-ket .nut { background: #f4f2ee; border-color: #f4f2ee; color: #202224; text-decoration: none; }
 body.parent-brand .mau-toi .goi-y-ket .nut-phu { color: #fff; border-color: #858585; background: transparent; }
-body.parent-brand .tim-mau { margin-bottom: 18px; padding: 16px 20px 18px; border-radius: 14px; background: rgb(255 255 255 / .04); border: 1px solid rgb(255 255 255 / .12); }
-body.parent-brand .tim-dau { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
-body.parent-brand .tim-dau h3 { margin: 0; color: #fff; font-size: clamp(1.15rem, 1.6vw, 1.35rem); }
-body.parent-brand .tim-dau p { margin: 0; color: #bdbab5; font-size: .9rem; }
-/* Số video phù hợp và "Xóa bộ lọc" nằm cuối dòng tiêu đề để khung lọc thấp, kết quả hiện ngay bên dưới. */
-body.parent-brand .tim-dau .tim-ket-qua { display: flex; align-items: baseline; gap: 4px 16px; margin-left: auto; }
+/* Khung "Tìm video mẫu" gọn: dòng đầu là tiêu đề, ô chọn Ngành, Phong cách và số video phù hợp; dòng dưới là 8 loại video dạng nút tròn. */
+body.parent-brand .tim-mau { margin-bottom: 18px; padding: 14px 18px 16px; border-radius: 14px; background: rgb(255 255 255 / .04); border: 1px solid rgb(255 255 255 / .12); }
+body.parent-brand .tim-dau { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
+body.parent-brand .tim-dau h3 { margin: 0; color: #fff; font-size: clamp(1.1rem, 1.5vw, 1.3rem); }
+body.parent-brand .tim-dau .tim-ket-qua { display: flex; align-items: center; gap: 4px 16px; margin-left: auto; }
 body.parent-brand .tim-ket-qua p { margin: 0; color: #fff; font-weight: 700; font-size: .9375rem; }
 body.parent-brand .mau-toi .tim-ket-qua .nut-chu, body.parent-brand .mau-toi .tim-trong .nut-chu { color: #e6e4e0; min-height: 40px; padding: 6px 2px; }
-body.parent-brand .tim-loai { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
-body.parent-brand .tim-loai-nut { min-height: 46px; padding: 6px 8px; border: 1.5px solid #4a4d50; border-radius: 8px; background: transparent; color: #f4f2ee;
-  font: inherit; font-size: .875rem; font-weight: 700; line-height: 1.25; text-align: center; cursor: pointer; transition: border-color .2s ease, background-color .2s ease; }
+body.parent-brand .tim-hang-ds { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+body.parent-brand .tim-hang-ds:empty { display: none; }
+body.parent-brand .tim-chon { display: inline-flex; align-items: center; gap: 8px; color: #fff; font-weight: 700; font-size: .875rem; }
+body.parent-brand .tim-chon select { min-height: 38px; max-width: 15rem; padding: 6px 34px 6px 14px; border: 1.5px solid #4a4d50; border-radius: 999px; color: #e6e4e0;
+  font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; appearance: none; color-scheme: dark;
+  background: linear-gradient(45deg, transparent 50%, currentColor 50%) calc(100% - 19px) 55% / 6px 6px no-repeat,
+              linear-gradient(-45deg, transparent 50%, currentColor 50%) calc(100% - 13px) 55% / 6px 6px no-repeat, #232527;
+  transition: border-color .2s ease; }
+body.parent-brand .tim-chon select:hover { border-color: #f4f2ee; }
+body.parent-brand .tim-chon select.dang-chon { border-color: #f4f2ee; color: #fff; }
+body.parent-brand .tim-chon select:focus-visible { outline: 2px solid #f4f2ee; outline-offset: 2px; }
+body.parent-brand .tim-loai { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+body.parent-brand .tim-loai-nut { min-height: 40px; padding: 6px 16px; border: 1.5px solid #4a4d50; border-radius: 999px; background: transparent; color: #f4f2ee;
+  font: inherit; font-size: .875rem; font-weight: 700; line-height: 1.25; white-space: nowrap; cursor: pointer; transition: border-color .2s ease, background-color .2s ease; }
 body.parent-brand .tim-loai-nut:hover { border-color: #f4f2ee; }
 body.parent-brand .tim-loai-nut[aria-pressed="true"] { background: #f4f2ee; border-color: #f4f2ee; color: #202224; }
-body.parent-brand .tim-hang-ds { display: flex; flex-wrap: wrap; gap: 8px 32px; margin-top: 12px; }
-body.parent-brand .tim-hang-ds:empty { display: none; }
-body.parent-brand .tim-hang { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; }
-body.parent-brand .tim-nhan { color: #fff; font-weight: 700; font-size: .875rem; }
-body.parent-brand .tim-chip-ds { display: flex; flex-wrap: wrap; gap: 6px; }
-body.parent-brand .tim-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 5px 12px; border: 1.5px solid #4a4d50; border-radius: 999px;
-  background: transparent; color: #e6e4e0; font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; transition: border-color .2s ease, background-color .2s ease; }
-body.parent-brand .tim-chip:hover { border-color: #f4f2ee; }
-body.parent-brand .tim-chip[aria-pressed="true"] { background: #f4f2ee; border-color: #f4f2ee; color: #202224; }
-body.parent-brand .tim-chip[aria-pressed="true"] .nganh-so { background: #202224; color: #f4f2ee; }
+@media (min-width: 761px) and (max-width: 1500px) {   /* laptop: 8 loại video vẫn nằm một dòng */
+  body.parent-brand .tim-loai { gap: 6px; }
+  body.parent-brand .tim-loai-nut { padding-inline: 12px; }
+}
 body.parent-brand .tim-trong { padding: 24px; border: 1px dashed rgb(255 255 255 / .25); border-radius: 12px; }
 body.parent-brand .tim-trong p { margin: 0; color: #e6e4e0; max-width: 60ch; }
 body.parent-brand .tim-trong .hang-nut { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 16px; }
@@ -1254,10 +1258,7 @@ body.parent-brand .mau-toi .the-ngang-nut .nut-chu { min-height: 40px; padding: 
 body.parent-brand .mau-toi .the-ngang-nut .tu-van-mau { width: auto; margin: 0; padding: 6px 0; min-height: 40px; border-top: 0; color: #e6e4e0; }
 body.parent-brand .nhan-mau { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
 body.parent-brand .nhan-mau span { padding: 2px 8px; border: 1px solid rgb(255 255 255 / .28); border-radius: 4px; color: #d6d4cf; font-size: .8125rem; line-height: 1.45; }
-@media (prefers-reduced-motion: reduce) { body.parent-brand :is(.goi-y-nut, .tim-loai-nut, .tim-chip) { transition: none; } }
-@media (max-width: 1100px) {
-  body.parent-brand .tim-loai { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
+@media (prefers-reduced-motion: reduce) { body.parent-brand :is(.goi-y-nut, .tim-loai-nut, .tim-chon select) { transition: none; } }
 @media (max-width: 760px) {
   body.parent-brand .goi-y-thanh { padding: 16px; margin-top: 20px; }
   body.parent-brand .mau-toi .goi-y-thanh .nut { width: 100%; }
@@ -1266,14 +1267,19 @@ body.parent-brand .nhan-mau span { padding: 2px 8px; border: 1px solid rgb(255 2
   body.parent-brand .goi-y-mau { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.parent-brand .goi-y-ket .hang-nut > * { flex: 1 1 100%; justify-content: center; text-align: center; }
   body.parent-brand .tim-mau { padding: 14px; }
-  body.parent-brand .tim-dau .tim-ket-qua { margin-left: 0; }
-  /* Điện thoại: 8 loại video thành một hàng lướt ngang để khung lọc thấp, kết quả hiện ngay bên dưới. */
-  body.parent-brand .tim-dau > p { display: none; }
+  /* Điện thoại: tiêu đề và số video một dòng; hai ô chọn chia đôi một dòng; 8 loại video là một hàng lướt ngang. */
+  body.parent-brand .tim-dau { gap: 8px 12px; }
+  body.parent-brand .tim-dau .tim-ket-qua { order: 1; margin-left: 0; width: 100%; justify-content: space-between; }
+  body.parent-brand .tim-hang-ds { order: 2; width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  body.parent-brand .tim-chon { display: block; min-width: 0; }
+  /* Chữ "Ngành", "Phong cách" chỉ để trình đọc màn hình đọc; lựa chọn đầu ("Tất cả ngành"…) đã nói rõ ô này chọn gì. */
+  body.parent-brand .tim-chon > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  body.parent-brand .tim-chon select { width: 100%; max-width: none; min-height: 40px; padding: 6px 28px 6px 12px; font-size: .78rem; text-overflow: ellipsis;
+    background-position: calc(100% - 16px) 55%, calc(100% - 10px) 55%, 0 0; }
   body.parent-brand .tim-loai { display: flex; gap: 6px; margin: 10px -14px 0; padding: 0 14px 4px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; scroll-padding-inline: 14px; }
   body.parent-brand .tim-loai::-webkit-scrollbar { display: none; }
-  body.parent-brand .tim-loai-nut { flex: none; min-height: 40px; padding: 6px 14px; border-radius: 999px; font-size: .8125rem; white-space: nowrap; }
-  body.parent-brand .tim-hang-ds { gap: 8px; margin-top: 10px; }
-  body.parent-brand .tim-chip { min-height: 36px; padding: 4px 10px; font-size: .8125rem; }
+  body.parent-brand .tim-loai { flex-wrap: nowrap; }
+  body.parent-brand .tim-loai-nut { flex: none; min-height: 40px; padding: 6px 14px; font-size: .8125rem; }
   body.parent-brand .ket-qua-mau { grid-template-columns: 1fr; gap: 10px; }
   body.parent-brand .the-ngang { grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 10px; }
   body.parent-brand .mau-toi .the-ngang .ten-mau { font-size: .975rem; }

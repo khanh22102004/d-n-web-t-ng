@@ -167,7 +167,7 @@ def khoa_phieu(ma):
         cur = con.cursor()
         def chay(cau, tham_so=()):
             return cur.execute(cau.replace("?", "%s") if LA_POSTGRES else cau, tham_so)
-        chay("SELECT gui_luc FROM phieu WHERE id=?" + (" FOR UPDATE" if LA_POSTGRES else ""), (ma,))
+        chay("SELECT gui_luc FROM phieu WHERE id=? AND xoa_luc IS NULL" + (" FOR UPDATE" if LA_POSTGRES else ""), (ma,))
         dong = cur.fetchone()
         yield chay, dong
         con.commit()
@@ -188,7 +188,8 @@ def tao_bang():
         id TEXT PRIMARY KEY, phieu_id TEXT NOT NULL, ten TEXT NOT NULL, kieu TEXT NOT NULL,
         kich_thuoc INTEGER NOT NULL, du_lieu {nhi_phan} NOT NULL, tao_luc TEXT NOT NULL)"""]
     # Theo dõi sự đồng ý cho phiếu mới; giữ nguyên dữ liệu phiếu cũ.
-    cot_moi = ("lien_he_luc", "dong_y_luu_luc", "dong_y_gui_luc", "bo")
+    # xoa_luc: nhân viên đã xóa phiếu (nằm trong thùng rác, khôi phục được); quá NGAY_GIU_THUNG_RAC ngày thì xóa hẳn.
+    cot_moi = ("lien_he_luc", "dong_y_luu_luc", "dong_y_gui_luc", "bo", "xoa_luc")
     sau = ["CREATE INDEX IF NOT EXISTS anh_phieu_idx ON anh (phieu_id)",
            "CREATE INDEX IF NOT EXISTS phieu_tao_idx ON phieu (tao_luc, id)",
            """CREATE TABLE IF NOT EXISTS luot_xem (
@@ -201,7 +202,12 @@ def tao_bang():
         id TEXT PRIMARY KEY, tao_luc TEXT NOT NULL, noi_dung TEXT NOT NULL, ghi_chu TEXT NOT NULL DEFAULT '')""",
            f"""CREATE TABLE IF NOT EXISTS anh_mau (
         ma TEXT NOT NULL, ban TEXT NOT NULL, co TEXT NOT NULL, du_lieu {nhi_phan} NOT NULL, tao_luc TEXT NOT NULL,
-        PRIMARY KEY (ma, ban, co))"""]
+        PRIMARY KEY (ma, ban, co))""",
+           # Lịch sử xử lý từng phiếu: đánh dấu, bỏ đánh dấu đã liên hệ, xóa vào thùng rác, khôi phục (ai làm, ghi chú).
+           """CREATE TABLE IF NOT EXISTS lich_su_phieu (
+        id TEXT PRIMARY KEY, phieu_id TEXT NOT NULL, luc TEXT NOT NULL, viec TEXT NOT NULL,
+        nguoi TEXT NOT NULL DEFAULT '', ghi_chu TEXT NOT NULL DEFAULT '')""",
+           "CREATE INDEX IF NOT EXISTS lich_su_phieu_idx ON lich_su_phieu (phieu_id, luc)"]
     if LA_POSTGRES:
         # Một kết nối cho cả lượt: trên Vercel bước này chạy mỗi lần hàm khởi động lạnh.
         con = ket_noi()
@@ -1070,7 +1076,7 @@ async def gui_tu_van(request):
 def lay_phieu(ma):
     if not re.fullmatch(r"[A-Za-z0-9_\-]{20,60}", ma or ""):
         return None
-    dong = sql("SELECT id, tao_luc, sua_luc, gui_luc, nguon, nhom_dang_dung, tra_loi FROM phieu WHERE id=?", (ma,), "mot")
+    dong = sql("SELECT id, tao_luc, sua_luc, gui_luc, nguon, nhom_dang_dung, tra_loi FROM phieu WHERE id=? AND xoa_luc IS NULL", (ma,), "mot")
     if not dong:
         return None
     return {"id": dong[0], "tao_luc": dong[1], "sua_luc": dong[2], "gui_luc": dong[3], "nguon": dong[4],
@@ -1246,6 +1252,7 @@ def gop_tu_van(ma_phieu, tra_loi, ma_gui):
              (json.dumps(moi, ensure_ascii=False), lien_he_luc, ma_phieu))
         chay("DELETE FROM anh WHERE phieu_id=?", (ma_tv,))
         chay("DELETE FROM phieu WHERE id=?", (ma_tv,))
+        chay("UPDATE lich_su_phieu SET phieu_id=? WHERE phieu_id=?", (ma_phieu, ma_tv))   # lịch sử liên hệ theo sang phiếu đã gộp
     return moi
 
 
@@ -1281,7 +1288,7 @@ async def dang_xuat(request):
     return tra
 
 
-def tat_ca_phieu(dieu_kien="1=1", tham_so=()):
+def tat_ca_phieu(dieu_kien="p.xoa_luc IS NULL", tham_so=()):
     """Phiếu để xuất Excel: tất cả, hoặc chỉ những phiếu khớp điều kiện (phiếu đã chọn, phiếu đang lọc)."""
     dong = sql("SELECT p.id, p.tao_luc, p.sua_luc, p.gui_luc, p.nguon, p.nhom_dang_dung, p.tra_loi, p.lien_he_luc FROM phieu p WHERE "
                + dieu_kien + " ORDER BY p.tao_luc DESC", tuple(tham_so), "tat")
@@ -1294,17 +1301,19 @@ def thong_ke():
     # Chỉ lấy số tổng hợp, không tải toàn bộ nội dung phiếu vào bộ nhớ.
     bat_dau, da_gui, cho = sql("SELECT COUNT(*), COALESCE(SUM(CASE WHEN gui_luc IS NOT NULL THEN 1 ELSE 0 END),0), "
                               "COALESCE(SUM(CASE WHEN gui_luc IS NOT NULL AND lien_he_luc IS NULL THEN 1 ELSE 0 END),0) "
-                              "FROM phieu WHERE tra_loi<>'{}'", lay="mot")
-    dung = dict(sql("SELECT nhom_dang_dung, COUNT(*) FROM phieu WHERE gui_luc IS NULL AND tra_loi<>'{}' GROUP BY nhom_dang_dung", lay="tat"))
+                              "FROM phieu WHERE tra_loi<>'{}' AND xoa_luc IS NULL", lay="mot")
+    dung = dict(sql("SELECT nhom_dang_dung, COUNT(*) FROM phieu WHERE gui_luc IS NULL AND tra_loi<>'{}' AND xoa_luc IS NULL "
+                    "GROUP BY nhom_dang_dung", lay="tat"))
+    thung_rac = sql("SELECT COUNT(*) FROM phieu WHERE tra_loi<>'{}' AND xoa_luc IS NOT NULL", lay="mot")[0]
     nguon = {}
     for ten, so in sql("SELECT nguon, SUM(so) FROM luot_xem GROUP BY nguon", lay="tat"):
         nguon.setdefault(ten or "trực tiếp", {"xem": 0, "gui": 0})["xem"] += int(so)
-    for ten, so in sql("SELECT nguon, COUNT(*) FROM phieu WHERE gui_luc IS NOT NULL GROUP BY nguon", lay="tat"):
+    for ten, so in sql("SELECT nguon, COUNT(*) FROM phieu WHERE gui_luc IS NOT NULL AND xoa_luc IS NULL GROUP BY nguon", lay="tat"):
         nguon.setdefault(ten or "trực tiếp", {"xem": 0, "gui": 0})["gui"] += int(so)
     # Phiếu chưa chọn nhóm được tính vào nhóm đầu tiên.
     dung[THU_TU_NHOM[0]] = dung.get(THU_TU_NHOM[0], 0) + sum(v for k, v in dung.items() if k not in THU_TU_NHOM)
     return {"mo_trang": sum(v["xem"] for v in nguon.values()), "bat_dau": bat_dau, "da_gui": int(da_gui),
-            "cho_lien_he": int(cho), "dung_o_nhom": [{"nhom": n["ten"], "so": dung.get(n["id"], 0)} for n in BO_CAU_HOI["nhom"]],
+            "cho_lien_he": int(cho), "thung_rac": int(thung_rac), "dung_o_nhom": [{"nhom": n["ten"], "so": dung.get(n["id"], 0)} for n in BO_CAU_HOI["nhom"]],
             "theo_nguon": [{"nguon": k, **v} for k, v in sorted(nguon.items())]}
 
 
@@ -1318,6 +1327,8 @@ def dieu_kien_loc(tim, trang_thai, bo):
         tham_so.append("%" + chu + "%")
     loc = {"dang-do": "p.gui_luc IS NULL", "cho-lien-he": "p.gui_luc IS NOT NULL AND p.lien_he_luc IS NULL",
            "da-lien-he": "p.gui_luc IS NOT NULL AND p.lien_he_luc IS NOT NULL"}
+    # "da-xoa": thùng rác. Mọi bộ lọc khác chỉ xét phiếu chưa xóa.
+    dieu_kien.append("p.xoa_luc IS NOT NULL" if trang_thai == "da-xoa" else "p.xoa_luc IS NULL")
     if trang_thai in loc:
         dieu_kien.append(loc[trang_thai])
     if bo in LOAI:
@@ -1339,18 +1350,101 @@ def trang_phieu(trang, tim, trang_thai, bo=""):
     so_trang = max(1, (tong + 19) // 20)
     trang = min(trang, so_trang)
     dong = sql("SELECT p.id, p.tao_luc, p.gui_luc, p.lien_he_luc, p.nguon, p.tra_loi, "
-               "(SELECT COUNT(*) FROM anh a WHERE a.phieu_id=p.id) FROM phieu p WHERE " + where +
+               "(SELECT COUNT(*) FROM anh a WHERE a.phieu_id=p.id), p.xoa_luc FROM phieu p WHERE " + where +
                " ORDER BY p.tao_luc DESC, p.id DESC LIMIT 20 OFFSET ?", [*tham_so, (trang - 1) * 20], "tat")
+    lich_su = lich_su_cua([d[0] for d in dong])
     phieu = []
-    for ma, tao_luc, gui_luc, lien_he_luc, nguon, tra_loi, so_anh in dong:
+    for ma, tao_luc, gui_luc, lien_he_luc, nguon, tra_loi, so_anh, xoa_luc in dong:
         t = json.loads(tra_loi or "{}")
         chinh, phu = ten_khach_va_viec(t)
         phieu.append({"id": ma, "tao_luc": tao_luc, "gui_luc": gui_luc, "lien_he_luc": lien_he_luc or "",
                       "loai": t.get("_loai", "chi-tiet"), "bo": bo_cua(t), "ten_bo": LOAI[bo_cua(t)]["ten"],
                       "nguon": nguon or "trực tiếp", "so_anh": so_anh, "san_pham": chinh,
                       "thuong_hieu": phu, "ten": t.get("19.ten", ""),
-                      "lien_he": gop(t, "19.dia_chi"), "kenh": t.get("19.kenh", ""), "tom_tat": tom_tat(t)})
+                      "lien_he": gop(t, "19.dia_chi"), "kenh": t.get("19.kenh", ""), "tom_tat": tom_tat(t),
+                      "xoa_luc": xoa_luc or "", "lich_su": lich_su.get(ma, [])})
     return {"phieu": phieu, "trang": trang, "so_trang": so_trang, "tong": tong}
+
+
+# ---------- Lịch sử xử lý phiếu, thùng rác ----------
+NGAY_GIU_THUNG_RAC = 30
+VIEC_PHIEU = {"lien-he": "Đánh dấu đã liên hệ", "bo-lien-he": "Bỏ đánh dấu đã liên hệ",
+              "xoa": "Xóa vào thùng rác", "khoi-phuc": "Khôi phục từ thùng rác"}
+
+
+def sach_dong(chu, toi_da):
+    """Chữ nhân viên gõ (tên, ghi chú): bỏ ký tự điều khiển, gọn khoảng trắng, cắt độ dài."""
+    if not isinstance(chu, str):
+        return ""
+    chu = re.sub(r"[\x00-\x08\x0b-\x1f\x7f]", "", chu).replace("\r", "")
+    chu = "\n".join(re.sub(r"[ \t]+", " ", d).strip() for d in chu.split("\n")).strip()
+    return chu[:toi_da]
+
+
+def ghi_lich_su(chay, ds_ma, viec, nguoi="", ghi_chu="", luc=None):
+    luc = luc or bay_gio()
+    for ma in ds_ma:
+        chay("INSERT INTO lich_su_phieu (id, phieu_id, luc, viec, nguoi, ghi_chu) VALUES (?,?,?,?,?,?)",
+             (f"{time.time_ns():020d}{secrets.token_hex(4)}", ma, luc, viec, nguoi, ghi_chu))   # mã tăng dần: xếp đúng thứ tự cả khi cùng giây
+
+
+def lich_su_cua(ds_ma):
+    """Lịch sử của các phiếu trên một trang danh sách (mới nhất trước)."""
+    if not ds_ma:
+        return {}
+    ra = {}
+    for ma, luc, viec, nguoi, ghi_chu in sql(f"SELECT phieu_id, luc, viec, nguoi, ghi_chu FROM lich_su_phieu WHERE phieu_id IN "
+                                            f"({','.join('?' * len(ds_ma))}) ORDER BY luc DESC, id DESC", list(ds_ma), "tat"):
+        ra.setdefault(ma, []).append({"luc": luc, "viec": viec, "ten_viec": VIEC_PHIEU.get(viec, viec), "nguoi": nguoi, "ghi_chu": ghi_chu})
+    return ra
+
+
+@contextmanager
+def giao_dich():
+    """Một kết nối, một giao dịch cho nhiều câu lệnh (nhanh cả trên Neon)."""
+    con = ket_noi()
+    try:
+        if not LA_POSTGRES:
+            con.execute("BEGIN IMMEDIATE")
+        cur = con.cursor()
+        def chay(cau, tham_so=()):
+            return cur.execute(cau.replace("?", "%s") if LA_POSTGRES else cau, tham_so)
+        yield chay
+        con.commit()
+    except Exception:
+        con.rollback()
+        raise
+    finally:
+        con.close()
+
+
+def doi_trang_thai_xoa(ds_ma, xoa, nguoi=""):
+    """Đưa phiếu vào thùng rác (xoa=True) hoặc khôi phục. Trả số phiếu đã đổi; ghi lịch sử từng phiếu."""
+    luc = bay_gio()
+    with giao_dich() as chay:
+        doi = []
+        for i in range(0, len(ds_ma), 200):
+            phan = ds_ma[i:i + 200]
+            dk = "xoa_luc IS NULL" if xoa else "xoa_luc IS NOT NULL"
+            doi += [d[0] for d in chay(f"SELECT id FROM phieu WHERE id IN ({','.join('?' * len(phan))}) AND {dk}", phan).fetchall()]
+        for i in range(0, len(doi), 200):
+            phan = doi[i:i + 200]
+            chay(f"UPDATE phieu SET xoa_luc=? WHERE id IN ({','.join('?' * len(phan))})", [luc if xoa else None, *phan])
+        ghi_lich_su(chay, doi, "xoa" if xoa else "khoi-phuc", nguoi, luc=luc)
+    return len(doi)
+
+
+_lan_don = [0.0]
+
+
+def don_thung_rac():
+    """Xóa hẳn phiếu nằm trong thùng rác quá NGAY_GIU_THUNG_RAC ngày (chạy tối đa 6 giờ một lần mỗi tiến trình)."""
+    if time.time() - _lan_don[0] < 6 * 3600:
+        return 0
+    _lan_don[0] = time.time()
+    moc = (datetime.now(GIO_VN) - timedelta(days=NGAY_GIU_THUNG_RAC)).strftime("%Y-%m-%d %H:%M:%S")
+    ds = [d[0] for d in sql("SELECT id FROM phieu WHERE xoa_luc IS NOT NULL AND xoa_luc < ?", (moc,), "tat")]
+    return xoa_cac_phieu(ds) if ds else 0
 
 
 async def nv_phieu(request):
@@ -1361,6 +1455,7 @@ async def nv_phieu(request):
     except ValueError:
         return loi("SAI_TRANG", "Số trang chưa đúng.")
     q = request.query_params
+    await run_in_threadpool(don_thung_rac)
     du_lieu = await run_in_threadpool(trang_phieu, trang, q.get("tim", "")[:100], q.get("trang_thai", ""), q.get("bo", ""))
     du_lieu["thong_ke"] = await run_in_threadpool(thong_ke)
     du_lieu["loai"] = [{"id": l["id"], "ten": l["ten"]} for l in BO_CAU_HOI["loai"]]
@@ -1368,31 +1463,40 @@ async def nv_phieu(request):
 
 
 async def nv_danh_dau_lien_he(request):
+    """Đánh dấu hoặc bỏ đánh dấu đã liên hệ. Trang nhân viên hỏi xác nhận trước (gửi xac_nhan); ghi lịch sử kèm người làm, ghi chú."""
     if not la_nhan_vien(request):
         return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
-    du_lieu = await doc_json(request, 2000) or {}
-    phieu = await run_in_threadpool(lay_phieu, request.path_params["ma"])
-    if not phieu or not phieu["gui_luc"]:
+    du_lieu = await doc_json(request, 4000) or {}
+    if du_lieu.get("xac_nhan") is not True:
+        return loi("CHUA_XAC_NHAN", "Cần xác nhận trước khi đổi trạng thái liên hệ.")
+    da_lien_he, nguoi, ghi_chu = du_lieu.get("da_lien_he") is True, sach_dong(du_lieu.get("nguoi"), 60), sach_dong(du_lieu.get("ghi_chu"), 500)
+    ma = request.path_params["ma"]
+    def doi():
+        with giao_dich() as chay:
+            dong = chay("SELECT gui_luc, lien_he_luc FROM phieu WHERE id=? AND xoa_luc IS NULL", (ma,)).fetchone()
+            if not dong or not dong[0]:
+                return None
+            if bool(dong[1]) == da_lien_he:        # đã đúng trạng thái (bấm hai lần, hai người cùng bấm): giữ nguyên
+                return dong[1] or ""
+            luc = bay_gio()
+            chay("UPDATE phieu SET lien_he_luc=? WHERE id=?", (luc if da_lien_he else None, ma))
+            ghi_lich_su(chay, [ma], "lien-he" if da_lien_he else "bo-lien-he", nguoi, ghi_chu, luc)
+            return luc if da_lien_he else ""
+    luc = await run_in_threadpool(doi)
+    if luc is None:
         return loi("KHONG_THAY", "Không tìm thấy phiếu đã gửi này.", 404)
-    luc = bay_gio() if du_lieu.get("da_lien_he") is True else None
-    await run_in_threadpool(sql, "UPDATE phieu SET lien_he_luc=? WHERE id=?", (luc, phieu["id"]))
-    return JSONResponse({"lien_he_luc": luc or ""})
+    return JSONResponse({"lien_he_luc": luc, "lich_su": (await run_in_threadpool(lich_su_cua, [ma])).get(ma, [])})
 
 
 async def nv_xoa_phieu(request):
+    """Xóa một phiếu: chuyển vào thùng rác (khôi phục được trong NGAY_GIU_THUNG_RAC ngày)."""
     if not la_nhan_vien(request):
         return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
     du_lieu = await doc_json(request, 2000) or {}
     if du_lieu.get("xac_nhan") is not True:
-        return loi("CHUA_XAC_NHAN", "Cần xác nhận xóa phiếu và toàn bộ ảnh đính kèm.")
-    def xoa():
-        with khoa_phieu(request.path_params["ma"]) as (chay, dong):
-            if dong is None:
-                return False
-            chay("DELETE FROM anh WHERE phieu_id=?", (request.path_params["ma"],))
-            chay("DELETE FROM phieu WHERE id=?", (request.path_params["ma"],))
-        return True
-    if not await run_in_threadpool(xoa):
+        return loi("CHUA_XAC_NHAN", "Cần xác nhận xóa phiếu.")
+    ma = request.path_params["ma"]
+    if not MA_PHIEU.fullmatch(ma) or not await run_in_threadpool(doi_trang_thai_xoa, [ma], True, sach_dong(du_lieu.get("nguoi"), 60)):
         return loi("KHONG_THAY", "Không tìm thấy phiếu này.", 404)
     return JSONResponse({"da_xoa": True})
 
@@ -1411,6 +1515,7 @@ def xoa_cac_phieu(ds_ma):
             phan = ds_ma[i:i + 200]
             dau = ",".join(["%s" if LA_POSTGRES else "?"] * len(phan))
             cur.execute(f"DELETE FROM anh WHERE phieu_id IN ({dau})", phan)
+            cur.execute(f"DELETE FROM lich_su_phieu WHERE phieu_id IN ({dau})", phan)
             cur.execute(f"DELETE FROM phieu WHERE id IN ({dau})", phan)
             so += cur.rowcount
         con.commit()
@@ -1430,29 +1535,78 @@ def ma_trong_ds(du_lieu):
     return list(dict.fromkeys(ds))
 
 
-async def nv_xoa_nhieu(request):
-    """Xóa các phiếu đã tích chọn, hoặc toàn bộ phiếu khớp bộ lọc đang dùng.
-    Xóa theo bộ lọc phải gửi kèm số phiếu nhân viên đang thấy: số trên máy chủ khác đi (vừa có phiếu mới) thì không xóa."""
-    if not la_nhan_vien(request):
-        return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
+async def ds_phieu_can_lam(request, viec):
+    """Đọc yêu cầu làm nhiều phiếu: các phiếu đã tích chọn ({"ma": [...]}) hoặc toàn bộ phiếu khớp bộ lọc
+    ({"loc": {...}, "so_du_kien": n}). Theo bộ lọc thì số phiếu nhân viên đang thấy phải khớp số trên máy chủ
+    (vừa có phiếu mới thì không làm). Trả (danh sách mã, None) hoặc (None, phản hồi lỗi)."""
     du_lieu = await doc_json(request, 100_000)
     if du_lieu is None:
-        return loi("SAI_DU_LIEU", "Dữ liệu gửi lên chưa đúng.")
+        return None, loi("SAI_DU_LIEU", "Dữ liệu gửi lên chưa đúng.")
     if du_lieu.get("xac_nhan") is not True:
-        return loi("CHUA_XAC_NHAN", "Cần xác nhận xóa phiếu và toàn bộ ảnh đính kèm.")
+        return None, loi("CHUA_XAC_NHAN", f"Cần xác nhận trước khi {viec}.")
     loc = du_lieu.get("loc")
     if isinstance(loc, dict):
         where, tham_so = dieu_kien_loc(str(loc.get("tim") or "")[:100], loc.get("trang_thai", ""), loc.get("bo", ""))
         ds = [d[0] for d in await run_in_threadpool(sql, "SELECT p.id FROM phieu p WHERE " + where, tham_so, "tat")]
         so_du_kien = du_lieu.get("so_du_kien")
         if not isinstance(so_du_kien, int) or isinstance(so_du_kien, bool) or so_du_kien != len(ds):
-            return loi("DS_DA_DOI", f"Danh sách vừa thay đổi: hiện có {len(ds)} phiếu khớp bộ lọc. Anh chị xem lại danh sách rồi xóa lại.", 409)
-    else:
-        ds = ma_trong_ds(du_lieu)
-        if ds is None:
-            return loi("SAI_DS", "Danh sách phiếu cần xóa chưa đúng (tối đa 1000 phiếu mỗi lần).")
-    so = await run_in_threadpool(xoa_cac_phieu, ds) if ds else 0
-    return JSONResponse({"da_xoa": so})
+            return None, loi("DS_DA_DOI", f"Danh sách vừa thay đổi: hiện có {len(ds)} phiếu khớp bộ lọc. Anh chị xem lại danh sách rồi làm lại.", 409)
+        return ds, None
+    ds = ma_trong_ds(du_lieu)
+    if ds is None:
+        return None, loi("SAI_DS", "Danh sách phiếu chưa đúng (tối đa 1000 phiếu mỗi lần).")
+    return ds, None
+
+
+async def nv_xoa_nhieu(request):
+    """Xóa các phiếu đã tích chọn hoặc đang lọc: chuyển vào thùng rác (khôi phục được trong NGAY_GIU_THUNG_RAC ngày)."""
+    if not la_nhan_vien(request):
+        return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
+    ds, sai = await ds_phieu_can_lam(request, "xóa phiếu")
+    if sai:
+        return sai
+    return JSONResponse({"da_xoa": await run_in_threadpool(doi_trang_thai_xoa, ds, True) if ds else 0})
+
+
+async def nv_khoi_phuc(request):
+    """Khôi phục phiếu từ thùng rác về danh sách (giữ nguyên trạng thái liên hệ trước khi xóa)."""
+    if not la_nhan_vien(request):
+        return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
+    ds, sai = await ds_phieu_can_lam(request, "khôi phục phiếu")
+    if sai:
+        return sai
+    return JSONResponse({"da_khoi_phuc": await run_in_threadpool(doi_trang_thai_xoa, ds, False) if ds else 0})
+
+
+async def nv_xoa_vinh_vien(request):
+    """Xóa hẳn phiếu cùng ảnh đính kèm và lịch sử. Chỉ xóa được phiếu đang nằm trong thùng rác."""
+    if not la_nhan_vien(request):
+        return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
+    ds, sai = await ds_phieu_can_lam(request, "xóa vĩnh viễn")
+    if sai:
+        return sai
+    def xoa():
+        trong_rac = []
+        for i in range(0, len(ds), 200):
+            phan = ds[i:i + 200]
+            trong_rac += [d[0] for d in sql(f"SELECT id FROM phieu WHERE id IN ({','.join('?' * len(phan))}) AND xoa_luc IS NOT NULL", phan, "tat")]
+        return xoa_cac_phieu(trong_rac) if trong_rac else 0
+    return JSONResponse({"da_xoa": await run_in_threadpool(xoa) if ds else 0})
+
+
+async def nv_ma_phieu(request):
+    """Mã và tên của mọi phiếu khớp bộ lọc (tối đa 1000): để "Chọn tất cả" chọn hết ngay lần bấm đầu, không chỉ trang đang xem."""
+    if not la_nhan_vien(request):
+        return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
+    q = request.query_params
+    where, tham_so = dieu_kien_loc(q.get("tim", "")[:100], q.get("trang_thai", ""), q.get("bo", ""))
+    dong = await run_in_threadpool(sql, "SELECT p.id, p.tra_loi FROM phieu p WHERE " + where +
+                                   " ORDER BY p.tao_luc DESC, p.id DESC LIMIT 1001", tham_so, "tat")
+    ds = []
+    for ma, tra_loi in dong[:1000]:
+        t = json.loads(tra_loi or "{}")
+        ds.append({"id": ma, "ten": t.get("19.ten") or ten_khach_va_viec(t)[0]})
+    return JSONResponse({"ma": ds, "qua_nhieu": len(dong) > 1000})
 
 
 async def nv_anh_cua_phieu(request):
@@ -1623,7 +1777,69 @@ def _xl_in(trang, vung_tieu_de=None):
     trang.oddFooter.center.size = 8
 
 
-def _xl_trang_phieu(trang, p, k):
+# Ảnh khách gửi đưa thẳng vào file Excel (ảnh thu nhỏ) để xem được cả khi gửi file cho người khác, không cần đăng nhập.
+# Vercel trả về tối đa 4,5 MB mỗi lần: tổng ảnh trong một file giữ dưới 3 MB; ảnh còn lại chỉ có link mở ảnh gốc.
+XL_ANH_RONG, XL_ANH_CAO, XL_ANH_TONG = 380, 300, 3_000_000
+
+
+def _xl_anh_nho(du_lieu):
+    """Ảnh thu nhỏ JPEG cho Excel (xoay đúng chiều theo EXIF); None nếu không đọc được ảnh."""
+    try:
+        with Image.open(io.BytesIO(bytes(du_lieu))) as goc:
+            anh = ImageOps.exif_transpose(goc)
+            if anh.mode not in ("RGB", "L"):
+                nen = Image.new("RGB", anh.size, "white")
+                nen.paste(anh.convert("RGBA"), mask=anh.convert("RGBA").getchannel("A"))
+                anh = nen
+            anh = anh.convert("RGB")
+            anh.thumbnail((XL_ANH_RONG, XL_ANH_CAO), Image.LANCZOS)
+            tep = io.BytesIO(); anh.save(tep, format="JPEG", quality=80, optimize=True)
+            return tep.getvalue(), anh.width, anh.height
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+        return None
+
+
+def _xl_anh_khach(trang, p, k, d, goc, ngan_sach):
+    """Mục "ẢNH KHÁCH GỬI" trên trang của từng khách: mỗi ảnh một hàng (tên tệp có link mở ảnh gốc, ảnh thu nhỏ bên phải)."""
+    ds = sql("SELECT id, ten, du_lieu FROM anh WHERE phieu_id=? ORDER BY tao_luc", (p["id"],), "tat")
+    if not ds:
+        return d
+    from openpyxl.drawing.image import Image as AnhXL
+    from openpyxl.drawing.spreadsheet_drawing import AnchorMarker, OneCellAnchor
+    from openpyxl.drawing.xdr import XDRPositiveSize2D
+    from openpyxl.utils.units import pixels_to_EMU
+    d += 2
+    trang.merge_cells(f"A{d}:C{d}")
+    o = trang.cell(row=d, column=1, value=f"ẢNH KHÁCH GỬI ({len(ds)})"); o.font = Font(name=XL_CHU, size=12, bold=True, color=XL_DEN)
+    trang.row_dimensions[d].height = 24
+    d += 1
+    trang.merge_cells(f"A{d}:C{d}")
+    o = trang.cell(row=d, column=1, value="Bấm tên ảnh để mở ảnh gốc (cần đăng nhập trang nhân viên trên trình duyệt).")
+    o.font = k["phu"]
+    for stt, (ma_anh, ten, du_lieu) in enumerate(ds, start=1):
+        d += 1
+        o = trang.cell(row=d, column=1, value=stt); o.font = k["chu"]; o.alignment = k["giua"]
+        o = trang.cell(row=d, column=2, value=an_toan_excel(ten or f"Ảnh {stt}"))
+        o.hyperlink = f"{goc}/api/nhan-vien/anh/{ma_anh}"
+        o.font = Font(name=XL_CHU, size=10.5, color=XL_DEN, underline="single"); o.alignment = k["trai_giua"]
+        for c in (1, 2, 3):
+            trang.cell(row=d, column=c).border = k["khung"]
+        nho = _xl_anh_nho(du_lieu) if ngan_sach["con"] > 0 else None
+        if nho and len(nho[0]) <= ngan_sach["con"]:
+            ngan_sach["con"] -= len(nho[0])
+            hinh = AnhXL(io.BytesIO(nho[0])); hinh.width, hinh.height = nho[1], nho[2]
+            hinh.anchor = OneCellAnchor(_from=AnchorMarker(col=2, colOff=pixels_to_EMU(6), row=d - 1, rowOff=pixels_to_EMU(6)),
+                                        ext=XDRPositiveSize2D(pixels_to_EMU(nho[1]), pixels_to_EMU(nho[2])))
+            trang.add_image(hinh)
+            trang.row_dimensions[d].height = round((nho[2] + 12) * 0.75, 1)
+        else:
+            o = trang.cell(row=d, column=3, value="Ảnh chưa đưa vào file (file đã nhiều ảnh hoặc ảnh không đọc được): bấm tên ảnh để mở.")
+            o.font = k["nho"]; o.alignment = k["trai_giua"]
+            trang.row_dimensions[d].height = 30
+    return d
+
+
+def _xl_trang_phieu(trang, p, k, goc="", ngan_sach=None):
     tl = p["tra_loi"]
     trang.column_dimensions["A"].width = 6
     trang.column_dimensions["B"].width = 46
@@ -1667,6 +1883,8 @@ def _xl_trang_phieu(trang, p, k):
         for c in (1, 2, 3):
             trang.cell(row=d, column=c).border = k["khung"]
         trang.row_dimensions[d].height = _xl_cao([("\n".join(dong), 58), (cau + (f"\n({goi_y})" if goi_y else ""), 46)], 42)
+    if p.get("so_anh"):
+        d = _xl_anh_khach(trang, p, k, d, goc, ngan_sach if ngan_sach is not None else {"con": XL_ANH_TONG})
     # Toàn bộ câu trả lời gốc từ web, để không thiếu thông tin nào
     d += 2
     trang.merge_cells(f"A{d}:C{d}")
@@ -1692,8 +1910,10 @@ def _xl_trang_phieu(trang, p, k):
     _xl_in(trang, f"{dong_dau_bang}:{dong_dau_bang}")
 
 
-def tao_excel(danh_sach):
+def tao_excel(danh_sach, goc=""):
+    """goc: địa chỉ trang (https://…) để gắn link mở ảnh gốc."""
     k = _xl_kieu()
+    ngan_sach = {"con": XL_ANH_TONG}
     so = Workbook()
     da_gui = [p for p in danh_sach if p["gui_luc"]]
     da_gui.sort(key=lambda p: p["gui_luc"], reverse=True)
@@ -1743,7 +1963,7 @@ def tao_excel(danh_sach):
 
     # 2) Mỗi khách một trang theo khuôn 17 mục
     for ten_trang, p in trang_khach:
-        _xl_trang_phieu(so.create_sheet(ten_trang), p, k)
+        _xl_trang_phieu(so.create_sheet(ten_trang), p, k, goc, ngan_sach)
 
     # 3) Dữ liệu thô để lọc và tìm
     trang = so.create_sheet("Phiếu đã gửi")
@@ -1826,7 +2046,7 @@ async def nv_excel(request):
             return loi("TRONG", "Không còn phiếu nào trong danh sách đã chọn.", 404)
     else:
         danh_sach = await run_in_threadpool(tat_ca_phieu)
-    du_lieu = await run_in_threadpool(tao_excel, danh_sach)
+    du_lieu = await run_in_threadpool(tao_excel, danh_sach, dia_chi_trang(request))
     ten = f'phieu-khach-{bay_gio()[:10]}.xlsx'
     return Response(du_lieu, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     headers={"Content-Disposition": f'attachment; filename="{ten}"'})
@@ -2125,6 +2345,7 @@ app = BaoVe(GZipMiddleware(Starlette(routes=[
     Route("/goi.css", tep_goi_css),
     Route("/app.js", tep_js),
     Route("/ngon-ngu.js", tep_js),
+    Route("/tu-dien.js", tep_js),   # từ điển Nhật, Anh: ngon-ngu.js chỉ tải khi khách chọn hai thứ tiếng này
     Route("/api/suc-khoe", suc_khoe),
     Route("/api/cau-hinh", cau_hinh),
     Route("/api/bo-cau-hoi", bo_cau_hoi_moi),
@@ -2146,6 +2367,9 @@ app = BaoVe(GZipMiddleware(Starlette(routes=[
     Route("/api/nhan-vien/dang-xuat", dang_xuat, methods=["POST"]),
     Route("/api/nhan-vien/phieu", nv_phieu),
     Route("/api/nhan-vien/phieu/xoa-nhieu", nv_xoa_nhieu, methods=["POST"]),
+    Route("/api/nhan-vien/phieu/khoi-phuc", nv_khoi_phuc, methods=["POST"]),
+    Route("/api/nhan-vien/phieu/xoa-vinh-vien", nv_xoa_vinh_vien, methods=["POST"]),
+    Route("/api/nhan-vien/phieu/ma", nv_ma_phieu),
     Route("/api/nhan-vien/phieu/{ma}", nv_xoa_phieu, methods=["DELETE"]),
     Route("/api/nhan-vien/phieu/{ma}/anh", nv_anh_cua_phieu),
     Route("/api/nhan-vien/phieu/{ma}/lien-he", nv_danh_dau_lien_he, methods=["POST"]),

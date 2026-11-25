@@ -27,7 +27,7 @@ class RegressionTests(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(m.app)
         m._dem.clear()
-        for table in ('anh', 'phieu', 'luot_xem', 'bo_cau_hoi', 'mau_video', 'anh_mau'):
+        for table in ('anh', 'phieu', 'luot_xem', 'bo_cau_hoi', 'mau_video', 'anh_mau', 'lich_su_phieu'):
             m.sql('DELETE FROM ' + table)
         m.dam_bao_bo(ngay=True)              # bộ câu hỏi về bản gốc trong mã
         m.dam_bao_mau(ngay=True)             # video mẫu về danh sách gốc
@@ -206,17 +206,95 @@ class RegressionTests(unittest.TestCase):
             self.assertEqual(pending.result(timeout=5).status_code, 409)
         self.assertEqual(self.client.get(path).json()['tra_loi'], self.answers())
 
-    def test_delete_requires_login_confirmation_and_removes_images(self):
+    def test_delete_moves_to_trash_and_permanent_delete_removes_images(self):
         path = self.new()
         self.client.post(path + '/anh', files={'anh': ('a.png', self.image())})
-        admin_path = '/api/nhan-vien/phieu/' + path.split('/')[-1]
+        ma = path.split('/')[-1]
+        admin_path = '/api/nhan-vien/phieu/' + ma
         self.assertEqual(self.client.request('DELETE', admin_path, json={'xac_nhan': True}).status_code, 401)
         self.login()
         self.assertEqual(self.client.request('DELETE', admin_path, json={}).status_code, 400)
         self.assertEqual(len(self.client.get(path).json()['anh']), 1)
         self.assertEqual(self.client.request('DELETE', admin_path, json={'xac_nhan': True}).status_code, 200)
+        # Khách không còn thấy, không sửa được phiếu đã xóa; ảnh vẫn giữ trong thùng rác
         self.assertEqual(self.client.get(path).status_code, 404)
+        self.assertEqual(self.client.put(path, json={'tra_loi': self.answers()}).status_code, 404)
+        self.assertEqual(m.sql('SELECT COUNT(*) FROM anh', lay='mot')[0], 1)
+        self.assertEqual(self.client.request('DELETE', admin_path, json={'xac_nhan': True}).status_code, 404)   # đã trong thùng rác
+        # Xóa vĩnh viễn: phải xác nhận; chỉ xóa phiếu trong thùng rác
+        self.assertEqual(self.client.post('/api/nhan-vien/phieu/xoa-vinh-vien', json={'ma': [ma]}).status_code, 400)
+        self.assertEqual(self.client.post('/api/nhan-vien/phieu/xoa-vinh-vien', json={'ma': [ma], 'xac_nhan': True}).json(), {'da_xoa': 1})
         self.assertEqual(m.sql('SELECT COUNT(*) FROM anh', lay='mot')[0], 0)
+        self.assertEqual(m.sql('SELECT COUNT(*) FROM phieu', lay='mot')[0], 0)
+        self.assertEqual(m.sql('SELECT COUNT(*) FROM lich_su_phieu', lay='mot')[0], 0)
+
+    def test_trash_restore_contact_confirmation_and_history(self):
+        ma = []
+        for ten in ('Khách Một', 'Khách Hai'):
+            path = self.new()
+            a = self.answers(); a['19.ten'] = ten
+            self.assertEqual(self.client.post(path + '/gui', json={'dong_y': True, 'tra_loi': a}).status_code, 200)
+            ma.append(path.rsplit('/', 1)[1])
+        self.login()
+        lh = f'/api/nhan-vien/phieu/{ma[0]}/lien-he'
+        # Đánh dấu đã liên hệ phải xác nhận; ghi lịch sử kèm người làm và ghi chú
+        self.assertEqual(self.client.post(lh, json={'da_lien_he': True}).status_code, 400)
+        r = self.client.post(lh, json={'da_lien_he': True, 'xac_nhan': True, 'nguoi': '  Khánh ', 'ghi_chu': 'Gọi Zalo,\x07 hẹn gửi báo giá'})
+        luc = r.json()['lien_he_luc']
+        self.assertTrue(luc)
+        self.assertEqual([(x['viec'], x['nguoi'], x['ghi_chu']) for x in r.json()['lich_su']], [('lien-he', 'Khánh', 'Gọi Zalo, hẹn gửi báo giá')])
+        # Bấm lại lần nữa: giữ giờ cũ, không thêm lịch sử
+        self.assertEqual(self.client.post(lh, json={'da_lien_he': True, 'xac_nhan': True}).json()['lien_he_luc'], luc)
+        r = self.client.post(lh, json={'da_lien_he': False, 'xac_nhan': True, 'ghi_chu': 'Khách chưa nghe máy'})
+        self.assertEqual(r.json()['lien_he_luc'], '')
+        self.assertEqual([x['viec'] for x in r.json()['lich_su']], ['bo-lien-he', 'lien-he'])
+        # Chọn tất cả: lấy mã mọi phiếu khớp bộ lọc
+        self.assertEqual({x['id'] for x in self.client.get('/api/nhan-vien/phieu/ma').json()['ma']}, set(ma))
+        self.assertEqual([x['ten'] for x in self.client.get('/api/nhan-vien/phieu/ma?tim=một').json()['ma']], ['Khách Một'])
+        # Xóa vào thùng rác rồi khôi phục
+        self.assertEqual(self.client.post('/api/nhan-vien/phieu/xoa-nhieu', json={'ma': ma, 'xac_nhan': True}).json(), {'da_xoa': 2})
+        du = self.client.get('/api/nhan-vien/phieu').json()
+        self.assertEqual((du['tong'], du['thong_ke']['thung_rac'], du['thong_ke']['da_gui']), (0, 2, 0))
+        rac = self.client.get('/api/nhan-vien/phieu?trang_thai=da-xoa').json()
+        self.assertEqual(rac['tong'], 2)
+        self.assertTrue(all(p['xoa_luc'] for p in rac['phieu']))
+        self.assertEqual(self.client.post(lh, json={'da_lien_he': True, 'xac_nhan': True}).status_code, 404)   # phiếu trong thùng rác
+        self.assertEqual(self.client.post('/api/nhan-vien/phieu/khoi-phuc', json={'ma': [ma[0]]}).status_code, 400)
+        self.assertEqual(self.client.post('/api/nhan-vien/phieu/khoi-phuc', json={'ma': [ma[0]], 'xac_nhan': True}).json(), {'da_khoi_phuc': 1})
+        p = self.client.get('/api/nhan-vien/phieu').json()['phieu'][0]
+        self.assertEqual([x['viec'] for x in p['lich_su']], ['khoi-phuc', 'xoa', 'bo-lien-he', 'lien-he'])
+        # Xóa vĩnh viễn theo bộ lọc thùng rác: phiếu đã khôi phục không bị xóa
+        r = self.client.post('/api/nhan-vien/phieu/xoa-vinh-vien', json={'loc': {'trang_thai': 'da-xoa'}, 'so_du_kien': 1, 'xac_nhan': True})
+        self.assertEqual(r.json(), {'da_xoa': 1})
+        self.assertEqual(m.sql('SELECT COUNT(*) FROM phieu', lay='mot')[0], 1)
+        # Thùng rác tự xóa hẳn sau 30 ngày
+        self.client.post('/api/nhan-vien/phieu/xoa-nhieu', json={'ma': [ma[0]], 'xac_nhan': True})
+        m.sql('UPDATE phieu SET xoa_luc=?', ('2020-01-01 00:00:00',))
+        m._lan_don[0] = 0
+        self.client.get('/api/nhan-vien/phieu')
+        self.assertEqual(m.sql('SELECT COUNT(*) FROM phieu', lay='mot')[0], 0)
+        self.client.cookies.clear()
+        self.assertEqual(self.client.get('/api/nhan-vien/phieu/ma').status_code, 401)
+        self.assertEqual(self.client.post('/api/nhan-vien/phieu/khoi-phuc', json={'ma': ma, 'xac_nhan': True}).status_code, 401)
+
+    def test_excel_embeds_customer_photos(self):
+        path = self.new()
+        anh = io.BytesIO(); Image.new('RGB', (1200, 1600), 'navy').save(anh, format='JPEG')
+        self.assertEqual(self.client.post(path + '/anh', files={'anh': ('san-pham.jpg', anh.getvalue())}).status_code, 201)
+        a = self.answers(); a['19.ten'] = 'Khách có ảnh'
+        self.assertEqual(self.client.post(path + '/gui', json={'dong_y': True, 'tra_loi': a}).status_code, 200)
+        self.login()
+        wb = load_workbook(io.BytesIO(self.client.get('/api/nhan-vien/xuat-excel').content))
+        trang = wb[wb.sheetnames[1]]
+        anh_khach = [i for i in trang._images if i.anchor._from.row > 5]     # ảnh ở hàng 1 là logo
+        self.assertEqual(len(anh_khach), 1)
+        self.assertLessEqual((anh_khach[0].width, anh_khach[0].height), (m.XL_ANH_RONG, m.XL_ANH_CAO))
+        self.assertEqual(anh_khach[0].height, m.XL_ANH_CAO)                    # ảnh dọc 1200×1600 thu về cao 300
+        link = [o for hang in trang.iter_rows() for o in hang if o.hyperlink and '/api/nhan-vien/anh/' in (o.hyperlink.target or '')]
+        self.assertEqual(len(link), 1)
+        self.assertTrue(link[0].hyperlink.target.startswith('http'))
+        chu = [str(o.value) for hang in trang.iter_rows() for o in hang if o.value]
+        self.assertIn('ẢNH KHÁCH GỬI (1)', chu)
 
     def test_schema_upgrade_is_repeatable_and_preserves_existing_rows(self):
         path = self.new()
@@ -324,7 +402,7 @@ class RegressionTests(unittest.TestCase):
         self.assertEqual(self.client.post('/api/tu-van', json=data).status_code, 201)
         self.login()
         quick_id = 'tv_' + data['ma_gui']
-        self.client.post(f'/api/nhan-vien/phieu/{quick_id}/lien-he', json={'da_lien_he': True})
+        self.client.post(f'/api/nhan-vien/phieu/{quick_id}/lien-he', json={'da_lien_he': True, 'xac_nhan': True, 'nguoi': 'Lâm'})
         url = self.new()
         r = self.client.post(url + '/gui', json={'tra_loi': self.answers(), 'dong_y': True, 'tu_van': data['ma_gui']})
         self.assertEqual(r.status_code, 200, r.text)
@@ -332,6 +410,8 @@ class RegressionTests(unittest.TestCase):
         tra_loi, lien_he_luc = m.sql('SELECT tra_loi, lien_he_luc FROM phieu', lay='mot')
         self.assertEqual(json.loads(tra_loi)['_mau'], 'ST029')
         self.assertTrue(lien_he_luc)
+        self.assertEqual(m.sql('SELECT viec, nguoi FROM lich_su_phieu', lay='tat'), [('lien-he', 'Lâm')])   # lịch sử theo sang phiếu gộp
+        self.assertEqual(m.sql('SELECT phieu_id FROM lich_su_phieu', lay='mot')[0], m.sql('SELECT id FROM phieu', lay='mot')[0])
         self.assertTrue(any(row['cau'] == 'Gộp từ yêu cầu tư vấn nhanh' for row in r.json()['tom_tat']))
 
     def test_detailed_form_keeps_quick_request_when_phone_differs(self):
@@ -453,6 +533,9 @@ class RegressionTests(unittest.TestCase):
         r = self.client.post('/api/nhan-vien/phieu/xoa-nhieu', json={'loc': {'bo': 'su-kien'}, 'so_du_kien': 2, 'xac_nhan': True})
         self.assertEqual(r.json(), {'da_xoa': 2})
         self.assertEqual(self.client.get('/api/nhan-vien/phieu').json()['tong'], 0)
+        self.assertEqual(self.client.get('/api/nhan-vien/phieu?trang_thai=da-xoa').json()['tong'], 3)       # nằm trong thùng rác
+        self.assertEqual(self.client.get('/api/nhan-vien/xuat-excel').status_code, 200)
+        self.assertEqual(load_workbook(io.BytesIO(self.client.get('/api/nhan-vien/xuat-excel').content))['Phiếu đã gửi'].max_row, 1)
 
     def test_excel_sheet_for_other_video_type(self):
         path = self.new()
