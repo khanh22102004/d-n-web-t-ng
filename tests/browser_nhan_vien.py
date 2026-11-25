@@ -6,6 +6,7 @@ Chỉ chạy trên máy chủ thử cục bộ dùng SQLite: bài thử ghi th�
 import argparse
 import io
 import json
+import re
 import secrets
 import sqlite3
 from pathlib import Path
@@ -167,6 +168,16 @@ with sync_playwright() as p:
         page.click('#ra-thung-rac')
         expect(page.locator('#phan-trang')).to_contain_text('21 phiếu')
         expect(page.locator('#mo-thung-rac')).to_have_text('Thùng rác')
+
+        # 5) Thẻ Bảo mật: tình trạng cài đặt và lần đăng nhập vừa rồi (máy chủ thử: thiếu SECRET_KEY, không HTTPS → "Cần làm")
+        page.get_by_role('tab', name='Bảo mật').click()
+        expect(page).to_have_url(re.compile(r'#bao-mat$'))
+        expect(page.locator('#bm-cai-dat li')).to_have_count(5)
+        expect(page.locator('#bm-cai-dat li.can-lam').first).to_contain_text('Cần làm')
+        expect(page.locator('#bm-dang-nhap tr').first).to_contain_text('Đăng nhập')
+        expect(page.locator('#bm-dang-nhap tr').first).to_contain_text('Chrome')
+        if anh:
+            page.locator('#khu-bao-mat').screenshot(path=str(anh / 'nhan-vien-bao-mat-1366.png'))
         ctx.close()
     trinh.close()
 assert not loi_js, loi_js

@@ -321,7 +321,7 @@
 
   // Các thẻ: yêu cầu của khách, bộ câu hỏi, video mẫu. Thẻ đang mở hiện ra (sau khi đăng nhập) thì báo sự kiện "nv-mo-the"
   // để tệp của thẻ đó (sua-cau-hoi.js, sua-video-mau.js) tải dữ liệu lần đầu. Địa chỉ #bo-cau-hoi, #video-mau mở thẳng thẻ.
-  const cacThe = [...document.querySelectorAll('.nv-the [role="tab"]')], DIA_CHI = { "khu-cau-hoi": "#bo-cau-hoi", "khu-video": "#video-mau" };
+  const cacThe = [...document.querySelectorAll('.nv-the [role="tab"]')], DIA_CHI = { "khu-cau-hoi": "#bo-cau-hoi", "khu-video": "#video-mau", "khu-bao-mat": "#bao-mat" };
   const theDangMo = () => cacThe.find(b => b.getAttribute("aria-selected") === "true");
   function baoThe() { if (!$("bang").hidden) document.dispatchEvent(new CustomEvent("nv-mo-the", { detail: theDangMo().getAttribute("aria-controls") })); }
   function moThe(t, dua = false) {
@@ -339,6 +339,27 @@
     });
   });
   new MutationObserver(baoThe).observe($("bang"), { attributes: true, attributeFilter: ["hidden"] });
+
+  // Thẻ Bảo mật: tình trạng cài đặt (đạt / cần làm, cách sửa) và 15 lần đăng nhập gần nhất. Tải lại mỗi lần mở thẻ.
+  document.addEventListener("nv-mo-the", async e => {
+    if (e.detail !== "khu-bao-mat") return;
+    const tt = $("bm-trang-thai"); tt.hidden = false; tt.textContent = "Đang tải…";
+    try {
+      const du = await goi("/api/nhan-vien/bao-mat");
+      $("bm-cai-dat").replaceChildren(...du.cai_dat.map(c => {
+        const li = tao("li", c.dat ? "dat" : "can-lam"), dau = tao("div", "bm-dau");
+        dau.append(tao("span", `bm-nhan ${c.dat ? "dat" : "can-lam"}`, c.dat ? "Đạt" : "Cần làm"), tao("b", "", c.ten));
+        li.append(dau); if (!c.dat) li.append(tao("p", "", c.cach)); return li;
+      }));
+      const can = du.cai_dat.filter(c => !c.dat).length;
+      tt.textContent = can ? `Còn ${can} cài đặt cần làm.` : "Các cài đặt bảo mật đều đạt.";
+      $("bm-dn-tom-tat").textContent = `${du.sai_24h} lần nhập sai mật khẩu trong 24 giờ qua. Một địa chỉ nhập sai ${du.gioi_han.mot_may} lần trong ${du.gioi_han.phut} phút thì bị chặn ${du.gioi_han.phut} phút.`;
+      $("bm-dang-nhap").replaceChildren(...(du.dang_nhap.length ? du.dang_nhap.map(d => {
+        const tr = tao("tr"), kq = tao("td"); kq.append(tao("span", `bm-nhan ${d.thanh_cong ? "dat" : "can-lam"}`, d.thanh_cong ? "Đăng nhập" : "Sai mật khẩu"));
+        tr.append(tao("td", "", ngayGio(d.luc)), kq, tao("td", "", d.thiet_bi), tao("td", "", d.ip)); return tr;
+      }) : [(() => { const tr = tao("tr"), td = tao("td", "", "Chưa có lần đăng nhập nào được ghi."); td.colSpan = 4; tr.append(td); return tr; })()]));
+    } catch (err) { if (err.ma === 401) return tai(); tt.textContent = err.message; }
+  });
   const theTuDiaChi = cacThe.find(b => DIA_CHI[b.getAttribute("aria-controls")] === location.hash);
   if (theTuDiaChi) moThe(theTuDiaChi);
   tai();

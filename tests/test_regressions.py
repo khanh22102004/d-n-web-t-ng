@@ -9,7 +9,7 @@ from pathlib import Path
 import sys
 import tempfile
 import threading
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 import unittest
 
 from PIL import Image
@@ -27,7 +27,7 @@ class RegressionTests(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(m.app)
         m._dem.clear()
-        for table in ('anh', 'phieu', 'luot_xem', 'bo_cau_hoi', 'mau_video', 'anh_mau', 'lich_su_phieu'):
+        for table in ('anh', 'phieu', 'luot_xem', 'bo_cau_hoi', 'mau_video', 'anh_mau', 'lich_su_phieu', 'dang_nhap'):
             m.sql('DELETE FROM ' + table)
         m.dam_bao_bo(ngay=True)              # bộ câu hỏi về bản gốc trong mã
         m.dam_bao_mau(ngay=True)             # video mẫu về danh sách gốc
@@ -276,6 +276,68 @@ class RegressionTests(unittest.TestCase):
         self.client.cookies.clear()
         self.assertEqual(self.client.get('/api/nhan-vien/phieu/ma').status_code, 401)
         self.assertEqual(self.client.post('/api/nhan-vien/phieu/khoi-phuc', json={'ma': ma, 'xac_nhan': True}).status_code, 401)
+
+    # ---------- Bảo mật ----------
+    def test_security_headers(self):
+        for duong in ('/', '/nhan-vien', '/api/cau-hinh'):
+            r = self.client.get(duong)
+            self.assertEqual(r.headers['x-frame-options'], 'DENY')
+            self.assertEqual(r.headers['cross-origin-opener-policy'], 'same-origin')
+            self.assertIn('camera=()', r.headers['permissions-policy'])
+            self.assertIn("object-src 'none'", r.headers['content-security-policy'])
+            self.assertEqual('x-robots-tag' in r.headers, duong != '/')     # trang nhân viên, API: không cho máy tìm kiếm lưu
+        self.assertNotIn('strict-transport-security', self.client.get('/').headers)   # chạy thử không HTTPS
+        self.assertEqual(self.client.get('/api/nhan-vien/phieu').headers['cache-control'], 'no-store')
+
+    def test_staff_requests_from_other_sites_are_blocked(self):
+        dn = '/api/nhan-vien/dang-nhap'
+        self.assertEqual(self.client.post(dn, json={'mat_khau': 'test-password'}, headers={'Origin': 'https://trang-la.example'}).status_code, 403)
+        self.assertEqual(self.client.post(dn, json={'mat_khau': 'test-password'}, headers={'Origin': 'null'}).status_code, 403)
+        self.assertEqual(self.client.post(dn, json={'mat_khau': 'test-password'}, headers={'Sec-Fetch-Site': 'cross-site'}).status_code, 403)
+        self.assertEqual(self.client.post(dn, json={'mat_khau': 'test-password'},
+                                          headers={'Origin': 'http://testserver', 'Sec-Fetch-Site': 'same-origin'}).status_code, 200)
+        r = self.client.request('DELETE', '/api/nhan-vien/phieu/' + 'a' * 32, json={'xac_nhan': True}, headers={'Origin': 'https://trang-la.example'})
+        self.assertEqual(r.status_code, 403)
+        # Trang khách không bị ảnh hưởng (khách có thể mở từ link ở nơi khác)
+        self.assertEqual(self.client.post('/api/phieu', json={'dong_y_luu': True}, headers={'Origin': 'https://zalo.me'}).status_code, 201)
+
+    def test_login_throttle_is_shared_and_logged(self):
+        dn = '/api/nhan-vien/dang-nhap'
+        with patch('may_chu.asyncio.sleep', new=AsyncMock()):
+            for _ in range(m.SAI_MOT_MAY):
+                self.assertEqual(self.client.post(dn, json={'mat_khau': 'sai'}).status_code, 401)
+            m._dem.clear()                                   # như một bản máy chủ khác: bộ đếm trong bộ nhớ trống
+            r = self.client.post(dn, json={'mat_khau': 'test-password'})
+            self.assertEqual((r.status_code, r.json()['loi']['ma']), (429, 'QUA_NHIEU'))
+            # Nhiều địa chỉ cùng đoán: khóa chung 15 phút, kể cả mật khẩu đúng
+            m.sql('DELETE FROM dang_nhap')
+            for i in range(m.SAI_TAT_CA):
+                m.ghi_dang_nhap(f'10.0.{i // 250}.{i % 250}', False, '')
+            m._dem.clear()
+            r = self.client.post(dn, json={'mat_khau': 'test-password'})
+            self.assertEqual((r.status_code, r.json()['loi']['ma']), (429, 'TAM_KHOA'))
+            # Lần sai cũ hơn 15 phút không tính
+            m.sql("UPDATE dang_nhap SET luc='2020-01-01 00:00:00'")
+            self.assertEqual(self.client.post(dn, json={'mat_khau': 'test-password'}, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0) Chrome/130 Safari/537'}).status_code, 200)
+        du = self.client.get('/api/nhan-vien/bao-mat').json()
+        self.assertEqual(du['dang_nhap'][0], {'luc': du['dang_nhap'][0]['luc'], 'thanh_cong': True, 'thiet_bi': 'Chrome trên Windows', 'ip': 'không rõ'})
+        self.assertEqual(len(du['cai_dat']), 5)
+        self.assertTrue(next(c for c in du['cai_dat'] if c['ten'].startswith('Mật khẩu'))['dat'])   # "test-password": 13 ký tự, chữ và dấu
+        with patch.object(m, 'MAT_KHAU_NHAN_VIEN', 'test-password'), patch.dict(os.environ, {'SECRET_KEY': ''}):
+            self.assertFalse(next(c for c in m.tinh_trang_bao_mat()['cai_dat'] if c['ten'].startswith('Khóa ký'))['dat'])
+        self.client.cookies.clear()
+        self.assertEqual(self.client.get('/api/nhan-vien/bao-mat').status_code, 401)
+        self.assertEqual(m.ip_rut_gon('113.161.45.7'), '113.161.45.x')
+        self.assertTrue(m.mat_khau_manh('Penguin-Lab-2026'))
+        self.assertFalse(m.mat_khau_manh('12345678901234'))      # chỉ có số
+        self.assertFalse(m.mat_khau_manh('Abc12345'))            # ngắn
+
+    def test_changing_password_signs_out_every_session(self):
+        self.login()
+        self.assertEqual(self.client.get('/api/nhan-vien/phieu').status_code, 200)
+        with patch.object(m, 'MAT_KHAU_NHAN_VIEN', 'Mat-khau-moi-2026'):
+            self.assertEqual(self.client.get('/api/nhan-vien/phieu').status_code, 401)
+        self.assertEqual(self.client.get('/api/nhan-vien/phieu').status_code, 200)
 
     def test_excel_embeds_customer_photos(self):
         path = self.new()

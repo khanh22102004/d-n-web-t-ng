@@ -36,6 +36,7 @@
       <button type="button" role="tab" id="the-phieu" aria-controls="khu-phieu" aria-selected="true">Yêu cầu của khách</button>
       <button type="button" role="tab" id="the-cau-hoi" aria-controls="khu-cau-hoi" aria-selected="false" tabindex="-1">Bộ câu hỏi</button>
       <button type="button" role="tab" id="the-video" aria-controls="khu-video" aria-selected="false" tabindex="-1">Video mẫu</button>
+      <button type="button" role="tab" id="the-bao-mat" aria-controls="khu-bao-mat" aria-selected="false" tabindex="-1">Bảo mật</button>
     </div>
     <div id="khu-phieu" role="tabpanel" aria-labelledby="the-phieu">
     <div class="nv-dau">
@@ -159,6 +160,22 @@
         <button type="button" class="nut-chu" id="vm-bo-doi">Bỏ thay đổi</button>
         <p class="sc-luu-loi" id="vm-luu-loi" role="alert" hidden></p>
       </div>
+    </div>
+    <div id="khu-bao-mat" role="tabpanel" aria-labelledby="the-bao-mat" hidden>
+      <div class="nv-dau">
+        <div><h1>Bảo mật</h1><p class="dan">Tình trạng cài đặt bảo vệ dữ liệu khách và các lần đăng nhập trang nhân viên gần đây. Cài đặt nào “Cần làm” thì sửa ở Vercel, mục Settings → Environment Variables, rồi Redeploy.</p></div>
+      </div>
+      <p class="sc-dang-dung" id="bm-trang-thai" role="status">Đang tải…</p>
+      <section class="nv-khoi bm-khoi" aria-labelledby="bm-cai-dat-tieu-de">
+        <h2 id="bm-cai-dat-tieu-de">Cài đặt</h2>
+        <ul class="bm-ds" id="bm-cai-dat"></ul>
+      </section>
+      <section class="nv-khoi bm-khoi" aria-labelledby="bm-dn-tieu-de">
+        <h2 id="bm-dn-tieu-de">Đăng nhập gần đây</h2>
+        <p class="dan" id="bm-dn-tom-tat"></p>
+        <div class="bm-bang-hop"><table class="bm-bang"><thead><tr><th scope="col">Lúc</th><th scope="col">Kết quả</th><th scope="col">Thiết bị</th><th scope="col">Địa chỉ mạng</th></tr></thead><tbody id="bm-dang-nhap"></tbody></table></div>
+        <p class="dan bm-ghi-chu">Thấy lần đăng nhập không phải của mình: đổi ADMIN_PASSWORD trên Vercel rồi Redeploy, mọi máy đang đăng nhập sẽ bị đăng xuất. Nhập sai mật khẩu quá nhiều lần thì trang tự khóa 15 phút.</p>
+      </section>
     </div>
   </div>
 </main>

@@ -15,6 +15,7 @@ import json
 import mimetypes
 import os
 import re
+import asyncio
 import secrets
 import sqlite3
 import time
@@ -111,8 +112,14 @@ LIEN_HE_STUDIO = os.environ.get("STUDIO_CONTACT", "").strip() or "0938248891"
 _so_lien_he = re.sub(r"[\s.\-()]", "", LIEN_HE_STUDIO)
 LIEN_HE_HIEN_THI = f"{_so_lien_he[:4]} {_so_lien_he[4:7]} {_so_lien_he[7:]}" if re.fullmatch(r"0\d{9}", _so_lien_he) else LIEN_HE_STUDIO
 LINK_LIEN_HE = "tel:" + ("+84" + _so_lien_he[1:] if re.fullmatch(r"0\d{9}", _so_lien_he) else _so_lien_he) if re.fullmatch(r"\+?\d{7,15}", _so_lien_he) else ""
-SAU_PROXY = os.environ.get("TRUST_PROXY", "").lower() in ("1", "true", "yes")
-COOKIE_AN_TOAN = os.environ.get("COOKIE_SECURE", "").lower() in ("1", "true", "yes")
+# Trên Vercel/Render, tiêu đề X-Forwarded-For do máy chủ trung gian ghi đè (khách không tự đặt được), nên tin luôn mà không cần
+# đặt TRUST_PROXY; nhờ vậy giới hạn đoán mật khẩu, gửi phiếu tính theo đúng địa chỉ của từng người. Trang chạy qua HTTPS nên
+# cookie đăng nhập chỉ gửi qua HTTPS.
+TREN_MAY_CHU_THAT = bool(os.environ.get("VERCEL") or os.environ.get("RENDER"))
+SAU_PROXY = os.environ.get("TRUST_PROXY", "").lower() in ("1", "true", "yes") or TREN_MAY_CHU_THAT
+COOKIE_AN_TOAN = os.environ.get("COOKIE_SECURE", "").lower() in ("1", "true", "yes") or TREN_MAY_CHU_THAT
+# Tiền tố __Host-: trình duyệt chỉ nhận cookie này khi gửi qua HTTPS, đúng tên miền (không chia cho tên miền con), path "/".
+TEN_COOKIE = "__Host-nv" if COOKIE_AN_TOAN else "nv"
 
 GIO_VN = timezone(timedelta(hours=7))
 ANH_TOI_DA = 3
@@ -207,7 +214,13 @@ def tao_bang():
            """CREATE TABLE IF NOT EXISTS lich_su_phieu (
         id TEXT PRIMARY KEY, phieu_id TEXT NOT NULL, luc TEXT NOT NULL, viec TEXT NOT NULL,
         nguoi TEXT NOT NULL DEFAULT '', ghi_chu TEXT NOT NULL DEFAULT '')""",
-           "CREATE INDEX IF NOT EXISTS lich_su_phieu_idx ON lich_su_phieu (phieu_id, luc)"]
+           "CREATE INDEX IF NOT EXISTS lich_su_phieu_idx ON lich_su_phieu (phieu_id, luc)",
+           # Mỗi lần đăng nhập trang nhân viên (đúng hay sai): để chặn đoán mật khẩu trên mọi máy chủ và cho nhân viên xem
+           # đăng nhập gần đây. ip_bam: mã băm địa chỉ (đếm lần sai); ip_hien: địa chỉ rút gọn để hiện.
+           """CREATE TABLE IF NOT EXISTS dang_nhap (
+        id TEXT PRIMARY KEY, luc TEXT NOT NULL, ip_bam TEXT NOT NULL, ip_hien TEXT NOT NULL DEFAULT '',
+        thanh_cong INTEGER NOT NULL, thiet_bi TEXT NOT NULL DEFAULT '')""",
+           "CREATE INDEX IF NOT EXISTS dang_nhap_luc_idx ON dang_nhap (luc)"]
     if LA_POSTGRES:
         # Một kết nối cho cả lượt: trên Vercel bước này chạy mỗi lần hàm khởi động lạnh.
         con = ket_noi()
@@ -1259,32 +1272,117 @@ def gop_tu_van(ma_phieu, tra_loi, ma_gui):
 # ---------- Phần của nhân viên ----------
 
 def ky(han):
-    return hmac.new(KHOA_BI_MAT, str(han).encode(), hashlib.sha256).hexdigest()
+    """Chữ ký phiên đăng nhập. Gắn cả dấu vân tay của mật khẩu nhân viên: đổi ADMIN_PASSWORD là mọi máy đang đăng nhập
+    bị đăng xuất (dùng khi nghi lộ mật khẩu hoặc có người nghỉ việc)."""
+    van_tay = hashlib.sha256(("bp-phien|" + MAT_KHAU_NHAN_VIEN).encode()).hexdigest()[:16]
+    return hmac.new(KHOA_BI_MAT, f"{han}.{van_tay}".encode(), hashlib.sha256).hexdigest()
 
 
 def la_nhan_vien(request):
-    gia_tri = request.cookies.get("nv", "")
+    gia_tri = request.cookies.get(TEN_COOKIE, "")
     han, _, chu_ky = gia_tri.partition(".")
     return bool(han.isdigit() and int(han) > time.time() and hmac.compare_digest(chu_ky, ky(han)))
+
+
+# Chặn đoán mật khẩu: tối đa SAI_MOT_MAY lần sai mỗi 15 phút từ một địa chỉ, và SAI_TAT_CA lần sai mỗi 15 phút trên toàn trang
+# (kẻ đoán dùng nhiều địa chỉ). Đếm trong cơ sở dữ liệu nên đúng cả khi Vercel chạy nhiều bản máy chủ cùng lúc.
+SAI_MOT_MAY, SAI_TAT_CA, PHUT_KHOA = 8, 100, 15
+
+
+def ip_rut_gon(ip):
+    if re.fullmatch(r"\d{1,3}(\.\d{1,3}){3}", ip or ""):
+        return ".".join(ip.split(".")[:3]) + ".x"
+    if ":" in (ip or ""):
+        return ":".join(ip.split(":")[:3]) + ":…"
+    return "không rõ"
+
+
+def thiet_bi(ua):
+    """Tên ngắn của thiết bị, trình duyệt theo User-Agent (để nhân viên nhận ra lần đăng nhập lạ)."""
+    ua = ua or ""
+    he = next((t for k, t in (("iPhone", "iPhone"), ("iPad", "iPad"), ("Android", "Android"), ("Windows", "Windows"),
+                                ("Macintosh", "Mac"), ("CrOS", "Chromebook"), ("Linux", "Linux")) if k in ua), "Thiết bị khác")
+    duyet = next((t for k, t in (("coc_coc", "Cốc Cốc"), ("Edg/", "Edge"), ("OPR/", "Opera"), ("Firefox/", "Firefox"),
+                                   ("Chrome/", "Chrome"), ("Safari/", "Safari")) if k in ua), "trình duyệt khác")
+    return f"{duyet} trên {he}"
+
+
+def ghi_dang_nhap(ip, thanh_cong, ua):
+    sql("INSERT INTO dang_nhap (id, luc, ip_bam, ip_hien, thanh_cong, thiet_bi) VALUES (?,?,?,?,?,?)",
+        (f"{time.time_ns():020d}{secrets.token_hex(4)}", bay_gio(), bam_ip(ip), ip_rut_gon(ip), 1 if thanh_cong else 0, thiet_bi(ua)))
+
+
+def bam_ip(ip):
+    return hashlib.sha256(("bp-dn|" + (ip or "")).encode()).hexdigest()[:24]
+
+
+def dem_dang_nhap_sai(ip):
+    moc = (datetime.now(GIO_VN) - timedelta(minutes=PHUT_KHOA)).strftime("%Y-%m-%d %H:%M:%S")
+    mot = sql("SELECT COUNT(*) FROM dang_nhap WHERE thanh_cong=0 AND luc>=? AND ip_bam=?", (moc, bam_ip(ip)), "mot")[0]
+    tat_ca = sql("SELECT COUNT(*) FROM dang_nhap WHERE thanh_cong=0 AND luc>=?", (moc,), "mot")[0]
+    return int(mot), int(tat_ca)
 
 
 async def dang_nhap(request):
     du_lieu = await doc_json(request, 2000) or {}
     if not MAT_KHAU_NHAN_VIEN:
         return loi("CHUA_DAT_MAT_KHAU", "Chưa đặt mật khẩu nhân viên. Hãy đặt biến ADMIN_PASSWORD rồi chạy lại.", 503)
-    if qua_nhieu(("dn", dia_chi_khach(request)), 8, 900):
+    ip = dia_chi_khach(request)
+    if qua_nhieu(("dn", ip), SAI_MOT_MAY, PHUT_KHOA * 60):
         return loi("QUA_NHIEU", "Nhập sai quá nhiều lần. Hãy thử lại sau 15 phút.", 429)
-    if not hmac.compare_digest(str(du_lieu.get("mat_khau", "")).encode(), MAT_KHAU_NHAN_VIEN.encode()):
+    sai_may, sai_het = await run_in_threadpool(dem_dang_nhap_sai, ip)
+    if sai_may >= SAI_MOT_MAY:
+        return loi("QUA_NHIEU", "Nhập sai quá nhiều lần. Hãy thử lại sau 15 phút.", 429)
+    if sai_het >= SAI_TAT_CA:
+        return loi("TAM_KHOA", "Trang nhân viên tạm khóa đăng nhập 15 phút vì có nhiều lần nhập sai mật khẩu. "
+                   "Máy đang đăng nhập sẵn vẫn dùng được.", 429)
+    dung = hmac.compare_digest(str(du_lieu.get("mat_khau", "")).encode(), MAT_KHAU_NHAN_VIEN.encode())
+    await run_in_threadpool(ghi_dang_nhap, ip, dung, request.headers.get("user-agent", "")[:400])
+    if not dung:
+        await asyncio.sleep(0.4)      # làm chậm việc đoán mật khẩu
         return loi("SAI_MAT_KHAU", "Mật khẩu chưa đúng.", 401)
     han = int(time.time()) + 12 * 3600
     tra = JSONResponse({"da_dang_nhap": True})
-    tra.set_cookie("nv", f"{han}.{ky(han)}", max_age=12 * 3600, httponly=True, samesite="strict", secure=COOKIE_AN_TOAN, path="/")
+    tra.set_cookie(TEN_COOKIE, f"{han}.{ky(han)}", max_age=12 * 3600, httponly=True, samesite="strict", secure=COOKIE_AN_TOAN, path="/")
     return tra
+
+
+def mat_khau_manh(mk):
+    """Từ 12 ký tự và có ít nhất hai loại: chữ thường, chữ hoa, số, ký tự khác."""
+    loai = sum(bool(re.search(m, mk)) for m in (r"[a-z]", r"[A-Z]", r"\d", r"[^A-Za-z0-9]"))
+    return len(mk) >= 12 and loai >= 2
+
+
+def tinh_trang_bao_mat():
+    khoa = os.environ.get("SECRET_KEY", "")
+    cai_dat = [
+        {"ten": "Mật khẩu nhân viên đủ mạnh", "dat": mat_khau_manh(MAT_KHAU_NHAN_VIEN),
+         "cach": "Đặt ADMIN_PASSWORD từ 12 ký tự, có chữ và số (ví dụ ghép 3–4 từ dễ nhớ kèm số). Đổi mật khẩu là mọi máy đang đăng nhập bị đăng xuất."},
+        {"ten": "Khóa ký phiên đăng nhập cố định", "dat": len(khoa) >= 32,
+         "cach": "Đặt SECRET_KEY là chuỗi ngẫu nhiên từ 32 ký tự. Thiếu biến này thì mỗi bản máy chủ tự tạo khóa riêng, nhân viên hay bị đăng xuất."},
+        {"ten": "Cookie đăng nhập chỉ gửi qua HTTPS", "dat": COOKIE_AN_TOAN,
+         "cach": "Tự bật trên Vercel. Chạy chỗ khác qua HTTPS thì đặt COOKIE_SECURE=true."},
+        {"ten": "Đọc đúng địa chỉ người dùng để chặn đoán mật khẩu", "dat": SAU_PROXY,
+         "cach": "Tự bật trên Vercel. Chạy sau máy chủ trung gian khác thì đặt TRUST_PROXY=true."},
+        {"ten": "Dữ liệu khách lưu trên PostgreSQL (Neon)", "dat": LA_POSTGRES,
+         "cach": "Đặt DATABASE_URL của Neon. Chạy thử trên máy thì dùng SQLite là bình thường."},
+    ]
+    dong = sql("SELECT luc, thanh_cong, thiet_bi, ip_hien FROM dang_nhap ORDER BY luc DESC, id DESC LIMIT 15", (), "tat")
+    moc = (datetime.now(GIO_VN) - timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
+    sai_24h = sql("SELECT COUNT(*) FROM dang_nhap WHERE thanh_cong=0 AND luc>=?", (moc,), "mot")[0]
+    return {"cai_dat": cai_dat, "sai_24h": int(sai_24h), "gioi_han": {"mot_may": SAI_MOT_MAY, "tat_ca": SAI_TAT_CA, "phut": PHUT_KHOA},
+            "dang_nhap": [{"luc": d[0], "thanh_cong": bool(d[1]), "thiet_bi": d[2], "ip": d[3]} for d in dong]}
+
+
+async def nv_bao_mat(request):
+    if not la_nhan_vien(request):
+        return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
+    return JSONResponse(await run_in_threadpool(tinh_trang_bao_mat))
 
 
 async def dang_xuat(request):
     tra = JSONResponse({"da_dang_xuat": True})
-    tra.delete_cookie("nv", path="/")
+    tra.delete_cookie(TEN_COOKIE, path="/", secure=COOKIE_AN_TOAN, httponly=True, samesite="strict")
     return tra
 
 
@@ -1444,6 +1542,8 @@ def don_thung_rac():
     _lan_don[0] = time.time()
     moc = (datetime.now(GIO_VN) - timedelta(days=NGAY_GIU_THUNG_RAC)).strftime("%Y-%m-%d %H:%M:%S")
     ds = [d[0] for d in sql("SELECT id FROM phieu WHERE xoa_luc IS NOT NULL AND xoa_luc < ?", (moc,), "tat")]
+    moc_dn = (datetime.now(GIO_VN) - timedelta(days=90)).strftime("%Y-%m-%d %H:%M:%S")
+    sql("DELETE FROM dang_nhap WHERE luc < ?", (moc_dn,))       # nhật ký đăng nhập giữ 90 ngày
     return xoa_cac_phieu(ds) if ds else 0
 
 
@@ -2283,6 +2383,20 @@ class BaoVe:
             except Exception:   # cơ sở dữ liệu tạm lỗi: dùng tiếp bản đang có
                 pass
 
+        # Trang nhân viên: yêu cầu đổi dữ liệu (đăng nhập, sửa, xóa…) phải đến từ chính trang này. Cookie đăng nhập đã là
+        # SameSite=Strict; đây là lớp chặn thứ hai, phòng trình duyệt cũ hoặc trang lạ giả yêu cầu (CSRF).
+        if scope.get("method") in ("POST", "PUT", "PATCH", "DELETE") and duong_vao.startswith("/api/nhan-vien/"):
+            tieu_de_vao = {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])}
+            nguon_den = tieu_de_vao.get("origin", "")
+            may = (tieu_de_vao.get("x-forwarded-host") if SAU_PROXY else "") or tieu_de_vao.get("host", "")
+            khac_trang = tieu_de_vao.get("sec-fetch-site", "same-origin") not in ("same-origin", "none")
+            if nguon_den and nguon_den != "null":
+                khac_trang = khac_trang or nguon_den.split("://", 1)[-1].rstrip("/").lower() != may.split(",")[0].strip().lower()
+            elif nguon_den == "null":
+                khac_trang = True
+            if khac_trang:
+                return await loi("KHAC_TRANG", "Yêu cầu không đến từ trang nhân viên nên bị chặn.", 403)(scope, receive, send)
+
         if scope.get("method") == "POST" and re.fullmatch(r"/api/phieu/[^/]+/anh", scope.get("path", "")):
             than = bytearray()
             while True:
@@ -2323,8 +2437,15 @@ class BaoVe:
                                     else b"no-cache"))
                 tieu_de += [(b"x-content-type-options", b"nosniff"), (b"x-frame-options", b"DENY"),
                             (b"referrer-policy", b"strict-origin-when-cross-origin"),
+                            (b"cross-origin-opener-policy", b"same-origin"),
+                            # Trang không dùng camera, micro, vị trí, thanh toán…: tắt hẳn (chọn ảnh vẫn qua hộp chọn tệp).
+                            (b"permissions-policy", b"camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), hid=()"),
                             (b"content-security-policy", b"default-src 'self'; img-src 'self' data: blob: https://i.ytimg.com; style-src 'self'" + bam_css_dau() + b"; "
-                                                         b"script-src 'self'; frame-src https://www.youtube-nocookie.com https://www.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")]
+                                                         b"script-src 'self'; frame-src https://www.youtube-nocookie.com https://www.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'")]
+                if COOKIE_AN_TOAN and not os.environ.get("VERCEL"):   # chạy qua HTTPS (Render…): trình duyệt luôn dùng HTTPS 1 năm; Vercel tự thêm
+                    tieu_de.append((b"strict-transport-security", b"max-age=31536000"))
+                if duong.startswith(("/api/", "/nhan-vien")):   # dữ liệu khách, trang nhân viên: không cho máy tìm kiếm lưu
+                    tieu_de.append((b"x-robots-tag", b"noindex, nofollow"))
                 tin = {**tin, "headers": tieu_de}
             await send(tin)
 
@@ -2365,6 +2486,7 @@ app = BaoVe(GZipMiddleware(Starlette(routes=[
     Route("/api/phieu/{ma}/gui", gui_phieu, methods=["POST"]),
     Route("/api/nhan-vien/dang-nhap", dang_nhap, methods=["POST"]),
     Route("/api/nhan-vien/dang-xuat", dang_xuat, methods=["POST"]),
+    Route("/api/nhan-vien/bao-mat", nv_bao_mat),
     Route("/api/nhan-vien/phieu", nv_phieu),
     Route("/api/nhan-vien/phieu/xoa-nhieu", nv_xoa_nhieu, methods=["POST"]),
     Route("/api/nhan-vien/phieu/khoi-phuc", nv_khoi_phuc, methods=["POST"]),

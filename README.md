@@ -188,7 +188,7 @@ web-b-productions/
 - **Lưu trữ:** SQLite trong `du-lieu/` khi chạy trên máy; PostgreSQL (Neon) khi có `DATABASE_URL`. Bảng và chỉ mục tự tạo khi khởi động; mã nâng cấp không xóa dữ liệu cũ.
 - **Phía khách:** HTML, CSS, JavaScript thuần, không thư viện, không bước build.
 - **Video:** YouTube nhúng (`youtube-nocookie.com`); đặt tệp vào `web/video-mau/` để phát tại chỗ.
-- **Bảo mật:** Content-Security-Policy, cookie phiên ký bằng `SECRET_KEY`, giới hạn tần suất gửi, chống gửi trùng, ô bẫy chống bot, ảnh tải lên được giải mã và tạo lại.
+- **Bảo mật:** Content-Security-Policy (thêm `object-src 'none'`), `Permissions-Policy` tắt camera, micro, vị trí, thanh toán…, `Cross-Origin-Opener-Policy`, `X-Robots-Tag: noindex` cho trang nhân viên và API, HSTS (Vercel tự thêm; chỗ khác máy chủ thêm khi chạy HTTPS). Cookie đăng nhập: `HttpOnly`, `SameSite=Strict`, `Secure` và tên `__Host-nv` khi chạy HTTPS (tự bật trên Vercel/Render), ký bằng `SECRET_KEY` kèm dấu vân tay của `ADMIN_PASSWORD` nên **đổi mật khẩu là mọi máy bị đăng xuất**. Yêu cầu đổi dữ liệu ở `/api/nhan-vien/*` phải đến từ chính trang (kiểm `Origin`, `Sec-Fetch-Site`; chặn CSRF). **Chặn đoán mật khẩu** đếm trong cơ sở dữ liệu (đúng cả khi Vercel chạy nhiều bản máy chủ): 8 lần sai mỗi 15 phút từ một địa chỉ thì chặn địa chỉ đó; 100 lần sai mỗi 15 phút trên toàn trang thì tạm khóa đăng nhập 15 phút (máy đang đăng nhập vẫn dùng được); mỗi lần sai chờ thêm 0,4 giây. Nhật ký đăng nhập giữ 90 ngày (bảng `dang_nhap`: giờ, đúng/sai, thiết bị, địa chỉ rút gọn). Thẻ **Bảo mật** ở trang nhân viên hiện tình trạng các cài đặt và 15 lần đăng nhập gần nhất. Còn lại như trước: giới hạn tần suất gửi, chống gửi trùng, ô bẫy chống bot, ảnh tải lên được giải mã và tạo lại, chống công thức Excel.
 - **Bộ nhớ đệm:** trang công khai: CDN của Vercel giữ 5 phút rồi làm mới ngầm (`s-maxage=300, stale-while-revalidate`), khách không phải chờ máy chủ; tệp tĩnh có `s-maxage` dài hơn, tệp có `?v=` giữ một năm.
 
 ### Hiệu năng cho máy yếu
@@ -230,7 +230,7 @@ python -m uvicorn may_chu:app --host 127.0.0.1 --port 8000
 | `REPLY_WITHIN` | Không | Thời gian phản hồi hiển thị; mặc định "một ngày làm việc" |
 | `STUDIO_NAME` | Không | Tên studio trong nội dung; mặc định "B PRODUCTIONS" (in hoa như logo) |
 | `DATA_DIR` | Không | Thư mục dữ liệu SQLite và ảnh; mặc định `du-lieu/` |
-| `COOKIE_SECURE`, `TRUST_PROXY` | Khi chạy HTTPS sau proxy | Đặt `true` trên Vercel/Render |
+| `COOKIE_SECURE`, `TRUST_PROXY` | Khi chạy HTTPS sau proxy khác Vercel/Render | Trên Vercel/Render tự bật (máy chủ nhận ra biến `VERCEL`, `RENDER`), không cần đặt |
 
 Máy chủ từ chối khởi động trên Vercel hoặc Render nếu thiếu `DATABASE_URL` PostgreSQL, vì ổ đĩa ở đó không giữ dữ liệu.
 
@@ -284,7 +284,8 @@ Trang không tự tạo đánh giá, số sao hay số lượt tương tác. Khi
 | POST | `/api/phieu/{ma}/anh` | Tải ảnh lên phiếu |
 | DELETE | `/api/phieu/{ma}/anh/{anh}` | Xóa ảnh của phiếu |
 | POST | `/api/phieu/{ma}/gui` | Gửi phiếu |
-| POST | `/api/nhan-vien/dang-nhap`, `/dang-xuat` | Đăng nhập / đăng xuất nhân viên |
+| POST | `/api/nhan-vien/dang-nhap`, `/dang-xuat` | Đăng nhập / đăng xuất nhân viên (sai quá nhiều: 429 `QUA_NHIEU` hoặc `TAM_KHOA`; yêu cầu từ trang khác: 403 `KHAC_TRANG`) |
+| GET | `/api/nhan-vien/bao-mat` | Tình trạng cài đặt bảo mật (đạt / cần làm, cách sửa) và 15 lần đăng nhập gần nhất |
 | GET | `/api/nhan-vien/phieu` | Danh sách, tìm, lọc, phân trang, thống kê |
 | GET | `/api/nhan-vien/phieu?trang_thai=da-xoa` | Thùng rác (các trạng thái khác chỉ xét phiếu chưa xóa); `thong_ke.thung_rac` là số phiếu trong thùng rác; mỗi phiếu có `xoa_luc`, `lich_su` |
 | GET | `/api/nhan-vien/phieu/ma?tim=&trang_thai=&bo=` | Mã và tên mọi phiếu khớp bộ lọc (tối đa 1000), cho "Chọn tất cả" |
@@ -311,7 +312,7 @@ Mỗi lần đẩy lên nhánh `main`, Vercel tự triển khai lại.
 
 1. Trên Neon, tạo cơ sở dữ liệu riêng cho web này và chép chuỗi kết nối.
 2. Vercel → **Settings → Build and Deployment**: Framework Preset **Python** (không chọn Other), Root Directory để trống, tắt các ô Override.
-3. **Settings → Environment Variables** (Production): `DATABASE_URL`, `ADMIN_PASSWORD`, `SECRET_KEY`, `COOKIE_SECURE=true`, `TRUST_PROXY=true`; thêm `STUDIO_CONTACT`, `ZALO_LINK`, `REPLY_WITHIN` nếu cần.
+3. **Settings → Environment Variables** (Production): `DATABASE_URL`, `ADMIN_PASSWORD` (từ 12 ký tự, có chữ và số), `SECRET_KEY` (chuỗi ngẫu nhiên từ 32 ký tự); thêm `STUDIO_CONTACT`, `ZALO_LINK`, `REPLY_WITHIN` nếu cần.
 4. **Deployments → Redeploy**. Mở `/api/suc-khoe` phải thấy `{"on":true}`.
 
 ### Render + Neon (cách thay thế)
@@ -345,7 +346,7 @@ python -m pip install -r requirements-test.txt
 python -m unittest discover -s tests -v
 ```
 
-51 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: ảnh (đồng thời, tệp giả, giới hạn), quyền xóa, lưu đến muộn, phân trang, Excel, tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn tần suất, gửi lại, gửi đồng thời, trả lời bổ sung, gộp với phiếu chi tiết), đánh giá chỉ hiện khi đủ điều kiện, 8 bộ câu hỏi theo loại video (cấu trúc, gửi đủ 8 loại, số câu khách thấy, câu ngoài bộ bị bỏ, câu quay thực tế), lọc, xuất Excel và xóa nhiều phiếu, trang điền phiếu riêng, mã QR (đọc thử bằng OpenCV nếu máy có), mã QR có logo, sửa bộ câu hỏi (khách thấy ngay, phiếu cũ vẫn đọc được câu đã bỏ, các sửa đổi làm hỏng trang bị từ chối, lịch sử và khôi phục), video mẫu (thêm với ảnh bìa tải lên, ẩn, hiện lại, ảnh bìa ở màn hình đầu, các sửa đổi bị từ chối).
+55 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: ảnh (đồng thời, tệp giả, giới hạn), quyền xóa, lưu đến muộn, phân trang, Excel, tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn tần suất, gửi lại, gửi đồng thời, trả lời bổ sung, gộp với phiếu chi tiết), đánh giá chỉ hiện khi đủ điều kiện, 8 bộ câu hỏi theo loại video (cấu trúc, gửi đủ 8 loại, số câu khách thấy, câu ngoài bộ bị bỏ, câu quay thực tế), lọc, xuất Excel và xóa nhiều phiếu, trang điền phiếu riêng, mã QR (đọc thử bằng OpenCV nếu máy có), mã QR có logo, sửa bộ câu hỏi (khách thấy ngay, phiếu cũ vẫn đọc được câu đã bỏ, các sửa đổi làm hỏng trang bị từ chối, lịch sử và khôi phục), video mẫu (thêm với ảnh bìa tải lên, ẩn, hiện lại, ảnh bìa ở màn hình đầu, các sửa đổi bị từ chối).
 
 **Back/Forward bằng Chromium** (chỉ chạy trên máy chủ thử có `DATA_DIR` riêng, vì bài thử tạo phiếu giả):
 
@@ -385,6 +386,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 25/11/2026 | Tăng bảo mật trang nhân viên | Chặn đoán mật khẩu bằng bộ đếm trong cơ sở dữ liệu (trước chỉ đếm trong bộ nhớ từng bản máy chủ, Vercel chạy nhiều bản nên dễ lách); khóa chung khi nhiều địa chỉ cùng đoán; nhật ký đăng nhập. Đổi `ADMIN_PASSWORD` là mọi máy bị đăng xuất. Chặn yêu cầu đổi dữ liệu nhân viên từ trang khác (CSRF). Cookie `__Host-nv`, `Secure` tự bật trên Vercel; đọc địa chỉ người dùng qua `X-Forwarded-For` tự bật trên Vercel (Vercel ghi đè tiêu đề này nên không giả được). Thêm `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `object-src 'none'`, `X-Robots-Tag: noindex` cho trang nhân viên và API. Thẻ "Bảo mật" ở trang nhân viên: tình trạng 5 cài đặt (mật khẩu đủ mạnh, `SECRET_KEY`, cookie HTTPS, đọc đúng địa chỉ, PostgreSQL) và 15 lần đăng nhập gần nhất. Đã rà lịch sử git: không có mật khẩu, khóa hay chuỗi kết nối cơ sở dữ liệu nào bị commit. Sau khi triển khai, nhân viên phải đăng nhập lại một lần |
 | 25/11/2026 | Trang chủ trên điện thoại gọn hơn | Góp ý: thiết kế lại giao diện điện thoại cho dễ nhìn. Chỉ đổi khổ ≤ 760px (khối "Giao diện điện thoại" cuối `can-doi.css`), máy tính giữ nguyên. Đầu trang bỏ nút "Nhận báo giá" (phần mở đầu đã có "Gửi yêu cầu làm video", cuộn qua thì thanh nút dưới đáy hiện "Nhận báo giá"), đầu trang thấp 66 → 58 px. Phần video mẫu: khoảng trên 82 → 44 px; lời nhắc "Bấm vào ảnh…" thành dòng chữ nhỏ; ô "Chưa biết chọn loại video nào?" thành một dòng câu hỏi + nút (169 → 72 px; chữ dài như tiếng Nhật thì nút xuống dòng); nhãn trên thẻ mẫu nhỏ lại, thẻ 463 → 442 px. Thẻ logo phần Về B PRODUCTIONS 395 → 325 px; thẻ bài viết, ô bản đồ chân trang (168 → 120 px) gọn lại; chữ trên thanh nút dưới đáy căn giữa, tự cân dòng. Cả trang trên điện thoại 390 px cao 6.400 → 6.047 px. Máy yếu: điện thoại 447 KB, LCP 600 ms, 60 khung/giây, 0 lần giật |
 | 25/11/2026 | Trang nhân viên: ảnh trong Excel, chọn tất cả, xác nhận và lịch sử liên hệ, thùng rác; khung lọc gọn; trang nhẹ hơn | Góp ý của Khánh. **Excel**: ảnh khách gửi nằm ngay trong trang của từng khách (trước chỉ có số ảnh), bấm tên ảnh mở ảnh gốc. **Chọn tất cả** chọn hết phiếu khớp bộ lọc ở mọi trang ngay lần bấm đầu (trước chỉ chọn trang đang xem). **Đánh dấu đã liên hệ** phải xác nhận, ghi người liên hệ và ghi chú; bỏ đánh dấu hỏi lại kèm lý do; mỗi phiếu có Lịch sử. **Thùng rác**: xóa là chuyển vào thùng rác 30 ngày, khôi phục được, xóa vĩnh viễn khi cần; `/chinh-sach` ghi thêm việc giữ 30 ngày. **Khung "Tìm video mẫu"** còn hai dòng: tiêu đề cùng ô chọn Ngành, Phong cách (kèm số mẫu) và số video phù hợp; 8 loại video là nút tròn một dòng. Cao 221 → 122 px ở khổ 1680 và 1366, điện thoại 242 → 203 px (đang lọc). **Nhẹ hơn**: phông WOFF2, từ điển Nhật/Anh chỉ tải khi cần, bỏ CSS không dùng, hoãn ảnh tĩnh phía dưới. Lần mở đầu: điện thoại yếu 549 → 490 KB, laptop 548 → 456 KB, máy tính 1920 px 491 → 399 KB. Máy yếu: điện thoại 446 KB, LCP 556 ms, 60 khung/giây, 0 lần giật, CPU đứng yên 0,8% |
 | 25/11/2026 | Dải thẻ video mẫu cân đối | Góp ý: tên mẫu dài 1 dòng hay 2 dòng làm nhãn ở các thẻ lệch nhau. Tên mẫu luôn chiếm đủ 2 dòng (tối đa 2 dòng), nên nhãn ở mọi thẻ bắt đầu cùng một hàng; nút "Tư vấn kiểu này" vẫn sát đáy thẻ. Độ lệch đầu nhãn giữa các thẻ: 23 → 0 px (khổ 1880, 1366, 390). Kiểm thử trình duyệt mới cho việc này |

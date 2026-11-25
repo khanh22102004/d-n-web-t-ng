@@ -53,7 +53,8 @@ with sync_playwright() as p:
     expect(the29.get_by_role('button', name='Ẩn khỏi trang')).to_have_count(0)
     expect(the29).to_contain_text('Không ẩn được vì có trong phiếu')
     expect(the29).to_contain_text('Có trong phiếu')
-    page.locator('#the-phieu').focus(); page.keyboard.press('End')
+    page.locator('#the-phieu').focus(); page.keyboard.press('End')              # thẻ cuối là Bảo mật
+    expect(page.locator('#the-bao-mat')).to_be_focused(); page.keyboard.press('ArrowLeft')
     expect(page.locator('#the-video')).to_be_focused(); expect(page.locator('#khu-video')).to_be_visible()
     print('PASS thẻ Video mẫu: mở bằng #video-mau, đủ danh sách, video có trong phiếu không ẩn được')
 
