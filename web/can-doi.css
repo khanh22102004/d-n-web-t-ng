@@ -997,6 +997,8 @@ body.parent-brand .mau-toi ul.ray.ray-hang {
 body.parent-brand .mau-toi ul.ray.ray-hang > li {
   flex: 0 0 clamp(196px, 16.5vw, 236px); display: flex; flex-direction: column; grid-row: auto; scroll-snap-align: start; min-width: 0; }
 body.parent-brand .mau-toi ul.ray.ray-hang > li > .tu-van-mau { margin-top: auto; }
+/* Tên mẫu luôn chiếm đủ 2 dòng (tối đa 2 dòng) để nhãn ở mọi thẻ bắt đầu cùng một hàng; nút "Tư vấn kiểu này" nằm sát đáy thẻ. */
+body.parent-brand .mau-toi ul.ray.ray-hang .ten-mau { min-height: 2.6em; }
 body.parent-brand .mau-toi ul.ray.ray-hang .khung { aspect-ratio: 9 / 14; max-height: none; }
 body.parent-brand .ray-khung > .ray-nut { position: absolute; top: 38%; z-index: 4; width: 48px; height: 48px; font-size: 1.6rem;
   background: #f4f2ee; color: #202224; border: 0; box-shadow: 0 8px 22px rgb(0 0 0 / .45); transition: opacity .2s ease; }

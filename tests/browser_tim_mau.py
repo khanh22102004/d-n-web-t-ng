@@ -66,6 +66,16 @@ with sync_playwright() as p:
         page.locator('#mau').screenshot(path=str(anh / 'tim-mau-1366.png'))
         page.locator('.tim-loai-nut', has_text='Video tuyển dụng').click()
     ctx.close()
+    # Dải thẻ chưa lọc cân đối: tên dài 1 hay 2 dòng thì nhãn ở mọi thẻ vẫn bắt đầu cùng một hàng, nút tư vấn thẳng hàng.
+    for rong in (1880, 1366, 390):
+        ctx = trinh.new_context(viewport={'width': rong, 'height': 900}, reduced_motion='reduce')
+        pg = ctx.new_page(); pg.route('https://**/*', lambda r: r.abort()); pg.on('pageerror', lambda e: loi_js.append(str(e)))
+        pg.goto(base + '/', wait_until='networkidle')
+        lech = pg.evaluate('''() => { const ds = [...document.querySelectorAll('#ray-mau > li')], y = (li, s) => li.querySelector(s).getBoundingClientRect().top - li.getBoundingClientRect().top;
+          const tam = s => { const v = ds.map(li => y(li, s)); return Math.max(...v) - Math.min(...v); };
+          return { nhan: tam('.nhan-mau'), tu_van: tam('.tu-van-mau'), so_the: ds.length }; }''')
+        assert lech['so_the'] >= 3 and lech['nhan'] < 1 and lech['tu_van'] < 1, (rong, lech)
+        ctx.close()
     # Vừa chọn lọc là thấy ngay tên, nhãn của video (khung lọc gọn, kết quả là thẻ ngang): màn hình laptop 1536×730
     # (1920×1080 phóng 125%) và điện thoại 390×700; khung lọc nằm sát dưới thanh đầu trang như lúc khách đang chọn.
     for rong, cao in ((1536, 730), (390, 700)):
@@ -89,7 +99,7 @@ with sync_playwright() as p:
     ctx, page = trang()
     page.goto(base + '/', wait_until='networkidle')
     the = page.locator('#ray-mau > li')
-    print('PASS bộ lọc 8 loại video, ngành, phong cách; nhãn trên thẻ; loại chưa có mẫu thì mời điền phiếu đúng loại; chọn lọc là thấy ngay tên và nhãn video (laptop 1536×730, điện thoại 390×700)')
+    print('PASS bộ lọc 8 loại video, ngành, phong cách; nhãn trên thẻ; loại chưa có mẫu thì mời điền phiếu đúng loại; chọn lọc là thấy ngay tên và nhãn video (laptop 1536×730, điện thoại 390×700); dải thẻ chưa lọc: nhãn và nút tư vấn thẳng hàng ở 1880, 1366, 390')
 
     # 2) Ba câu hỏi gợi ý: mục đích → ngành → phong cách → loại video, video mẫu gần nhất, nút điền phiếu.
     page.locator('#goi-y-mo').click()
