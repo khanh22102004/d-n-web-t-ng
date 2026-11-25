@@ -48,6 +48,7 @@ with sync_playwright() as p:
     expect(page.locator('#ray-mau > li').first.locator('.nhan-mau span')).to_have_text([LOAI[m0['loai']]['ten'], m0['nhom'], m0['phong_cach']])
     page.locator('.tim-loai-nut', has_text='Sản phẩm, dịch vụ').click()
     expect(the).to_have_count(dem(loai='san-pham-dich-vu'))
+    expect(page.locator('#ray-mau > li.the-ngang').first.locator('.the-ngang-chu .ten-mau')).to_be_visible()
     expect(page.locator('.tim-loai-nut', has_text='Sản phẩm, dịch vụ')).to_have_attribute('aria-pressed', 'true')
     page.locator('.tim-chip', has_text='Làm đẹp').click()
     expect(the).to_have_count(dem(loai='san-pham-dich-vu', nhom='Làm đẹp'))
@@ -64,7 +65,31 @@ with sync_playwright() as p:
         page.locator('.tim-loai-nut', has_text='Video tuyển dụng').click()
         page.locator('#mau').screenshot(path=str(anh / 'tim-mau-1366.png'))
         page.locator('.tim-loai-nut', has_text='Video tuyển dụng').click()
-    print('PASS bộ lọc 8 loại video, ngành, phong cách; nhãn trên thẻ; loại chưa có mẫu thì mời điền phiếu đúng loại')
+    ctx.close()
+    # Vừa chọn lọc là thấy ngay tên, nhãn của video (khung lọc gọn, kết quả là thẻ ngang): màn hình laptop 1536×730
+    # (1920×1080 phóng 125%) và điện thoại 390×700; khung lọc nằm sát dưới thanh đầu trang như lúc khách đang chọn.
+    for rong, cao in ((1536, 730), (390, 700)):
+        ctx = trinh.new_context(viewport={'width': rong, 'height': cao}, reduced_motion='reduce')
+        pg = ctx.new_page(); pg.route('https://**/*', lambda r: r.abort()); pg.on('pageerror', lambda e: loi_js.append(str(e)))
+        pg.goto(base + '/', wait_until='networkidle')
+        pg.locator('.tim-loai-nut', has_text='Video mạng xã hội').click()
+        expect(pg.locator('#ray-mau > li.the-ngang')).to_have_count(dem(loai='mang-xa-hoi'))
+        vi_tri = pg.evaluate('''() => {
+          const dau = document.querySelector('.dau-trang').getBoundingClientRect().bottom, k = document.querySelector('.tim-mau');
+          window.scrollBy(0, k.getBoundingClientRect().top - dau - 8);
+          const r = s => document.querySelector(s).getBoundingClientRect();
+          const nut = r('.tim-loai-nut[aria-pressed="true"]'), hang = r('.tim-loai');
+          return { nhan: r('#ray-mau > li .nhan-mau').bottom, cao: innerHeight, nut_trong_hang: nut.left >= hang.left - 1 && nut.right <= hang.right + 1 };
+        }''')
+        assert vi_tri['nhan'] < vi_tri['cao'] - (80 if rong < 760 else 0), (rong, vi_tri)   # điện thoại: trừ thanh nút dưới đáy
+        assert vi_tri['nut_trong_hang'], (rong, vi_tri)
+        if anh:
+            pg.screenshot(path=str(anh / f'loc-ngay-thay-{rong}.png'))
+        ctx.close()
+    ctx, page = trang()
+    page.goto(base + '/', wait_until='networkidle')
+    the = page.locator('#ray-mau > li')
+    print('PASS bộ lọc 8 loại video, ngành, phong cách; nhãn trên thẻ; loại chưa có mẫu thì mời điền phiếu đúng loại; chọn lọc là thấy ngay tên và nhãn video (laptop 1536×730, điện thoại 390×700)')
 
     # 2) Ba câu hỏi gợi ý: mục đích → ngành → phong cách → loại video, video mẫu gần nhất, nút điền phiếu.
     page.locator('#goi-y-mo').click()
