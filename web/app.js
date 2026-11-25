@@ -84,26 +84,33 @@
   }
 
   // ---------- Trang mở đầu và mẫu ----------
+  // Ảnh bìa của mẫu ở một cỡ ("goc" 360×640, "nho" 270×480, "tuong" 180×320, "jpg" dự phòng): ảnh nhân viên tải lên ở trang
+  // nhân viên (m.anh_moi), hoặc ảnh gốc trong web/anh-mau/. Phải trùng duong_anh_mau() trong may_chu.py.
+  const anhMau = (m, co = "goc") => {
+    const ma = encodeURIComponent(m.ma);
+    if (m.anh_moi) return `/anh-mau-tai/${ma}/${encodeURIComponent(m.anh_moi)}/${co}.${co === "jpg" ? "jpg" : "webp"}`;
+    return co === "goc" ? `/anh-mau/${ma}.webp` : co === "jpg" ? `/anh-mau/${ma}.jpg` : `/anh-mau/${co}/${ma}.webp`;
+  };
   // Hiện ảnh tại chỗ ngay; nâng lên ảnh dọc nét hơn khi tải được.
   function khungAnh(m, net = false) {
-    const k = tao("div", "khung"), i = tao("img"), taiCho = `/anh-mau/${m.ma}.webp`;   // WebP nhẹ hơn ~56%; JPG dự phòng
+    const k = tao("div", "khung"), i = tao("img"), taiCho = anhMau(m);   // WebP nhẹ hơn ~56%; JPG dự phòng
     i.alt = `Mẫu ${m.ma}: ${m.ten}`; i.loading = "lazy"; i.decoding = "async"; i.width = 360; i.height = 640;
     const anhRieng = typeof m.anh_bia === "string" && m.anh_bia.startsWith("/anh-mau/") && !m.anh_bia.includes("..") && !/[?#]/.test(m.anh_bia) ? m.anh_bia : "";
     ganDuPhong(k, i, m);
     // Ảnh đủ nét (net === true, điện thoại mẫu giữa): trình duyệt tự chọn ảnh 270 hay 360 điểm ảnh theo cỡ khung và mật độ màn hình.
-    if (!anhRieng && net === true) { i.srcset = `/anh-mau/nho/${m.ma}.webp 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 190px, 240px"; }   // sizes phải trùng imagesizes của thẻ preload trong index.html
+    if (!anhRieng && net === true) { i.srcset = `${anhMau(m, "nho")} 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 190px, 240px"; }   // sizes phải trùng imagesizes của thẻ preload trong index.html
     // Thẻ thư viện ("the"): màn hình nét (máy tính phóng 125–150%, điện thoại mật độ cao) lấy ảnh 360 cho khỏi mờ,
     // màn hình thường vẫn lấy ảnh 270; máy yếu luôn giữ ảnh 270 (ít bộ nhớ, không lag thêm).
-    if (!anhRieng && net === "the" && !mayYeu) { i.srcset = `/anh-mau/nho/${m.ma}.webp 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 44vw, (max-width: 1190px) 196px, 236px"; }   // đo thật: điện thoại ~44% bề ngang, máy tính 196–236px
+    if (!anhRieng && net === "the" && !mayYeu) { i.srcset = `${anhMau(m, "nho")} 270w, ${taiCho} 360w`; i.sizes = "(max-width: 760px) 44vw, (max-width: 1190px) 196px, 236px"; }   // đo thật: điện thoại ~44% bề ngang, máy tính 196–236px
     if (net === "the") net = "nho";
-    i.src = anhRieng || (net === "nho" ? `/anh-mau/nho/${m.ma}.webp` : net === "tuong" ? `/anh-mau/tuong/${m.ma}.webp` : taiCho);   // "tuong": ảnh 180×320 chỉ cho tường nền
+    i.src = anhRieng || (net === "nho" ? anhMau(m, "nho") : net === "tuong" ? anhMau(m, "tuong") : taiCho);   // "tuong": ảnh 180×320 chỉ cho tường nền
     // Không còn đổi sang ảnh bìa YouTube độ nét cao: ảnh WebP của trang đã đủ nét cho khung điện thoại,
     // và việc đổi ảnh muộn làm chỉ số "nội dung lớn nhất" (LCP) của PageSpeed bị tính trễ.
     k.append(i); return k;
   }
   // Ảnh lỗi: thử ảnh WebP tại chỗ, rồi JPG, cuối cùng ẩn ảnh và hiện khung trống.
   function ganDuPhong(k, i, m) {
-    const taiCho = `/anh-mau/${m.ma}.webp`, duPhongJpg = `/anh-mau/${m.ma}.jpg`;
+    const taiCho = anhMau(m), duPhongJpg = anhMau(m, "jpg");
     let daDuPhong = false, daJpg = false;
     i.addEventListener("error", () => {
       i.removeAttribute("srcset");
@@ -610,11 +617,11 @@
     }
     // Hai máy hai bên: ảnh bìa của mẫu trước và mẫu kế.
     [["dt-ben-trai", dt.ds[(viTri - 1 + n) % n]], ["dt-ben-phai", dt.ds[(viTri + 1) % n]]].forEach(([id, mb]) => {
-      const anh = $(id).querySelector("img"), src = `/anh-mau/nho/${encodeURIComponent(mb.ma)}.webp`;
+      const anh = $(id).querySelector("img"), src = anhMau(mb, "nho");
       if (anh.getAttribute("src") !== src) {
         anh.classList.remove("doi"); void anh.offsetWidth;
         if (mayYeu) anh.removeAttribute("srcset");                                                       // máy yếu: luôn ảnh 270
-        else if (anh.hasAttribute("srcset")) anh.srcset = `${src} 270w, /anh-mau/${encodeURIComponent(mb.ma)}.webp 360w`;   // màn hình nét lấy ảnh 360
+        else if (anh.hasAttribute("srcset")) anh.srcset = `${src} 270w, ${anhMau(mb)} 360w`;   // màn hình nét lấy ảnh 360
         anh.src = src; anh.classList.add("doi");
       }
     });
@@ -910,7 +917,7 @@
   const XT_MAC_DINH = "Sản phẩm của Quý khách hàng";
   let xtHen = 0, xtVong = 0;
   function xemTruocMau(m) {
-    document.querySelectorAll(".tv-xt-anh").forEach(a => { a.src = a.closest(".tv-mini") ? `/anh-mau/nho/${m.ma}.webp` : `/anh-mau/${m.ma}.webp`; });
+    document.querySelectorAll(".tv-xt-anh").forEach(a => { a.src = anhMau(m, a.closest(".tv-mini") ? "nho" : "goc"); });
     clearInterval(xtVong);
   }
   function ganXemTruoc() {
@@ -928,7 +935,7 @@
     // Chưa chọn mẫu nào thì khung đổi lần lượt vài mẫu nổi bật — chỉ khi phần tư vấn đang hiện trên màn hình.
     const ds = maNoiBat.map(ma => mau[ma]).filter(Boolean); let i = 0;
     if (ds.length > 1) xtVong = setInterval(() => { if (tamDung || document.hidden || mauTuVan || $("tu-van")?.classList.contains("khuat")) return; i = (i + 1) % ds.length;
-      document.querySelectorAll(".tv-xt-anh").forEach(a => { a.src = a.closest(".tv-mini") ? `/anh-mau/nho/${ds[i].ma}.webp` : `/anh-mau/${ds[i].ma}.webp`; }); }, mayYeu ? 7000 : 4200);
+      document.querySelectorAll(".tv-xt-anh").forEach(a => { a.src = anhMau(ds[i], a.closest(".tv-mini") ? "nho" : "goc"); }); }, mayYeu ? 7000 : 4200);
   }
 
   function veMau() {

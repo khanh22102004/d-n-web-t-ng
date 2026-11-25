@@ -179,10 +179,15 @@ with sync_playwright() as p:
     expect(page.locator('#bang')).to_be_visible()
     expect(page.locator('#ds-link li')).to_have_count(8)
     expect(page.locator('#link-chung')).to_have_value(base + '/phieu')
-    assert page.evaluate('document.querySelector(".nv-qr img").naturalWidth') > 0
+    assert page.evaluate('document.querySelector(".nv-qr img").naturalWidth') == 1080      # ảnh mã QR có logo và chữ
+    for nhan, ten in (('Tải ảnh gửi Zalo', 'ma-qr-phieu-cau-hoi.png'), ('Tải ảnh để in', 'ma-qr-phieu-cau-hoi-ban-in.png')):
+        with page.expect_download() as tai_qr:
+            page.get_by_role('link', name=nhan).click()
+        assert tai_qr.value.suggested_filename == ten, tai_qr.value.suggested_filename
+    page.locator('.nv-link summary').click()
     with page.expect_download() as tai_qr:
-        page.get_by_role('link', name='Tải ảnh mã QR').click()
-    assert tai_qr.value.suggested_filename == 'ma-qr-phieu-b-productions.png', tai_qr.value.suggested_filename
+        page.get_by_role('link', name='Tải ảnh mã QR phiếu Sự kiện').click()
+    assert tai_qr.value.suggested_filename == 'ma-qr-phieu-cau-hoi-su-kien.png', tai_qr.value.suggested_filename
     page.locator('#loc-bo').select_option('tuyen-dung')
     expect(page.locator('#phan-trang')).to_contain_text('2 phiếu')
     expect(page.locator('#xoa-dang-loc')).to_have_text('Xóa hết 2 phiếu đang lọc')

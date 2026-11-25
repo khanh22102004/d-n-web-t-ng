@@ -35,6 +35,7 @@
     <div class="nv-the" role="tablist" aria-label="Khu vực làm việc">
       <button type="button" role="tab" id="the-phieu" aria-controls="khu-phieu" aria-selected="true">Yêu cầu của khách</button>
       <button type="button" role="tab" id="the-cau-hoi" aria-controls="khu-cau-hoi" aria-selected="false" tabindex="-1">Bộ câu hỏi</button>
+      <button type="button" role="tab" id="the-video" aria-controls="khu-video" aria-selected="false" tabindex="-1">Video mẫu</button>
     </div>
     <div id="khu-phieu" role="tabpanel" aria-labelledby="the-phieu">
     <div class="nv-dau">
@@ -45,14 +46,14 @@
     <ul class="so-lieu" id="so-lieu" aria-label="Tổng quan yêu cầu"></ul>
 
     <section class="nv-qr" aria-labelledby="nv-qr-tieu-de">
-      <img src="/ma-qr.svg" width="168" height="168" alt="Mã QR mở trang điền phiếu">
+      <img src="/ma-qr.png" width="216" height="270" alt="Ảnh mã QR có logo B PRODUCTIONS và dòng chữ Phiếu câu hỏi làm video, mở trang điền phiếu">
       <div>
         <h2 id="nv-qr-tieu-de">Mã QR điền phiếu</h2>
-        <p class="dan">Khách quét mã là vào thẳng trang điền phiếu (không qua trang chủ), chọn loại video rồi trả lời câu hỏi. Phiếu gửi về danh sách và file Excel ở trang này.</p>
-        <div class="nv-qr-link"><input type="text" id="link-chung" readonly aria-label="Link trang điền phiếu"><button type="button" class="nut nho" id="chep-link-chung">Chép link</button><a class="nut nho nut-phu" href="/ma-qr.png?tai=1" download>Tải ảnh mã QR</a></div>
+        <p class="dan">Khách quét mã là vào thẳng trang điền phiếu (không qua trang chủ), chọn loại video rồi trả lời câu hỏi. Phiếu gửi về danh sách và file Excel ở trang này. Mã theo tên miền đang mở trang này; khách quét mã được ghi nguồn "ma-qr" ở bảng Theo nguồn.</p>
+        <div class="nv-qr-link"><input type="text" id="link-chung" readonly aria-label="Link trang điền phiếu"><button type="button" class="nut nho" id="chep-link-chung">Chép link</button><a class="nut nho nut-phu" href="/ma-qr.png?tai=1" download>Tải ảnh gửi Zalo</a><a class="nut nho nut-phu" href="/ma-qr.png?tai=1&amp;co=in" download>Tải ảnh để in</a></div>
         <details class="nv-link">
           <summary>Link riêng từng loại video</summary>
-          <p class="dan">Khách mở link sẽ vào thẳng bộ câu hỏi của loại video đó, bỏ qua bước chọn loại.</p>
+          <p class="dan">Khách mở link sẽ vào thẳng bộ câu hỏi của loại video đó, bỏ qua bước chọn loại. Mỗi loại có ảnh mã QR riêng.</p>
           <ul id="ds-link"></ul>
         </details>
       </div>
@@ -127,10 +128,39 @@
         <p class="sc-luu-loi" id="sc-luu-loi" role="alert" hidden></p>
       </div>
     </div>
+
+    <div id="khu-video" role="tabpanel" aria-labelledby="the-video" hidden>
+      <div class="nv-dau">
+        <div><h1>Video mẫu</h1><p class="dan">Video mẫu khách xem ở trang chủ và trong phiếu. Thêm video bằng link YouTube kèm ảnh bìa dọc; sửa tên, ngành, kiểu, ảnh bìa; ẩn video khách không cần thấy nữa (bấm “Hiện lại” để khôi phục). Bấm “Lưu và áp dụng” thì trang khách đổi theo trong khoảng 5 phút.</p></div>
+      </div>
+      <p class="sc-dang-dung" id="vm-dang-dung" role="status">Đang tải video mẫu…</p>
+      <p class="bao-loi" id="vm-loi-tai" role="alert" hidden></p>
+      <section class="sc-khung" id="vm-khung" aria-labelledby="vm-tieu-de" hidden>
+        <div class="sc-cong-cu vm-cong-cu">
+          <h2 id="vm-tieu-de" class="an-di">Danh sách video mẫu</h2>
+          <p class="sc-dem" id="vm-dem"></p>
+          <a class="nut nho nut-phu" href="/#mau" target="_blank" rel="noopener" title="Trang khách là bản đã lưu">Xem thư viện như khách thấy ↗</a>
+          <button type="button" class="nut nho" id="vm-them">Thêm video mẫu</button>
+        </div>
+        <p class="nv-bao" id="vm-bao" role="status" hidden></p>
+        <ol class="vm-ds" id="vm-ds"></ol>
+        <datalist id="vm-goi-y-nhom"></datalist>
+        <datalist id="vm-goi-y-kieu"></datalist>
+      </section>
+      <div class="sc-luu" id="vm-luu" role="region" aria-label="Lưu thay đổi video mẫu" hidden>
+        <p class="sc-luu-chu"><b>Có thay đổi chưa lưu</b><span>Trang khách đổi theo trong khoảng 5 phút sau khi lưu.</span></p>
+        <label class="an-di" for="vm-ghi-chu">Ghi chú cho lần sửa này</label>
+        <input type="text" id="vm-ghi-chu" maxlength="200" placeholder="Ghi chú, ví dụ: thêm video mẫu quán cà phê">
+        <button type="button" class="nut nho" id="vm-luu-nut">Lưu và áp dụng</button>
+        <button type="button" class="nut-chu" id="vm-bo-doi">Bỏ thay đổi</button>
+        <p class="sc-luu-loi" id="vm-luu-loi" role="alert" hidden></p>
+      </div>
+    </div>
   </div>
 </main>
 <footer class="nv-chan-trang"><span>B PRODUCTIONS · Khu vực nhân viên</span><a href="/chinh-sach">Cách dùng thông tin</a></footer>
 <script src="/nhan-vien.js" defer></script>
 <script src="/sua-cau-hoi.js" defer></script>
+<script src="/sua-video-mau.js" defer></script>
 </body>
 </html>

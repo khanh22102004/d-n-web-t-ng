@@ -80,10 +80,11 @@
     loai.forEach(l => { const o = tao("option", "", l.ten); o.value = l.id; $("loc-bo").append(o); });
     $("link-chung").value = new URL("/phieu", location.origin).href; ganChep($("link-chung"), $("chep-link-chung"));
     loai.forEach(l => {
-      const li = tao("li"), o = tao("input"), nut = tao("button", "nut nho", "Chép link"); nut.type = "button";
+      const li = tao("li"), o = tao("input"), nut = tao("button", "nut nho", "Chép link"), qr = tao("a", "nut-chu", "Mã QR"); nut.type = "button";
       o.type = "text"; o.readOnly = true; o.value = new URL(`/phieu/${l.id}`, location.origin).href; o.setAttribute("aria-label", `Link phiếu ${l.ten}`);
+      qr.href = `/ma-qr.png?tai=1&loai=${encodeURIComponent(l.id)}`; qr.download = ""; qr.setAttribute("aria-label", `Tải ảnh mã QR phiếu ${l.ten}`);
       ganChep(o, nut);
-      li.append(tao("span", "", l.ten), o, nut); $("ds-link").append(li);
+      li.append(tao("span", "", l.ten), o, nut, qr); $("ds-link").append(li);
     });
   }
   const phanTram = (a, b) => b ? `${Math.round(a / b * 100)}%` : "chưa có";
@@ -197,5 +198,28 @@
     finally { $("nv-dang-nhap-nut").disabled = false; $("nv-dang-nhap-nut").textContent = "Đăng nhập"; }
   });
   $("dang-xuat").addEventListener("click", async () => { try { await goi("/api/nhan-vien/dang-xuat", { method: "POST", body: "{}" }); } finally { tai(); } });
+
+  // Các thẻ: yêu cầu của khách, bộ câu hỏi, video mẫu. Thẻ đang mở hiện ra (sau khi đăng nhập) thì báo sự kiện "nv-mo-the"
+  // để tệp của thẻ đó (sua-cau-hoi.js, sua-video-mau.js) tải dữ liệu lần đầu. Địa chỉ #bo-cau-hoi, #video-mau mở thẳng thẻ.
+  const cacThe = [...document.querySelectorAll('.nv-the [role="tab"]')], DIA_CHI = { "khu-cau-hoi": "#bo-cau-hoi", "khu-video": "#video-mau" };
+  const theDangMo = () => cacThe.find(b => b.getAttribute("aria-selected") === "true");
+  function baoThe() { if (!$("bang").hidden) document.dispatchEvent(new CustomEvent("nv-mo-the", { detail: theDangMo().getAttribute("aria-controls") })); }
+  function moThe(t, dua = false) {
+    cacThe.forEach(b => { const chon = b === t; b.setAttribute("aria-selected", String(chon)); b.tabIndex = chon ? 0 : -1; $(b.getAttribute("aria-controls")).hidden = !chon; });
+    history.replaceState(null, "", DIA_CHI[t.getAttribute("aria-controls")] || location.pathname + location.search);
+    if (dua) t.focus();
+    baoThe();
+  }
+  cacThe.forEach((t, i) => {
+    t.addEventListener("click", () => moThe(t));
+    t.addEventListener("keydown", e => {
+      const n = cacThe.length, k = { ArrowRight: (i + 1) % n, ArrowLeft: (i - 1 + n) % n, Home: 0, End: n - 1 }[e.key];
+      if (k === undefined) return;
+      e.preventDefault(); moThe(cacThe[k], true);
+    });
+  });
+  new MutationObserver(baoThe).observe($("bang"), { attributes: true, attributeFilter: ["hidden"] });
+  const theTuDiaChi = cacThe.find(b => DIA_CHI[b.getAttribute("aria-controls")] === location.hash);
+  if (theTuDiaChi) moThe(theTuDiaChi);
   tai();
 })();

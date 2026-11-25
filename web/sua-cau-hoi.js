@@ -41,29 +41,9 @@
   function baoLuu(chu) { $("sc-luu-loi").textContent = chu; $("sc-luu-loi").hidden = !chu; }
   function capNhatLuu() { $("sc-luu").hidden = !coThayDoi(); baoLuu(""); }   // sửa tiếp thì bỏ câu báo lỗi lưu cũ
 
-  // ---------- Hai thẻ: yêu cầu của khách / bộ câu hỏi ----------
-  const the = { phieu: $("the-phieu"), "cau-hoi": $("the-cau-hoi") };
-  function moThe(ten, dua = false) {
-    const cauHoi = ten === "cau-hoi";
-    the.phieu.setAttribute("aria-selected", String(!cauHoi)); the["cau-hoi"].setAttribute("aria-selected", String(cauHoi));
-    the.phieu.tabIndex = cauHoi ? -1 : 0; the["cau-hoi"].tabIndex = cauHoi ? 0 : -1;
-    $("khu-phieu").hidden = cauHoi; $("khu-cau-hoi").hidden = !cauHoi;
-    history.replaceState(null, "", cauHoi ? "#bo-cau-hoi" : location.pathname + location.search);
-    if (dua) the[ten].focus();
-    if (cauHoi && !daTai && !$("bang").hidden) taiBo();
-  }
-  Object.entries(the).forEach(([ten, b]) => {
-    b.addEventListener("click", () => moThe(ten));
-    b.addEventListener("keydown", e => {
-      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
-      e.preventDefault();
-      moThe(e.key === "Home" ? "phieu" : e.key === "End" ? "cau-hoi" : ten === "phieu" ? "cau-hoi" : "phieu", true);
-    });
-  });
-  // Khu vực nhân viên chỉ hiện sau khi đăng nhập (nhan-vien.js): lúc đó mới tải bộ câu hỏi.
-  new MutationObserver(() => { if (!$("bang").hidden && !$("khu-cau-hoi").hidden && !daTai) taiBo(); })
-    .observe($("bang"), { attributes: true, attributeFilter: ["hidden"] });
-  if (location.hash === "#bo-cau-hoi") moThe("cau-hoi");
+  // Thẻ "Bộ câu hỏi" mở ra lần đầu (nhan-vien.js báo sau khi đăng nhập) thì tải bộ câu hỏi.
+  document.addEventListener("nv-mo-the", e => { if (e.detail === "khu-cau-hoi" && !daTai) taiBo(); });
+  if (!$("bang").hidden && !$("khu-cau-hoi").hidden) taiBo();
   window.addEventListener("beforeunload", e => { if (coThayDoi()) { e.preventDefault(); e.returnValue = ""; } });
 
   // ---------- Tải và hiện ----------

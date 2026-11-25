@@ -27,9 +27,10 @@ class RegressionTests(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(m.app)
         m._dem.clear()
-        for table in ('anh', 'phieu', 'luot_xem', 'bo_cau_hoi'):
+        for table in ('anh', 'phieu', 'luot_xem', 'bo_cau_hoi', 'mau_video', 'anh_mau'):
             m.sql('DELETE FROM ' + table)
         m.dam_bao_bo(ngay=True)              # bộ câu hỏi về bản gốc trong mã
+        m.dam_bao_mau(ngay=True)             # video mẫu về danh sách gốc
 
     def tearDown(self):
         self.client.close()
@@ -486,17 +487,27 @@ class RegressionTests(unittest.TestCase):
         self.assertTrue(r.text.startswith('<svg'))
         r = self.client.get('/ma-qr.png?tai=1&loai=su-kien')
         self.assertEqual(r.headers['content-type'], 'image/png')
-        self.assertIn('ma-qr-phieu-b-productions-su-kien.png', r.headers['content-disposition'])
+        self.assertIn('ma-qr-phieu-cau-hoi-su-kien.png', r.headers['content-disposition'])
+        from PIL import Image
+        self.assertEqual(Image.open(io.BytesIO(r.content)).size, (1080, 1350))       # ảnh có logo và chữ, gửi Zalo
+        r_in = self.client.get('/ma-qr.png?tai=1&co=in')
+        self.assertEqual(Image.open(io.BytesIO(r_in.content)).size, (2480, 3100))    # bản in
+        self.assertIn('ma-qr-phieu-cau-hoi-ban-in.png', r_in.headers['content-disposition'])
         try:
             import cv2, numpy as np
         except ImportError:
             self.skipTest('Không có OpenCV để đọc thử mã QR')
-        from PIL import Image
-        doc = lambda b: cv2.QRCodeDetector().detectAndDecode(np.array(Image.open(io.BytesIO(b)).convert('L')))[0]
-        self.assertEqual(doc(r.content), 'http://testserver/phieu/su-kien')
-        self.assertEqual(doc(self.client.get('/ma-qr.png?loai=../x').content), 'http://testserver/phieu')
-        r = self.client.get('/ma-qr.png', headers={'x-forwarded-proto': 'https', 'x-forwarded-host': 'dichvuvideo-ai.bprovn.com'})
-        self.assertEqual(doc(r.content), 'https://dichvuvideo-ai.bprovn.com/phieu')
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'cong-cu'))
+        import tao_ma_qr_in
+        def doc(b, url):
+            nang, _ = tao_ma_qr_in.doc_thu(Image.open(io.BytesIO(b)), url)
+            return nang == []
+        self.assertTrue(doc(r.content, 'http://testserver/phieu/su-kien?nguon=ma-qr'))
+        self.assertTrue(doc(self.client.get('/ma-qr.png?loai=../x').content, 'http://testserver/phieu?nguon=ma-qr'))
+        r = self.client.get('/ma-qr.png', headers={'x-forwarded-proto': 'https', 'x-forwarded-host': 'ks-bpro.vercel.app'})
+        self.assertTrue(doc(r.content, 'https://ks-bpro.vercel.app/phieu?nguon=ma-qr'))
+        anh = np.array(Image.open(io.BytesIO(self.client.get('/ma-qr.png', headers={'x-forwarded-host': 'ks-bpro.vercel.app', 'x-forwarded-proto': 'https'}).content)).convert('L'))
+        self.assertEqual(cv2.wechat_qrcode_WeChatQRCode().detectAndDecode(anh)[0][0], 'https://ks-bpro.vercel.app/phieu?nguon=ma-qr')
 
     def test_qr_encoder_versions(self):
         import ma_qr
@@ -637,17 +648,107 @@ class RegressionTests(unittest.TestCase):
         self.assertTrue(r.json()['lich_su'][0]['ghi_chu'].startswith('Khôi phục bản lúc'))
         self.assertEqual(self.client.post('/api/nhan-vien/bo-cau-hoi/khoi-phuc', json={'ma': 'khong-co', 'phien_ban': r.json()['bo']['phien_ban']}).status_code, 404)
 
+    # ---------- Nhân viên thêm, sửa, ẩn video mẫu ----------
+    def anh_bia(self, w=720, h=1280, fmt='JPEG'):
+        out = io.BytesIO()
+        Image.new('RGB', (w, h), (200, 30, 30)).save(out, format=fmt)
+        return out.getvalue()
+
+    def tai_anh_bia(self, ma, du_lieu=None, kieu='image/jpeg'):
+        return self.client.post(f'/api/nhan-vien/mau/anh?ma={ma}', files={'anh': ('anh.jpg', du_lieu or self.anh_bia(), kieu)})
+
+    def test_staff_adds_edits_hides_and_restores_sample_videos(self):
+        self.assertEqual(self.client.get('/api/nhan-vien/mau').status_code, 401)
+        self.assertEqual(self.tai_anh_bia('ST900').status_code, 401)
+        self.login()
+        du = self.client.get('/api/nhan-vien/mau').json()
+        self.assertEqual((du['phien_ban'], du['lan_sua'], len(du['mau'])), ('goc', None, len(m.MAU_GOC)))
+        self.assertIn('ST029', du['khoa']['trong_cau_hoi'])
+        # Ảnh bìa ngang: máy chủ cắt giữa về khổ dọc và làm đủ bốn cỡ trang dùng.
+        r = self.tai_anh_bia('ST900', self.anh_bia(1600, 900, 'PNG'), 'image/png')
+        self.assertEqual(r.status_code, 201, r.text)
+        ban = r.json()['anh_moi']
+        for ten, co, kieu in (('goc.webp', (360, 640), 'image/webp'), ('nho.webp', (270, 480), 'image/webp'),
+                              ('tuong.webp', (180, 320), 'image/webp'), ('jpg.jpg', (360, 640), 'image/jpeg')):
+            a = self.client.get(f'/anh-mau-tai/ST900/{ban}/{ten}')
+            self.assertEqual((a.status_code, a.headers['content-type']), (200, kieu), ten)
+            self.assertIn('immutable', a.headers['cache-control'])
+            self.assertEqual(Image.open(io.BytesIO(a.content)).size, co)
+        self.assertEqual(self.client.get(f'/anh-mau-tai/ST900/{ban}/khac.webp').status_code, 404)
+        self.assertEqual(self.client.get('/anh-mau-tai/ST900/0123456789ab/goc.webp').status_code, 404)
+        self.assertEqual(self.tai_anh_bia('ST900', self.anh_bia(100, 100)).status_code, 400)
+        self.assertEqual(self.tai_anh_bia('ST900', b'khong phai anh').status_code, 400)
+        self.assertEqual(self.tai_anh_bia('st-9').status_code, 400)
+        ds = du['mau']
+        ds.append({'ma': 'ST900', 'ten': 'Quảng cáo quán cà phê', 'nhom': 'Thực phẩm', 'kieu': 'Người thật, đời thường',
+                   'id': 'https://youtube.com/shorts/abcDEF12345?feature=share', 'hien': 'dong', 'anh_moi': ban, 'so_lieu': {'tim': 1200, 'chia_se': ''}})
+        st053 = next(x for x in ds if x['ma'] == 'ST053'); st053['ten'] = 'Quảng cáo game di động'; st053['an'] = True
+        r = self.client.put('/api/nhan-vien/mau', json={'mau': ds, 'phien_ban': 'goc', 'ghi_chu': 'thêm quán cà phê'})
+        self.assertEqual(r.status_code, 200, r.text)
+        moi = r.json()
+        self.assertEqual(moi['lan_sua']['ghi_chu'], 'thêm quán cà phê')
+        self.assertEqual(next(x for x in moi['mau'] if x['ma'] == 'ST900'),
+                         {'ma': 'ST900', 'ten': 'Quảng cáo quán cà phê', 'nhom': 'Thực phẩm', 'kieu': 'Người thật, đời thường',
+                          'id': 'abcDEF12345', 'hien': 'dong', 'so_lieu': {'tim': 1200}, 'anh_moi': ban})
+        # Khách thấy video mới, không thấy video đã ẩn; tư vấn nhanh theo video đã ẩn bị từ chối.
+        cfg = [x['ma'] for x in self.client.get('/api/cau-hinh').json()['mau']]
+        self.assertIn('ST900', cfg); self.assertNotIn('ST053', cfg)
+        self.assertNotIn('"ST053"', self.client.get('/').text)
+        self.assertEqual(self.client.post('/api/tu-van', json=self.quick(ma_mau='ST053')).status_code, 400)
+        self.assertEqual(self.client.post('/api/tu-van', json=self.quick(ma_mau='ST900')).status_code, 201)
+        # Phiếu cũ đã chọn video đã ẩn vẫn đọc được tên video.
+        self.assertIn({'so': None, 'cau': 'Mẫu khách quan tâm', 'tra_loi': 'ST053 · Quảng cáo game di động'}, m.tom_tat({'_mau': 'ST053'}))
+        # Hiện lại video đã ẩn.
+        ds = moi['mau']; next(x for x in ds if x['ma'] == 'ST053').pop('an')
+        r = self.client.put('/api/nhan-vien/mau', json={'mau': ds, 'phien_ban': moi['phien_ban']})
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertIn('ST053', [x['ma'] for x in self.client.get('/api/cau-hinh').json()['mau']])
+        self.assertEqual(self.client.put('/api/nhan-vien/mau', json={'mau': ds, 'phien_ban': moi['phien_ban']}).status_code, 409)
+
+    def test_sample_video_edits_that_would_break_the_site_are_refused(self):
+        import copy
+        self.login()
+        du = self.client.get('/api/nhan-vien/mau').json()
+        def thu(sua, thong_bao):
+            ds = copy.deepcopy(du['mau']); sua(ds)
+            r = self.client.put('/api/nhan-vien/mau', json={'mau': ds, 'phien_ban': du['phien_ban']})
+            self.assertEqual(r.status_code, 422, r.text)
+            self.assertIn(thong_bao, r.json()['loi']['thong_bao'])
+        mau = lambda ds, ma: next(x for x in ds if x['ma'] == ma)
+        thu(lambda ds: mau(ds, 'ST029').update(an=True), 'câu chọn kiểu video')
+        thu(lambda ds: ds.pop(), 'Không xóa hẳn')
+        thu(lambda ds: mau(ds, 'ST011').update(id='https://vimeo.com/123'), 'Link YouTube')
+        thu(lambda ds: mau(ds, 'ST011').update(ten=''), 'không được để trống')
+        thu(lambda ds: ds.append(dict(mau(ds, 'ST011'))), 'bị trùng')
+        thu(lambda ds: ds.append({'ma': 'ST901', 'ten': 'Video mới', 'nhom': 'Khác', 'id': 'abcDEF12345'}), 'chưa có ảnh bìa')
+        thu(lambda ds: ds.append({'ma': 'ST901', 'ten': 'Video mới', 'nhom': 'Khác', 'id': 'abcDEF12345', 'anh_moi': '0123456789ab'}), 'chưa tải lên xong')
+        thu(lambda ds: ds.append({'ma': 'st 901', 'ten': 'Video mới', 'nhom': 'Khác', 'id': 'abcDEF12345'}), 'Mã mẫu')
+        thu(lambda ds: mau(ds, 'ST011').update(so_lieu={'tim': -5}), 'Số liệu')
+
+    def test_home_uses_uploaded_cover_for_first_phone(self):
+        self.login()
+        ban = self.tai_anh_bia('ST025').json()['anh_moi']
+        du = self.client.get('/api/nhan-vien/mau').json()
+        ds = du['mau']; next(x for x in ds if x['ma'] == 'ST025')['anh_moi'] = ban
+        self.assertEqual(self.client.put('/api/nhan-vien/mau', json={'mau': ds, 'phien_ban': du['phien_ban']}).status_code, 200)
+        r = self.client.get('/')
+        self.assertIn(f'<link rel="preload" href="/anh-mau-tai/ST025/{ban}/goc.webp"', r.text)
+        self.assertIn(f'srcset="/anh-mau-tai/ST025/{ban}/nho.webp 270w, /anh-mau-tai/ST025/{ban}/goc.webp 360w"', r.text)
+        self.assertNotIn('/anh-mau/ST025.webp', r.text.split('id="cau-hinh"')[0])
+        # Trang khách: CDN giữ 5 phút rồi làm mới ngầm, để video mẫu sửa xong hiện ra sau vài phút.
+        self.assertIn('s-maxage=300', r.headers['cache-control']); self.assertIn('stale-while-revalidate', r.headers['cache-control'])
+
     def test_qr_with_logo_uses_high_error_correction(self):
         import ma_qr
-        url = 'https://d-n-web-t-ng.vercel.app/phieu?nguon=ma-qr'
+        url = 'https://ks-bpro.vercel.app/phieu?nguon=ma-qr'
         self.assertGreater(len(ma_qr.ma_tran(url, 'H')), len(ma_qr.ma_tran(url)))
         try:
             import cv2, numpy as np
         except ImportError:
             self.skipTest('Không có OpenCV để đọc thử mã QR')
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'cong-cu'))
-        import tao_ma_qr_in
-        anh = tao_ma_qr_in.ve_the(url, 1080, 1350)
+        import tao_ma_qr_in, the_qr
+        anh = the_qr.ve_the(url, 1080, 1350)
         nang, _ = tao_ma_qr_in.doc_thu(anh, url)
         self.assertEqual(nang, [])
 

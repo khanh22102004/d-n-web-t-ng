@@ -6,89 +6,20 @@ Mỗi ảnh tạo ra đều được đọc thử lại bằng ba bộ đọc QR
 Chạy trong thư mục web-b-productions:
     python cong-cu/tao_ma_qr_in.py
     python cong-cu/tao_ma_qr_in.py --url https://dichvuvideo-ai.bprovn.com/phieu?nguon=ma-qr --ra du-lieu/ma-qr
+Trang nhân viên cũng tải được đúng ảnh này (nút "Tải ảnh gửi Zalo", "Tải ảnh để in"), theo tên miền đang mở.
 
 Tạo hai ảnh: bản gửi Zalo/Facebook (1080 x 1350) và bản in (2480 x 3100, khoảng 21 x 26 cm ở 300 dpi).
-Cần Pillow và numpy; opencv-python để đọc thử (thiếu thì báo và không kiểm được).
+Cần Pillow; opencv-python và numpy để đọc thử (thiếu thì báo và không kiểm được).
 """
 import argparse
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
-
 GOC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(GOC))
-import ma_qr  # noqa: E402
+from the_qr import CO, ve_the  # noqa: E402  (vẽ ảnh dùng chung với máy chủ: /ma-qr.png ở trang nhân viên)
 
-URL_MAC_DINH = "https://d-n-web-t-ng.vercel.app/phieu?nguon=ma-qr"
-TIEU_DE = "Phiếu câu hỏi làm video"
-DONG_HAI = "Quý khách hàng quét mã để trả lời câu hỏi"
-PHONG = GOC / "web" / "fonts"
-LOGO = GOC / "web" / "logo-b-productions.png"
-DEN, XAM = (0, 0, 0), (90, 92, 96)
-LE_QR = 4                 # lề trắng quanh mã (số ô), theo chuẩn
-O_LOGO = (15, 11)         # khung trắng đặt logo: rộng x cao, tính bằng ô của mã
-
-
-def logo_cat():
-    """Logo gồm hình mã vạch và chữ B PRODUCTIONS; bỏ dòng chữ nhỏ bên dưới vì đặt giữa mã sẽ quá nhỏ để đọc."""
-    import numpy as np
-    anh = Image.open(LOGO).convert("RGBA")
-    nen = Image.new("RGBA", anh.size, "white"); nen.alpha_composite(anh)
-    den = np.array(nen.convert("L")) < 128
-    hang = np.where(den.any(1))[0]
-    doan, dau = [], hang[0]                      # các dải hàng có nét: hình, chữ lớn, chữ nhỏ
-    for a, b in zip(hang, hang[1:]):
-        if b != a + 1:
-            doan.append((dau, a)); dau = b
-    doan.append((dau, hang[-1]))
-    tren, duoi = doan[0][0], doan[min(1, len(doan) - 1)][1]
-    cot = np.where(den[tren:duoi + 1].any(0))[0]
-    return nen.convert("RGB").crop((cot.min(), tren, cot.max() + 1, duoi + 1))
-
-
-def ve_the(url, rong, cao):
-    o = ma_qr.ma_tran(url, "H")
-    n = len(o)
-    k = rong / 1080                              # tỉ lệ so với bản 1080 điểm ảnh
-    so_o = n + 2 * LE_QR
-    buoc = int((rong - 2 * round(36 * k)) // so_o)   # mỗi ô là số điểm ảnh nguyên để in sắc nét
-    co_qr = buoc * so_o
-    the = Image.new("RGB", (rong, cao), "white")
-    ve = ImageDraw.Draw(the)
-    # Chữ bên dưới mã: đo trước để đặt cả khối (mã + chữ) vào giữa ảnh theo chiều dọc.
-    phong_lon = ImageFont.truetype(str(PHONG / "InterDisplay-ExtraBold.woff"), round(66 * k))
-    phong_vua = ImageFont.truetype(str(PHONG / "Inter-SemiBold.woff"), round(36 * k))
-    phong_nho = ImageFont.truetype(str(PHONG / "Inter-Regular.woff"), round(27 * k))
-    dia_chi = url.split("://", 1)[-1].split("?", 1)[0]
-    cac_dong = [(TIEU_DE, phong_lon, DEN, round(8 * k)), (DONG_HAI, phong_vua, DEN, round(28 * k)),
-            (f"Hoặc mở trang {dia_chi}", phong_nho, XAM, round(24 * k))]
-    cao_chu = sum(c + (ve.textbbox((0, 0), chu, font=f)[3] - ve.textbbox((0, 0), chu, font=f)[1]) for chu, f, _, c in cac_dong)
-    tren = max(0, (cao - co_qr - cao_chu) // 2)
-    x0, y0 = (rong - co_qr) // 2 + LE_QR * buoc, tren + LE_QR * buoc
-    for y, dong in enumerate(o):
-        for x, v in enumerate(dong):
-            if v:
-                ve.rectangle([x0 + x * buoc, y0 + y * buoc, x0 + (x + 1) * buoc - 1, y0 + (y + 1) * buoc - 1], fill=DEN)
-    # Khung trắng giữa mã, đúng lưới ô, rồi đặt logo vào giữa khung.
-    w, h = O_LOGO
-    ox, oy = (n - w) // 2, (n - h) // 2
-    kx0, ky0, kx1, ky1 = x0 + ox * buoc, y0 + oy * buoc, x0 + (ox + w) * buoc - 1, y0 + (oy + h) * buoc - 1
-    ve.rectangle([kx0, ky0, kx1, ky1], fill="white")
-    logo = logo_cat()
-    toi_da_r, toi_da_c = (w - 2) * buoc, (h - 2) * buoc
-    ti = min(toi_da_r / logo.width, toi_da_c / logo.height)
-    logo = logo.resize((round(logo.width * ti), round(logo.height * ti)), Image.LANCZOS)
-    the.paste(logo, ((kx0 + kx1 + 1 - logo.width) // 2, (ky0 + ky1 + 1 - logo.height) // 2))
-    y = y0 + n * buoc + LE_QR * buoc
-    for chu, phong, mau, cach in cac_dong:
-        y += cach
-        hop = ve.textbbox((0, 0), chu, font=phong)
-        ve.text(((rong - (hop[2] - hop[0])) // 2 - hop[0], y - hop[1]), chu, font=phong, fill=mau)
-        y += hop[3] - hop[1]
-    if y > cao - round(30 * k):
-        raise SystemExit(f"Chữ tràn khỏi ảnh {rong}x{cao}; tăng chiều cao.")
-    return the
+URL_MAC_DINH = "https://ks-bpro.vercel.app/phieu?nguon=ma-qr"
 
 
 def doc_thu(anh, url):
@@ -132,7 +63,7 @@ def main():
     p.add_argument("--ra", default=str(GOC / "du-lieu" / "ma-qr"), help="thư mục lưu ảnh")
     a = p.parse_args()
     ra = Path(a.ra); ra.mkdir(parents=True, exist_ok=True)
-    for ten, (rong, cao) in (("ma-qr-phieu-cau-hoi.png", (1080, 1350)), ("ma-qr-phieu-cau-hoi-ban-in.png", (2480, 3100))):
+    for ten, (rong, cao) in (("ma-qr-phieu-cau-hoi.png", CO["zalo"]), ("ma-qr-phieu-cau-hoi-ban-in.png", CO["in"])):
         anh = ve_the(a.url, rong, cao)
         nang, le = doc_thu(anh, a.url)
         if nang:

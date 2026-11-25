@@ -34,6 +34,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
 import ma_qr
+import the_qr
 
 GOC = Path(__file__).resolve().parent
 
@@ -51,7 +52,10 @@ for _kieu, _duoi in (("image/webp", ".webp"), ("font/woff2", ".woff2"), ("font/w
 # Bộ câu hỏi gốc trong mã. Nhân viên sửa trên trang nhân viên thì bản sửa lưu trong cơ sở dữ liệu và được dùng thay bản gốc.
 BO_GOC = json.loads((GOC / "cau_hoi.json").read_text(encoding="utf-8"))
 BO_GOC["phien_ban"] = "goc-" + str(BO_GOC.get("phien_ban", ""))
-MAU = json.loads((GOC / "mau.json").read_text(encoding="utf-8"))
+# Video mẫu gốc trong mã. Nhân viên thêm, sửa, ẩn video mẫu ở trang nhân viên thì danh sách mới lưu trong cơ sở dữ liệu.
+# MAU gồm cả mẫu đã ẩn (để đọc phiếu cũ); khách chỉ thấy mau_dang_hien().
+MAU_GOC = json.loads((GOC / "mau.json").read_text(encoding="utf-8"))
+MAU, MAU_PHIEN_BAN = MAU_GOC, "goc"
 
 
 def doc_danh_gia(tep=None):
@@ -191,7 +195,13 @@ def tao_bang():
         ngay TEXT NOT NULL, nguon TEXT NOT NULL, so INTEGER NOT NULL, PRIMARY KEY (ngay, nguon))""",
            # Mỗi lần nhân viên lưu bộ câu hỏi là một dòng (giữ lịch sử để khôi phục). noi_dung rỗng: dùng lại bản gốc trong mã.
            """CREATE TABLE IF NOT EXISTS bo_cau_hoi (
-        id TEXT PRIMARY KEY, tao_luc TEXT NOT NULL, noi_dung TEXT NOT NULL, ghi_chu TEXT NOT NULL DEFAULT '')"""]
+        id TEXT PRIMARY KEY, tao_luc TEXT NOT NULL, noi_dung TEXT NOT NULL, ghi_chu TEXT NOT NULL DEFAULT '')""",
+           # Danh sách video mẫu nhân viên đã sửa (mỗi lần lưu một dòng) và ảnh bìa nhân viên tải lên (mỗi lần tải một "ban").
+           """CREATE TABLE IF NOT EXISTS mau_video (
+        id TEXT PRIMARY KEY, tao_luc TEXT NOT NULL, noi_dung TEXT NOT NULL, ghi_chu TEXT NOT NULL DEFAULT '')""",
+           f"""CREATE TABLE IF NOT EXISTS anh_mau (
+        ma TEXT NOT NULL, ban TEXT NOT NULL, co TEXT NOT NULL, du_lieu {nhi_phan} NOT NULL, tao_luc TEXT NOT NULL,
+        PRIMARY KEY (ma, ban, co))"""]
     if LA_POSTGRES:
         # Một kết nối cho cả lượt: trên Vercel bước này chạy mỗi lần hàm khởi động lạnh.
         con = ket_noi()
@@ -665,6 +675,220 @@ async def bo_cau_hoi_moi(request):
     return JSONResponse({"bo_cau_hoi": BO_CAU_HOI})
 
 
+# ---------- Video mẫu: nhân viên thêm, sửa, ẩn ở trang nhân viên ----------
+# Mỗi mẫu là một video YouTube kèm ảnh bìa dọc. Ảnh bìa của mẫu gốc nằm trong web/anh-mau/; ảnh nhân viên tải lên nằm trong
+# bảng anh_mau, phục vụ ở /anh-mau-tai/<mã>/<bản>/<cỡ> (mỗi lần tải là một bản mới nên trình duyệt giữ ảnh lâu được).
+# Không xóa hẳn mẫu (phiếu cũ, Excel còn nhắc mã mẫu): xóa là ẩn khỏi trang khách, hiện lại được.
+CO_ANH_MAU = {"goc": (360, 640, "WEBP"), "nho": (270, 480, "WEBP"), "tuong": (180, 320, "WEBP"), "jpg": (360, 640, "JPEG")}
+CACH_HIEN = {"video": "Tự phát thử khi khách lướt tới", "dong": "Ảnh bìa trôi chậm", "anh": "Ảnh tĩnh"}
+MAU_NOI_BAT = ["ST025", "ST029", "ST056"]   # phải trùng maNoiBat trong web/app.js; MAU_DAU là mẫu đầu
+_MAU_KIEM = {"luc": 0.0}
+
+
+def mau_dang_hien():
+    return [m for m in MAU if not m.get("an")]
+
+
+def mau_trong_cau_hoi():
+    """Mã mẫu đang làm lựa chọn ở câu chọn kiểu video của phiếu: ẩn mẫu này thì phiếu thiếu ảnh."""
+    return sorted({lc["mau"] for c in CAU for t in c["truong"] for lc in t.get("lua_chon", []) if isinstance(lc, dict) and lc.get("mau")})
+
+
+def dam_bao_mau(ngay=False):
+    global MAU, MAU_PHIEN_BAN
+    if not ngay and time.time() - _MAU_KIEM["luc"] < 10:
+        return
+    _MAU_KIEM["luc"] = time.time()
+    dong = sql("SELECT id, noi_dung FROM mau_video ORDER BY tao_luc DESC, id DESC LIMIT 1", lay="mot")
+    ma = dong[0] if dong else "goc"
+    if ma != MAU_PHIEN_BAN:
+        ds = json.loads(dong[1]) if dong else MAU_GOC
+        co = {m["ma"] for m in ds}
+        # Mẫu mới thêm vào mau.json (sau lần nhân viên sửa) vẫn hiện, xếp cuối danh sách.
+        MAU, MAU_PHIEN_BAN = ds + [m for m in MAU_GOC if m["ma"] not in co], ma
+
+
+def id_youtube(chu):
+    """Mã video YouTube từ link (youtube.com/shorts/…, youtu.be/…, watch?v=…, embed/…) hoặc mã 11 ký tự."""
+    chu = (chu or "").strip() if isinstance(chu, str) else ""
+    if re.fullmatch(r"[A-Za-z0-9_-]{11}", chu):
+        return chu
+    m = re.search(r"(?:youtu\.be/|/shorts/|/embed/|/live/|[?&]v=)([A-Za-z0-9_-]{11})(?![A-Za-z0-9_-])", chu)
+    return m.group(1) if m else ""
+
+
+def duong_anh_mau(m, co):
+    """Đường dẫn ảnh bìa của mẫu ở một cỡ: ảnh nhân viên tải lên, hoặc ảnh gốc trong web/anh-mau/. Phải trùng anhMau() trong app.js."""
+    if m.get("anh_moi"):
+        return f"/anh-mau-tai/{m['ma']}/{m['anh_moi']}/{co}.{'jpg' if co == 'jpg' else 'webp'}"
+    return {"goc": f"/anh-mau/{m['ma']}.webp", "jpg": f"/anh-mau/{m['ma']}.jpg"}.get(co, f"/anh-mau/{co}/{m['ma']}.webp")
+
+
+def lam_anh_mau(du_lieu):
+    """Ảnh nhân viên tải lên: xoay theo EXIF, cắt giữa về khổ dọc 9:16, làm đủ bốn cỡ trang dùng."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", Image.DecompressionBombWarning)
+        with Image.open(io.BytesIO(du_lieu)) as anh:
+            if anh.format not in ("JPEG", "PNG", "WEBP") or getattr(anh, "is_animated", False):
+                raise ValueError("kiểu ảnh")
+            anh.load()
+            anh = ImageOps.exif_transpose(anh)
+            if anh.width < 180 or anh.height < 320:
+                raise ValueError("nhỏ")
+            nen = Image.new("RGB", anh.size, "white")
+            nen.paste(anh.convert("RGBA"), mask=anh.convert("RGBA").getchannel("A"))
+    ra = {}
+    for co, (r, c, dinh_dang) in CO_ANH_MAU.items():
+        nho = ImageOps.fit(nen, (r, c), Image.LANCZOS, centering=(0.5, 0.5))
+        tep = io.BytesIO()
+        nho.save(tep, format=dinh_dang, quality=82 if dinh_dang == "WEBP" else 86, **({"method": 6} if dinh_dang == "WEBP" else {"optimize": True, "progressive": True}))
+        ra[co] = tep.getvalue()
+    return ra
+
+
+def kiem_mau(moi):
+    """Kiểm tra danh sách video mẫu nhân viên gửi lên. Trả danh sách đã làm sạch hoặc báo ValueError (câu báo lỗi tiếng Việt)."""
+    if not isinstance(moi, list) or not moi:
+        raise ValueError("Danh sách video mẫu chưa đúng.")
+    if len(moi) > 80:
+        raise ValueError("Nhiều nhất 80 video mẫu.")
+    cu = {m["ma"]: m for m in MAU}
+    khoa = set(mau_trong_cau_hoi())
+    ra, da_co = [], set()
+    for m in moi:
+        if not isinstance(m, dict):
+            raise ValueError("Danh sách video mẫu chưa đúng.")
+        ma = m.get("ma") if isinstance(m.get("ma"), str) else ""
+        if not re.fullmatch(r"[A-Z0-9]{2,12}", ma):
+            raise ValueError(f'Mã mẫu "{ma[:20]}" chưa đúng: 2 đến 12 chữ in hoa hoặc số, ví dụ ST120.')
+        if ma in da_co:
+            raise ValueError(f"Mã mẫu {ma} bị trùng.")
+        da_co.add(ma)
+        ten = _chu_bo(m.get("ten"), 80, f"Tên video {ma}")
+        if len(ten) < 3:
+            raise ValueError(f"Tên video {ma} ngắn quá.")
+        yt = id_youtube(m.get("id"))
+        if not yt:
+            raise ValueError(f"Link YouTube của {ma} chưa đúng. Anh chị dán link dạng youtube.com/shorts/… hoặc youtu.be/….")
+        hien = m.get("hien") if m.get("hien") in CACH_HIEN else "video"
+        sach = {"ma": ma, "ten": ten, "nhom": _chu_bo(m.get("nhom"), 40, f"Ngành của video {ma}"),
+                "kieu": _chu_bo(m.get("kieu"), 60, f"Kiểu video {ma}", False), "id": yt, "hien": hien}
+        so_lieu = {}
+        for k in ("tim", "binh_luan", "chia_se"):
+            v = (m.get("so_lieu") or {}).get(k) if isinstance(m.get("so_lieu"), dict) else None
+            if v in (None, ""):
+                continue
+            if not isinstance(v, int) or isinstance(v, bool) or not 0 <= v <= 2_000_000_000:
+                raise ValueError(f"Số liệu bài đăng của {ma} chưa đúng.")
+            so_lieu[k] = v
+        if so_lieu:
+            sach["so_lieu"] = so_lieu
+        anh = m.get("anh_moi")
+        if anh:
+            if not isinstance(anh, str) or not re.fullmatch(r"[0-9a-f]{8,40}", anh) or not sql(
+                    "SELECT 1 FROM anh_mau WHERE ma=? AND ban=? AND co='goc'", (ma, anh), "mot"):
+                raise ValueError(f"Ảnh bìa của {ma} chưa tải lên xong. Anh chị chọn lại ảnh bìa.")
+            sach["anh_moi"] = anh
+        elif not (WEB / "anh-mau" / f"{ma}.webp").is_file():    # không có ảnh tải lên thì phải có ảnh gốc trong web/anh-mau/
+            raise ValueError(f"Video {ma} chưa có ảnh bìa. Anh chị chọn ảnh bìa cho video này.")
+        if m.get("an") is True:
+            if ma in khoa:
+                raise ValueError(f"Video {ma} đang là lựa chọn ở câu chọn kiểu video của phiếu nên chưa ẩn được.")
+            sach["an"] = True
+        ra.append(sach)
+    thieu = set(cu) - da_co
+    if thieu:
+        raise ValueError("Không xóa hẳn video mẫu; muốn bỏ thì bấm “Ẩn khỏi trang”.")
+    if sum(not m.get("an") for m in ra) < 3:
+        raise ValueError("Trang khách cần ít nhất 3 video mẫu đang hiện.")
+    return ra
+
+
+def du_lieu_sua_mau():
+    dong = sql("SELECT tao_luc, ghi_chu FROM mau_video ORDER BY tao_luc DESC, id DESC LIMIT 1", lay="mot")
+    nhom = list(dict.fromkeys(m["nhom"] for m in MAU if m.get("nhom")))
+    kieu = list(dict.fromkeys([m["kieu"] for m in MAU if m.get("kieu")] + [
+        ten_lua_chon(lc) for so in (11,) if so in CAU_THEO_SO for lc in CAU_THEO_SO[so]["truong"][0].get("lua_chon", [])]))
+    return {"mau": MAU, "phien_ban": MAU_PHIEN_BAN, "lan_sua": {"luc": dong[0], "ghi_chu": dong[1]} if dong else None,
+            "khoa": {"trong_cau_hoi": mau_trong_cau_hoi(), "noi_bat": MAU_NOI_BAT, "anh_san": [m["ma"] for m in MAU_GOC]},
+            "goi_y": {"nhom": nhom, "kieu": kieu}, "cach_hien": CACH_HIEN}
+
+
+async def nv_mau(request):
+    """GET: danh sách video mẫu (cả mẫu đang ẩn). PUT: lưu danh sách mới (trang khách cập nhật sau vài phút vì CDN)."""
+    if not la_nhan_vien(request):
+        return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
+    await run_in_threadpool(dam_bao_mau, True)
+    if request.method == "GET":
+        return JSONResponse(await run_in_threadpool(du_lieu_sua_mau))
+    du_lieu = await doc_json(request, 200_000)
+    if du_lieu is None:
+        return loi("SAI_DU_LIEU", "Dữ liệu gửi lên chưa đúng.")
+    if du_lieu.get("phien_ban") != MAU_PHIEN_BAN:
+        return loi("DA_CO_BAN_MOI", "Danh sách video mẫu vừa được người khác sửa. Anh chị tải lại để xem bản mới rồi sửa tiếp.", 409)
+    try:
+        ds = await run_in_threadpool(kiem_mau, du_lieu.get("mau"))
+    except ValueError as e:
+        return loi("SAI_MAU_VIDEO", str(e), 422)
+    ghi_chu = _chu_bo(du_lieu.get("ghi_chu"), 200, "Ghi chú", False) if isinstance(du_lieu.get("ghi_chu"), str) else ""
+
+    def luu():
+        ma = datetime.now(GIO_VN).strftime("%Y%m%d%H%M%S%f") + "-" + secrets.token_hex(3)
+        sql("INSERT INTO mau_video (id, tao_luc, noi_dung, ghi_chu) VALUES (?, ?, ?, ?)",
+            (ma, bay_gio(), json.dumps(ds, ensure_ascii=False), ghi_chu or "Sửa video mẫu"))
+        dam_bao_mau(ngay=True)
+        return du_lieu_sua_mau()
+    return JSONResponse(await run_in_threadpool(luu))
+
+
+async def nv_tai_anh_mau(request):
+    """Nhân viên tải ảnh bìa cho một mẫu (mẫu mới hoặc đổi ảnh). Ảnh chỉ được dùng khi danh sách được lưu."""
+    if not la_nhan_vien(request):
+        return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
+    ma = request.query_params.get("ma", "")
+    if not re.fullmatch(r"[A-Z0-9]{2,12}", ma):
+        return loi("SAI_MA_MAU", "Mã mẫu chưa đúng: 2 đến 12 chữ in hoa hoặc số.")
+    async with request.form(max_files=1, max_fields=2, max_part_size=10_000) as form:
+        tep = form.get("anh")
+        if not hasattr(tep, "read"):
+            return loi("THIEU_ANH", "Chưa có ảnh nào được chọn.")
+        du_lieu = await tep.read(ANH_NANG_NHAT + 1)
+    if len(du_lieu) > ANH_NANG_NHAT:
+        return loi("ANH_QUA_NANG", f"Ảnh nặng quá {MB_ANH} MB.", 413)
+    try:
+        cac_co = await run_in_threadpool(lam_anh_mau, du_lieu)
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError, Image.DecompressionBombError, Image.DecompressionBombWarning) as e:
+        if str(e) == "nhỏ":
+            return loi("ANH_NHO", "Ảnh nhỏ quá. Anh chị chọn ảnh dọc ít nhất 360 × 640 điểm ảnh.")
+        return loi("SAI_KIEU_ANH", "Ảnh không hợp lệ. Chỉ nhận ảnh tĩnh JPG, PNG hoặc WebP.")
+    ban = secrets.token_hex(6)
+
+    def ghi():
+        luc = bay_gio()
+        for co, b in cac_co.items():
+            sql("INSERT INTO anh_mau (ma, ban, co, du_lieu, tao_luc) VALUES (?, ?, ?, ?, ?)", (ma, ban, co, b, luc))
+        # Giữ ảnh đang dùng và ba lần tải gần nhất của mẫu này; bỏ các bản cũ hơn.
+        dang_dung = {m.get("anh_moi") for m in MAU if m["ma"] == ma}
+        cac_ban = [d[0] for d in sql("SELECT DISTINCT ban, tao_luc FROM anh_mau WHERE ma=? ORDER BY tao_luc DESC", (ma,), "tat")]
+        for cu in cac_ban[3:]:
+            if cu not in dang_dung:
+                sql("DELETE FROM anh_mau WHERE ma=? AND ban=?", (ma, cu))
+    await run_in_threadpool(ghi)
+    return JSONResponse({"anh_moi": ban, "xem": duong_anh_mau({"ma": ma, "anh_moi": ban}, "nho")}, status_code=201)
+
+
+async def anh_mau_tai(request):
+    p = request.path_params
+    co = {"goc.webp": "goc", "nho.webp": "nho", "tuong.webp": "tuong", "jpg.jpg": "jpg"}.get(p["ten"])
+    if not co or not re.fullmatch(r"[A-Z0-9]{2,12}", p["ma"]) or not re.fullmatch(r"[0-9a-f]{8,40}", p["ban"]):
+        return Response(status_code=404)
+    dong = await run_in_threadpool(sql, "SELECT du_lieu FROM anh_mau WHERE ma=? AND ban=? AND co=?", (p["ma"], p["ban"], co), "mot")
+    if not dong:
+        return Response(status_code=404, headers={"Cache-Control": "no-store"})
+    return Response(bytes(dong[0]), media_type="image/jpeg" if co == "jpg" else "image/webp",
+                    headers={"Cache-Control": "public, max-age=31536000, immutable"})
+
+
 # ---------- Phần của khách ----------
 
 MAU_DAU = "ST025"   # phải trùng mẫu đầu của maNoiBat trong web/app.js
@@ -673,7 +897,7 @@ MAU_DAU = "ST025"   # phải trùng mẫu đầu của maNoiBat trong web/app.js
 def mau_kem_doan_ngan():
     """Mẫu nào có tệp web/video-mau/<mã>.mp4 hoặc .webm thì trang sẽ phát tệp đó thay cho YouTube."""
     ket_qua = []
-    for m in MAU:
+    for m in mau_dang_hien():
         doan = next((f"/video-mau/{m['ma']}.{duoi}" for duoi in ("mp4", "webm") if (WEB / "video-mau" / f"{m['ma']}.{duoi}").is_file()), "")
         ket_qua.append({**m, "doan": doan})
     return ket_qua
@@ -792,7 +1016,7 @@ async def gui_tu_van(request):
     ma_mau = du_lieu.get("ma_mau", "")
     if not isinstance(ma_mau, str):
         return loi("SAI_MAU", "Mẫu tham khảo chưa đúng.")
-    m = next((m for m in MAU if m["ma"] == ma_mau), None)
+    m = next((m for m in mau_dang_hien() if m["ma"] == ma_mau), None)
     if ma_mau and m is None:
         return loi("SAI_MAU", "Mẫu này không còn trong danh sách. Quý khách hàng có thể bỏ chọn mẫu rồi gửi lại.")
     kenh = du_lieu.get("kenh", "Điện thoại")
@@ -1594,7 +1818,9 @@ async def nv_excel(request):
 # ---------- Trang và ứng dụng ----------
 
 # Trang công khai không chứa dữ liệu riêng của ai: trình duyệt luôn hỏi lại, CDN Vercel giữ bản sao tới lần triển khai sau.
-TRANG_CONG_KHAI = "public, max-age=0, must-revalidate, s-maxage=86400"
+# CDN giữ trang 5 phút rồi làm mới ngầm (khách vẫn nhận bản đang giữ, không phải chờ): nhân viên sửa video mẫu
+# thì trang khách đổi sau khoảng 5 phút. Bộ câu hỏi thì trang tự hỏi bản mới nhất nên khách thấy ngay.
+TRANG_CONG_KHAI = "public, max-age=0, must-revalidate, s-maxage=300, stale-while-revalidate=86400"
 
 # Gắn mã phiên bản (băm nội dung) vào đường dẫn CSS, JS, ảnh logo trong trang, ví dụ /style.css?v=1a2b3c4d5e.
 # Nhờ vậy trình duyệt giữ các tệp này 1 năm không cần hỏi lại; tệp đổi thì mã đổi, khách nhận bản mới ngay.
@@ -1707,11 +1933,17 @@ def dung_trang_chu(che_do_phieu=False, loai=""):
     trang = gan_phien_ban((WEB / "index.html").read_text(encoding="utf-8")).replace("__CAU_HINH__", du_lieu)
     # Ảnh hai điện thoại bên ở màn hình đầu ghi sẵn trong trang (trước đây app.js mới gắn), để trình duyệt tải ngay:
     # PageSpeed tính một trong hai ảnh này là "nội dung lớn nhất". Thứ tự giống app.js: mẫu MAU_DAU đứng đầu.
-    ds = [m["ma"] for m in MAU]
+    hien = mau_dang_hien()
+    ds = [m["ma"] for m in hien]
     if MAU_DAU in ds:
         ds.remove(MAU_DAU); ds.insert(0, MAU_DAU)
     if ds:
-        mau_dau = next(m for m in MAU if m["ma"] == ds[0])
+        theo_ma = {m["ma"]: m for m in hien}
+        mau_dau = theo_ma[ds[0]]
+        # Ảnh bìa có thể là ảnh nhân viên tải lên: thay cả đường dẫn, không chỉ mã mẫu.
+        for cho, ma in (("__ANH_TRAI__", ds[-1]), ("__ANH_PHAI__", ds[1 % len(ds)]), ("__MAU_DAU__", ds[0])):
+            trang = (trang.replace(f"/anh-mau/nho/{cho}.webp", duong_anh_mau(theo_ma[ma], "nho"))
+                     .replace(f"/anh-mau/{cho}.webp", duong_anh_mau(theo_ma[ma], "goc")))
         # Chữ dưới điện thoại (ngành, tên, kiểu) của mẫu đầu cũng ghi sẵn, để khung chữ không đổi cỡ khi app.js chạy (CLS).
         trang = (trang.replace("__ANH_TRAI__", ds[-1]).replace("__ANH_PHAI__", ds[1 % len(ds)])
                  .replace("__MAU_DAU__", html.escape(ds[0])).replace("__DT_NGANH__", html.escape(mau_dau.get("nhom", "")))
@@ -1762,15 +1994,21 @@ def dia_chi_trang(request):
 
 
 async def anh_ma_qr(request):
-    """Mã QR mở trang điền phiếu (/phieu). ?loai=<loại> cho mã của riêng một loại video; ?tai=1 để tải ảnh PNG về."""
+    """Mã QR mở trang điền phiếu (/phieu) theo tên miền đang mở; khách quét mã được ghi nguồn "ma-qr".
+    /ma-qr.png: ảnh có logo ở giữa và chữ "Phiếu câu hỏi làm video" bên dưới (the_qr.py), bản gửi Zalo 1080 × 1350,
+    ?co=in cho bản in 2480 × 3100. /ma-qr.svg: chỉ có mã. ?loai=<loại> cho mã của riêng một loại video; ?tai=1 để tải về."""
     loai = request.query_params.get("loai", "")
-    o = await run_in_threadpool(ma_qr.ma_tran, dia_chi_trang(request) + "/phieu" + (f"/{loai}" if loai in LOAI else ""))
+    loai = loai if loai in LOAI else ""
+    url = dia_chi_trang(request) + "/phieu" + (f"/{loai}" if loai else "") + "?nguon=ma-qr"
     dau = {"Cache-Control": "public, max-age=3600"}
     if request.url.path.endswith(".png"):
+        co = "in" if request.query_params.get("co") == "in" else "zalo"
         if request.query_params.get("tai"):
-            dau["Content-Disposition"] = f'attachment; filename="ma-qr-phieu-b-productions{"-" + loai if loai in LOAI else ""}.png"'
-        return Response(await run_in_threadpool(ma_qr.png, o, 1024), media_type="image/png", headers=dau)
-    return Response(ma_qr.svg(o), media_type="image/svg+xml", headers=dau)
+            dau["Content-Disposition"] = (f'attachment; filename="ma-qr-phieu-cau-hoi{"-" + loai if loai else ""}'
+                                          f'{"-ban-in" if co == "in" else ""}.png"')
+        chu = {"tieu_de": f"Phiếu câu hỏi: {LOAI[loai]['ten']}"} if loai else {}
+        return Response(await run_in_threadpool(the_qr.png, url, co, **chu), media_type="image/png", headers=dau)
+    return Response(ma_qr.svg(await run_in_threadpool(ma_qr.ma_tran, url, "H")), media_type="image/svg+xml", headers=dau)
 
 
 async def trang_chinh_sach(request):
@@ -1804,6 +2042,7 @@ class BaoVe:
         if duong_vao == "/" or duong_vao.startswith(("/api/", "/phieu")):
             try:
                 await run_in_threadpool(dam_bao_bo)
+                await run_in_threadpool(dam_bao_mau)
             except Exception:   # cơ sở dữ liệu tạm lỗi: dùng tiếp bản đang có
                 pass
 
@@ -1874,6 +2113,9 @@ app = BaoVe(GZipMiddleware(Starlette(routes=[
     Route("/api/bo-cau-hoi", bo_cau_hoi_moi),
     Route("/api/nhan-vien/bo-cau-hoi", nv_bo_cau_hoi, methods=["GET", "PUT"]),
     Route("/api/nhan-vien/bo-cau-hoi/khoi-phuc", nv_khoi_phuc_bo, methods=["POST"]),
+    Route("/api/nhan-vien/mau", nv_mau, methods=["GET", "PUT"]),
+    Route("/api/nhan-vien/mau/anh", nv_tai_anh_mau, methods=["POST"]),
+    Route("/anh-mau-tai/{ma}/{ban}/{ten}", anh_mau_tai),
     Route("/api/luot-xem", ghi_luot_xem, methods=["POST"]),
     Route("/api/tu-van", gui_tu_van, methods=["POST"]),
     Route("/api/tu-van/bo-sung", bo_sung_tu_van, methods=["POST"]),
