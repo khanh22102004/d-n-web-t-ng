@@ -48,7 +48,9 @@ WEB = GOC / "web"
 for _kieu, _duoi in (("image/webp", ".webp"), ("font/woff2", ".woff2"), ("font/woff", ".woff"), ("video/mp4", ".mp4"),
                      ("video/webm", ".webm"), ("image/svg+xml", ".svg"), ("text/javascript", ".js"), ("text/css", ".css")):
     mimetypes.add_type(_kieu, _duoi)
-BO_CAU_HOI = json.loads((GOC / "cau_hoi.json").read_text(encoding="utf-8"))
+# Bộ câu hỏi gốc trong mã. Nhân viên sửa trên trang nhân viên thì bản sửa lưu trong cơ sở dữ liệu và được dùng thay bản gốc.
+BO_GOC = json.loads((GOC / "cau_hoi.json").read_text(encoding="utf-8"))
+BO_GOC["phien_ban"] = "goc-" + str(BO_GOC.get("phien_ban", ""))
 MAU = json.loads((GOC / "mau.json").read_text(encoding="utf-8"))
 
 
@@ -79,12 +81,20 @@ def doc_danh_gia(tep=None):
 DANH_GIA = doc_danh_gia()
 # Mọi câu của mọi bộ nằm chung một danh sách, mỗi câu một số "so" riêng (khóa câu trả lời là "<so>.<trường>").
 # Mỗi loại video là một bộ câu hỏi: danh sách số câu theo thứ tự hiện. Phiếu cũ (trước khi có loại video) là bộ mặc định.
-CAU = BO_CAU_HOI["cau_hoi"]
-CAU_THEO_SO = {c["so"]: c for c in CAU}
-LOAI = {l["id"]: l for l in BO_CAU_HOI["loai"]}
-BO_MAC_DINH = BO_CAU_HOI["bo_mac_dinh"]
-CAU_CUA_BO = {ma: [CAU_THEO_SO[so] for so in l["cau"]] for ma, l in LOAI.items()}
-THU_TU_NHOM = [n["id"] for n in BO_CAU_HOI["nhom"]]
+# Câu không bao giờ bị xóa khỏi kho (chỉ bỏ khỏi bộ), số câu không dùng lại, nên phiếu cũ luôn đọc được.
+
+
+def nap_bo(bo):
+    """Đặt bộ câu hỏi đang dùng: bản gốc, hoặc bản nhân viên đã sửa."""
+    global BO_CAU_HOI, CAU, CAU_THEO_SO, LOAI, BO_MAC_DINH, CAU_CUA_BO, THU_TU_NHOM
+    theo_so = {c["so"]: c for c in bo["cau_hoi"]}
+    loai = {l["id"]: l for l in bo["loai"]}
+    cua_bo = {ma: [theo_so[so] for so in l["cau"]] for ma, l in loai.items()}
+    BO_CAU_HOI, CAU, CAU_THEO_SO, LOAI, BO_MAC_DINH, CAU_CUA_BO, THU_TU_NHOM = (
+        bo, bo["cau_hoi"], theo_so, loai, bo["bo_mac_dinh"], cua_bo, [n["id"] for n in bo["nhom"]])
+
+
+nap_bo(BO_GOC)
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 THU_MUC_DU_LIEU = Path(os.environ.get("DATA_DIR", GOC / "du-lieu"))
@@ -178,7 +188,10 @@ def tao_bang():
     sau = ["CREATE INDEX IF NOT EXISTS anh_phieu_idx ON anh (phieu_id)",
            "CREATE INDEX IF NOT EXISTS phieu_tao_idx ON phieu (tao_luc, id)",
            """CREATE TABLE IF NOT EXISTS luot_xem (
-        ngay TEXT NOT NULL, nguon TEXT NOT NULL, so INTEGER NOT NULL, PRIMARY KEY (ngay, nguon))"""]
+        ngay TEXT NOT NULL, nguon TEXT NOT NULL, so INTEGER NOT NULL, PRIMARY KEY (ngay, nguon))""",
+           # Mỗi lần nhân viên lưu bộ câu hỏi là một dòng (giữ lịch sử để khôi phục). noi_dung rỗng: dùng lại bản gốc trong mã.
+           """CREATE TABLE IF NOT EXISTS bo_cau_hoi (
+        id TEXT PRIMARY KEY, tao_luc TEXT NOT NULL, noi_dung TEXT NOT NULL, ghi_chu TEXT NOT NULL DEFAULT '')"""]
     if LA_POSTGRES:
         # Một kết nối cho cả lượt: trên Vercel bước này chạy mỗi lần hàm khởi động lạnh.
         con = ket_noi()
@@ -382,7 +395,7 @@ def tom_tat(tra_loi):
     if tra_loi.get("_mau"):
         m = next((m for m in MAU if m["ma"] == tra_loi["_mau"]), None)
         dong.append({"so": None, "cau": "Mẫu khách quan tâm", "tra_loi": f'{m["ma"]} · {m["ten"]}' if m else tra_loi["_mau"]})
-    for hien, cau in cau_hien(tra_loi):
+    for hien, cau in cau_hien(tra_loi) + [(None, c) for c in cau_ngoai_bo(tra_loi)]:
         phan = []
         for tr in cau["truong"]:
             chu = gop(tra_loi, f'{cau["so"]}.{tr["id"]}')
@@ -391,6 +404,265 @@ def tom_tat(tra_loi):
         if phan:
             dong.append({"so": hien, "cau": cau["cau"], "tra_loi": "; ".join(phan)})
     return dong
+
+
+def cau_ngoai_bo(tra_loi):
+    """Câu đã có câu trả lời nhưng không còn trong bộ của phiếu (nhân viên bỏ câu sau khi khách trả lời): vẫn hiện để không mất thông tin."""
+    trong_bo = {c["so"] for _, c in cau_hien(tra_loi)}
+    co = {int(k.split(".")[0]) for k in tra_loi if re.match(r"^\d+\.", k)}
+    return [c for c in CAU if c["so"] in co - trong_bo]
+
+
+# ---------- Bộ câu hỏi: nhân viên xem và sửa trên trang nhân viên ----------
+# Lưu là khách thấy ngay. Mỗi lần lưu là một bản trong bảng bo_cau_hoi (giữ lịch sử, khôi phục được).
+# Chỉ được sửa chữ, lựa chọn, bắt buộc hay không, thêm câu mới, bỏ câu khỏi loại, đổi thứ tự. Không đổi được mã câu, mã ô,
+# kiểu ô của câu đã có (để phiếu cũ vẫn đọc đúng), và không bỏ được các câu phần khác của trang đang dùng.
+CAU_KHONG_BO = {"*": [19], BO_GOC["bo_mac_dinh"]: [1, 2, 4, 7, 11, 17, 18, 19]}   # 19: liên hệ; bộ mặc định: tư vấn nhanh, video mẫu dùng
+LUA_CHON_CO_DINH = ["19.kenh"]    # kiểm tra số điện thoại, email và tư vấn nhanh dựa vào đúng các lựa chọn này
+BAT_BUOC_CO_DINH = ["19.ten", "19.kenh", "19.dia_chi"]
+SO_CAU_NHAN_VIEN = 1001   # câu nhân viên thêm đánh số từ 1001; câu thêm trong cau_hoi.json giữ dưới 1000 để không trùng
+KIEU_O = {"mot": "Chọn một", "nhieu": "Chọn nhiều", "chu": "Chữ ngắn", "doan": "Đoạn văn"}
+_BO_KIEM = {"luc": 0.0}
+
+
+def dam_bao_bo(ngay=False):
+    """Dùng bản bộ câu hỏi mới nhất. Nhiều máy chủ chạy song song nên cứ 10 giây hỏi cơ sở dữ liệu một lần (ngay=True: hỏi liền)."""
+    if not ngay and time.time() - _BO_KIEM["luc"] < 10:
+        return
+    _BO_KIEM["luc"] = time.time()
+    dong = sql("SELECT id, noi_dung FROM bo_cau_hoi ORDER BY tao_luc DESC, id DESC LIMIT 1", lay="mot")
+    ma = dong[0] if dong else BO_GOC["phien_ban"]
+    if ma == BO_CAU_HOI["phien_ban"]:
+        return
+    if not dong or not dong[1]:
+        nap_bo({**BO_GOC, "phien_ban": ma})
+    else:
+        nap_bo({**json.loads(dong[1]), "phien_ban": ma})
+
+
+def _chu_bo(gia_tri, toi_da, ten, bat_buoc=True):
+    if gia_tri is None or gia_tri == "":
+        if bat_buoc:
+            raise ValueError(f"{ten} không được để trống.")
+        return ""
+    if not isinstance(gia_tri, str):
+        raise ValueError(f"{ten} chưa đúng.")
+    gia_tri = " ".join(gia_tri.split())
+    if bat_buoc and not gia_tri:
+        raise ValueError(f"{ten} không được để trống.")
+    if len(gia_tri) > toi_da:
+        raise ValueError(f"{ten} dài quá {toi_da} ký tự.")
+    return gia_tri
+
+
+def _kiem_o(t, goc, so, ten_cau):
+    """Một ô trả lời. goc: ô đang có (giữ mã, kiểu, điều kiện); None: ô của câu mới."""
+    if not isinstance(t, dict):
+        raise ValueError(f"{ten_cau}: ô trả lời chưa đúng.")
+    kieu = goc["kieu"] if goc else t.get("kieu")
+    if kieu not in KIEU_O:
+        raise ValueError(f"{ten_cau}: chưa chọn kiểu trả lời.")
+    ma = goc["id"] if goc else "tra_loi"
+    khoa = f"{so}.{ma}"
+    ra = {"id": ma, "kieu": kieu}
+    nhan = _chu_bo(t.get("nhan"), 150, f"{ten_cau}: nhãn ô", False)
+    if nhan:
+        ra["nhan"] = nhan
+    if kieu in ("chu", "doan"):
+        vi_du = _chu_bo(t.get("vi_du"), 150, f"{ten_cau}: ví dụ", False)
+        if vi_du:
+            ra["vi_du"] = vi_du
+    ra["bat_buoc"] = goc["bat_buoc"] if khoa in BAT_BUOC_CO_DINH else t.get("bat_buoc") is True
+    if kieu in ("mot", "nhieu"):
+        if t.get("tu_dien"):
+            ra["tu_dien"] = True
+        if goc and (khoa in LUA_CHON_CO_DINH or any(isinstance(x, dict) for x in goc.get("lua_chon", []))):
+            ra["lua_chon"] = goc["lua_chon"]          # thẻ video mẫu, cách liên hệ: giữ nguyên
+        else:
+            ds = t.get("lua_chon")
+            if not isinstance(ds, list):
+                raise ValueError(f"{ten_cau}: danh sách lựa chọn chưa đúng.")
+            sach = []
+            for x in ds:
+                x = _chu_bo(x, 80, f"{ten_cau}: lựa chọn", False)
+                if x and x not in sach:
+                    sach.append(x)
+            if len(sach) < 2:
+                raise ValueError(f"{ten_cau}: cần ít nhất hai lựa chọn.")
+            if len(sach) > 20:
+                raise ValueError(f"{ten_cau}: nhiều nhất 20 lựa chọn.")
+            ra["lua_chon"] = sach
+        if kieu == "nhieu" and t.get("toi_da") not in (None, "", 0):
+            if not isinstance(t["toi_da"], int) or isinstance(t["toi_da"], bool) or not 1 <= t["toi_da"] <= 20:
+                raise ValueError(f"{ten_cau}: số lựa chọn tối đa chưa đúng.")
+            ra["toi_da"] = t["toi_da"]
+        if goc and goc.get("rieng") in [ten_lua_chon(x) for x in ra["lua_chon"]]:
+            ra["rieng"] = goc["rieng"]
+    for k in ("dang_the", "kiem_tra", "chi_khi", "bo_qua_neu"):
+        if goc and k in goc:
+            ra[k] = goc[k]
+    return ra
+
+
+def kiem_bo(moi):
+    """Kiểm tra bộ câu hỏi nhân viên gửi lên, so với bộ đang dùng. Trả bộ đã làm sạch hoặc báo ValueError (câu báo lỗi tiếng Việt)."""
+    cu = BO_CAU_HOI
+    if not isinstance(moi, dict) or not isinstance(moi.get("cau_hoi"), list) or not isinstance(moi.get("loai"), list):
+        raise ValueError("Dữ liệu bộ câu hỏi chưa đúng.")
+    cu_theo_so = {c["so"]: c for c in cu["cau_hoi"]}
+    so_lon_nhat = max(cu_theo_so)
+    nhom_duoc = [n["id"] for n in cu["nhom"] if n["id"] != "loai-video"]
+    cau_moi, da_co = [], set()
+    for c in moi["cau_hoi"]:
+        so = c.get("so") if isinstance(c, dict) else None
+        if not isinstance(so, int) or isinstance(so, bool) or so in da_co:
+            raise ValueError("Số câu bị trùng hoặc chưa đúng.")
+        da_co.add(so)
+        goc = cu_theo_so.get(so)
+        if not goc and not max(so_lon_nhat, SO_CAU_NHAN_VIEN - 1) < so <= max(so_lon_nhat, SO_CAU_NHAN_VIEN - 1) + 200:
+            raise ValueError("Số của câu mới chưa đúng.")
+        ten_cau = f'Câu "{(c.get("cau") or "")[:40]}"'
+        ra = {"so": so, "nhom": goc["nhom"] if goc else c.get("nhom")}
+        if ra["nhom"] not in nhom_duoc:
+            raise ValueError(f"{ten_cau}: chưa chọn phần của phiếu.")
+        ra["cau"] = _chu_bo(c.get("cau"), 300, "Câu hỏi")
+        goi_y = _chu_bo(c.get("goi_y"), 300, f"{ten_cau}: gợi ý", False)
+        if goi_y:
+            ra["goi_y"] = goi_y
+        for k in ("co_anh", "anh_nhan", "hien_khi"):
+            if goc and k in goc:
+                ra[k] = goc[k]
+        truong = c.get("truong")
+        if goc:
+            if not isinstance(truong, list) or [t.get("id") if isinstance(t, dict) else None for t in truong] != [t["id"] for t in goc["truong"]]:
+                raise ValueError(f"{ten_cau}: không thêm, bớt hay đổi ô trả lời của câu đã có.")
+            ra["truong"] = [_kiem_o(t, g, so, ten_cau) for t, g in zip(truong, goc["truong"])]
+        else:
+            if not isinstance(truong, list) or len(truong) != 1:
+                raise ValueError(f"{ten_cau}: câu mới cần đúng một ô trả lời.")
+            ra["truong"] = [_kiem_o(truong[0], None, so, ten_cau)]
+        cau_moi.append(ra)
+    thieu = set(cu_theo_so) - da_co
+    if thieu:
+        raise ValueError("Không xóa câu khỏi kho câu hỏi; muốn bỏ câu thì bỏ khỏi từng loại video.")
+    theo_so = {c["so"]: c for c in cau_moi}
+    # Điều kiện hiện câu, hiện ô phải còn đúng lựa chọn được nhắc tới.
+    def con_lua_chon(khoa, gia):
+        so, ma = khoa.split(".", 1)
+        o = next((t for t in theo_so[int(so)]["truong"] if t["id"] == ma), None)
+        return o is not None and gia in [ten_lua_chon(x) for x in o.get("lua_chon", [])]
+    for c in cau_moi:
+        dk = c.get("hien_khi")
+        if dk and not con_lua_chon(dk["khoa"], dk["co"]):
+            raise ValueError(f'Lựa chọn "{dk["co"]}" đang dùng để hiện câu "{c["cau"][:50]}", nên chưa xóa hay đổi tên được.')
+        for t in c["truong"]:
+            if t.get("chi_khi") and not con_lua_chon(t["chi_khi"]["khoa"], t["chi_khi"]["co"]):
+                raise ValueError(f'Lựa chọn "{t["chi_khi"]["co"]}" đang dùng để hiện ô "{t.get("nhan", "")}", nên chưa xóa hay đổi tên được.')
+            bq = t.get("bo_qua_neu")
+            if bq and not con_lua_chon(f'{c["so"]}.{bq["truong"]}', bq["la"]):
+                raise ValueError(f'Lựa chọn "{bq["la"]}" đang dùng để ẩn ô "{t.get("nhan", "")}", nên chưa xóa hay đổi tên được.')
+    loai_cu = cu["loai"]
+    if [l.get("id") if isinstance(l, dict) else None for l in moi["loai"]] != [l["id"] for l in loai_cu]:
+        raise ValueError("Không thêm hay bớt loại video.")
+    thu_tu = [n["id"] for n in cu["nhom"]]
+    loai_moi = []
+    for l in moi["loai"]:
+        ten = _chu_bo(l.get("ten"), 60, "Tên loại video")
+        ds = l.get("cau")
+        if not isinstance(ds, list) or not ds or len(ds) > 30 or len(set(map(str, ds))) != len(ds) or any(
+                not isinstance(so, int) or isinstance(so, bool) or so not in theo_so for so in ds):
+            raise ValueError(f'Danh sách câu của "{ten}" chưa đúng (1 đến 30 câu, không trùng).')
+        for so in CAU_KHONG_BO["*"] + CAU_KHONG_BO.get(l["id"], []):
+            if so not in ds:
+                raise ValueError(f'Câu "{theo_so[so]["cau"][:50]}" không bỏ khỏi loại "{ten}" được: phần khác của trang đang dùng câu này.')
+        ds = sorted(ds, key=lambda so: thu_tu.index(theo_so[so]["nhom"]))   # các phần luôn theo đúng thứ tự của phiếu
+        loai_moi.append({"id": l["id"], "ten": ten, "mo_ta": _chu_bo(l.get("mo_ta"), 120, f'Mô tả loại "{ten}"', False), "cau": ds})
+    return {"phien_ban": "", "bo_mac_dinh": cu["bo_mac_dinh"], "loai": loai_moi, "nhom": cu["nhom"], "cau_hoi": cau_moi}
+
+
+def lich_su_bo():
+    dong = sql("SELECT id, tao_luc, ghi_chu, noi_dung = '' FROM bo_cau_hoi ORDER BY tao_luc DESC, id DESC LIMIT 30", lay="tat")
+    return [{"id": d[0], "tao_luc": d[1], "ghi_chu": d[2], "ban_goc": bool(d[3])} for d in dong]
+
+
+def luu_ban_bo(noi_dung, ghi_chu):
+    """Thêm một bản mới (noi_dung rỗng: quay về bản gốc trong mã) rồi dùng ngay."""
+    ma = datetime.now(GIO_VN).strftime("%Y%m%d%H%M%S%f") + "-" + secrets.token_hex(3)
+    sql("INSERT INTO bo_cau_hoi (id, tao_luc, noi_dung, ghi_chu) VALUES (?, ?, ?, ?)", (ma, bay_gio(), noi_dung, ghi_chu[:200]))
+    dam_bao_bo(ngay=True)
+    return ma
+
+
+def giong_ban_goc(bo):
+    """Bộ đang dùng có giống bản gốc không (câu nhân viên thêm mà không nằm trong loại nào thì không tính)."""
+    theo_so = {c["so"]: c for c in bo["cau_hoi"]}
+    return (bo["loai"] == BO_GOC["loai"] and all(theo_so.get(c["so"]) == c for c in BO_GOC["cau_hoi"])
+            and len(theo_so) >= len(BO_GOC["cau_hoi"]))
+
+
+def du_lieu_sua_bo():
+    ls = lich_su_bo()
+    return {"bo": BO_CAU_HOI, "dang_dung_goc": not ls or ls[0]["ban_goc"] or giong_ban_goc(BO_CAU_HOI), "lich_su": ls, "khoa": {"cau_khong_bo": CAU_KHONG_BO, "lua_chon_co_dinh": LUA_CHON_CO_DINH,
+                                               "bat_buoc_co_dinh": BAT_BUOC_CO_DINH, "so_cau_moi": SO_CAU_NHAN_VIEN}, "kieu_o": KIEU_O}
+
+
+async def nv_bo_cau_hoi(request):
+    """GET: bộ câu hỏi đang dùng và lịch sử. PUT: lưu bản sửa (khách thấy ngay)."""
+    if not la_nhan_vien(request):
+        return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
+    await run_in_threadpool(dam_bao_bo, True)
+    if request.method == "GET":
+        return JSONResponse(await run_in_threadpool(du_lieu_sua_bo))
+    du_lieu = await doc_json(request, 400_000)
+    if du_lieu is None:
+        return loi("SAI_DU_LIEU", "Dữ liệu gửi lên chưa đúng.")
+    if du_lieu.get("phien_ban") != BO_CAU_HOI["phien_ban"]:
+        return loi("DA_CO_BAN_MOI", "Bộ câu hỏi vừa được người khác sửa. Anh chị tải lại để xem bản mới rồi sửa tiếp.", 409)
+    try:
+        bo = kiem_bo(du_lieu.get("bo"))
+    except ValueError as e:
+        return loi("SAI_BO_CAU_HOI", str(e), 422)
+    ghi_chu = _chu_bo(du_lieu.get("ghi_chu"), 200, "Ghi chú", False) if isinstance(du_lieu.get("ghi_chu"), str) else ""
+    noi_dung = json.dumps({k: v for k, v in bo.items() if k != "phien_ban"}, ensure_ascii=False)
+    await run_in_threadpool(luu_ban_bo, noi_dung, ghi_chu or "Sửa bộ câu hỏi")
+    return JSONResponse(await run_in_threadpool(du_lieu_sua_bo))
+
+
+async def nv_khoi_phuc_bo(request):
+    """Khôi phục một bản cũ trong lịch sử, hoặc bản gốc trong mã (ma = "goc"). Lưu thành bản mới nên vẫn quay lại được."""
+    if not la_nhan_vien(request):
+        return loi("CHUA_DANG_NHAP", "Cần đăng nhập.", 401)
+    du_lieu = await doc_json(request, 2000)
+    if du_lieu is None or not isinstance(du_lieu.get("ma"), str):
+        return loi("SAI_DU_LIEU", "Dữ liệu gửi lên chưa đúng.")
+    await run_in_threadpool(dam_bao_bo, True)
+    if du_lieu.get("phien_ban") != BO_CAU_HOI["phien_ban"]:
+        return loi("DA_CO_BAN_MOI", "Bộ câu hỏi vừa được người khác sửa. Anh chị tải lại để xem bản mới.", 409)
+    if du_lieu["ma"] == "goc":
+        bo, ghi_chu = {k: v for k, v in BO_GOC.items() if k != "phien_ban"}, "Khôi phục bản gốc"
+    else:
+        dong = await run_in_threadpool(sql, "SELECT tao_luc, noi_dung FROM bo_cau_hoi WHERE id=?", (du_lieu["ma"],), "mot")
+        if not dong:
+            return loi("KHONG_THAY", "Không tìm thấy bản này.", 404)
+        bo = json.loads(dong[1]) if dong[1] else {k: v for k, v in BO_GOC.items() if k != "phien_ban"}
+        khop = re.match(r"(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)", dong[0])
+        ghi_chu = f"Khôi phục bản lúc {khop[4]}:{khop[5]} ngày {khop[3]}/{khop[2]}/{khop[1]}" if khop else f"Khôi phục bản lúc {dong[0]}"
+    # Câu thêm sau bản được khôi phục vẫn giữ trong kho (không nằm trong loại nào), để phiếu đã trả lời câu đó vẫn đọc được.
+    co = {c["so"] for c in bo["cau_hoi"]}
+    them = [c for c in BO_CAU_HOI["cau_hoi"] if c["so"] not in co]
+    if them:
+        bo = {**bo, "cau_hoi": bo["cau_hoi"] + them}
+    noi_dung = "" if du_lieu["ma"] == "goc" and not them else json.dumps(bo, ensure_ascii=False)
+    await run_in_threadpool(luu_ban_bo, noi_dung, ghi_chu)
+    return JSONResponse(await run_in_threadpool(du_lieu_sua_bo))
+
+
+async def bo_cau_hoi_moi(request):
+    """Trang có thể đang lấy từ bản lưu sẵn của CDN: hỏi bộ câu hỏi mới nhất trước khi khách điền. Cùng bản thì trả 204."""
+    await run_in_threadpool(dam_bao_bo, True)
+    if request.query_params.get("v") == BO_CAU_HOI["phien_ban"]:
+        return Response(status_code=204)
+    return JSONResponse({"bo_cau_hoi": BO_CAU_HOI})
 
 
 # ---------- Phần của khách ----------
@@ -1163,9 +1435,11 @@ def _xl_trang_phieu(trang, p, k):
     for c, chu in enumerate(("Câu", "Câu hỏi trên web", "Câu trả lời của khách"), start=1):
         o = trang.cell(row=d, column=c, value=chu); o.font = k["dau"]; o.fill = k["nen_dau"]; o.alignment = k["giua"]; o.border = k["khung"]
     trang.row_dimensions[d].height = 22
-    for hien, cau in cau_hien(tl):
+    for hien, cau in cau_hien(tl) + [("—", c) for c in cau_ngoai_bo(tl)]:
         for tr in cau["truong"]:
             gia = gop(tl, f'{cau["so"]}.{tr["id"]}')
+            if hien == "—" and not gia:
+                continue
             d += 1
             nhan = cau["cau"] + (f' — {tr["nhan"]}' if tr.get("nhan") else "")
             o = trang.cell(row=d, column=1, value=hien); o.font = k["nho"]; o.alignment = k["giua"]
@@ -1243,6 +1517,14 @@ def tao_excel(danh_sach):
                 khoa = f'{c["so"]}.{tr["id"]}'
                 if khoa not in cot.setdefault(nhan, []):
                     cot[nhan].append(khoa)
+    da_co_cot = {k for ds in cot.values() for k in ds}
+    for p in danh_sach:
+        if p["gui_luc"]:
+            for c in cau_ngoai_bo(p["tra_loi"]):
+                for tr in c["truong"]:
+                    khoa = f'{c["so"]}.{tr["id"]}'
+                    if khoa not in da_co_cot and gop(p["tra_loi"], khoa):
+                        cot.setdefault(tr.get("nhan") or c["cau"], []).append(khoa); da_co_cot.add(khoa)
     trang.append(["Gửi lúc", "Đã liên hệ lúc", "Nguồn", "Số ảnh", "Loại video"] + list(cot) + ["Loại yêu cầu", "Mẫu tham khảo"])
     for p in danh_sach:
         if not p["gui_luc"]:
@@ -1518,6 +1800,12 @@ class BaoVe:
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
+        duong_vao = scope.get("path", "")
+        if duong_vao == "/" or duong_vao.startswith(("/api/", "/phieu")):
+            try:
+                await run_in_threadpool(dam_bao_bo)
+            except Exception:   # cơ sở dữ liệu tạm lỗi: dùng tiếp bản đang có
+                pass
 
         if scope.get("method") == "POST" and re.fullmatch(r"/api/phieu/[^/]+/anh", scope.get("path", "")):
             than = bytearray()
@@ -1583,6 +1871,9 @@ app = BaoVe(GZipMiddleware(Starlette(routes=[
     Route("/ngon-ngu.js", tep_js),
     Route("/api/suc-khoe", suc_khoe),
     Route("/api/cau-hinh", cau_hinh),
+    Route("/api/bo-cau-hoi", bo_cau_hoi_moi),
+    Route("/api/nhan-vien/bo-cau-hoi", nv_bo_cau_hoi, methods=["GET", "PUT"]),
+    Route("/api/nhan-vien/bo-cau-hoi/khoi-phuc", nv_khoi_phuc_bo, methods=["POST"]),
     Route("/api/luot-xem", ghi_luot_xem, methods=["POST"]),
     Route("/api/tu-van", gui_tu_van, methods=["POST"]),
     Route("/api/tu-van/bo-sung", bo_sung_tu_van, methods=["POST"]),

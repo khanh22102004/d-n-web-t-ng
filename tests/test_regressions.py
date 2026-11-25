@@ -27,8 +27,9 @@ class RegressionTests(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(m.app)
         m._dem.clear()
-        for table in ('anh', 'phieu', 'luot_xem'):
+        for table in ('anh', 'phieu', 'luot_xem', 'bo_cau_hoi'):
             m.sql('DELETE FROM ' + table)
+        m.dam_bao_bo(ngay=True)              # bộ câu hỏi về bản gốc trong mã
 
     def tearDown(self):
         self.client.close()
@@ -511,6 +512,144 @@ class RegressionTests(unittest.TestCase):
             o = ma_qr.ma_tran(chu)
             anh = np.array(Image.open(io.BytesIO(ma_qr.png(o, 600))).convert('L'))
             self.assertEqual(cv2.QRCodeDetector().detectAndDecode(anh)[0], chu, len(o))
+
+    # ---------- Nhân viên xem và sửa bộ câu hỏi ----------
+    def bo_dang_dung(self):
+        r = self.client.get('/api/nhan-vien/bo-cau-hoi')
+        self.assertEqual(r.status_code, 200, r.text)
+        return r.json()
+
+    def luu_bo(self, bo, phien_ban, ghi_chu='thử'):
+        return self.client.put('/api/nhan-vien/bo-cau-hoi', json={'bo': bo, 'phien_ban': phien_ban, 'ghi_chu': ghi_chu})
+
+    def test_question_bank_check_keeps_current_bank(self):
+        import copy
+        ra = m.kiem_bo(copy.deepcopy(m.BO_CAU_HOI))
+        bo = lambda x: json.dumps({k: v for k, v in x.items() if k != 'phien_ban'}, ensure_ascii=False, sort_keys=True)
+        self.assertEqual(bo(ra), bo(m.BO_CAU_HOI))
+
+    def test_staff_edits_questions_and_customers_see_them(self):
+        self.assertEqual(self.client.get('/api/nhan-vien/bo-cau-hoi').status_code, 401)
+        self.assertEqual(self.client.put('/api/nhan-vien/bo-cau-hoi', json={}).status_code, 401)
+        # Phiếu đã gửi trả lời câu 13 trước khi câu này bị bỏ khỏi loại "Sản phẩm, dịch vụ".
+        cu = self.new(); a = self.answers(); a['13.can_tranh'] = 'Không nhắc đối thủ X'
+        self.assertEqual(self.client.post(cu + '/gui', json={'dong_y': True, 'tra_loi': a}).status_code, 200)
+        self.login()
+        du = self.bo_dang_dung()
+        self.assertTrue(du['dang_dung_goc']); self.assertEqual(du['lich_su'], [])
+        bo, cu_pb = du['bo'], du['bo']['phien_ban']
+        c5 = next(c for c in bo['cau_hoi'] if c['so'] == 5)
+        c5['cau'] = 'Video cần ghi những thông tin nào?'
+        bo['cau_hoi'].append({'so': 1001, 'nhom': 'hinh-thuc', 'cau': 'Quý khách hàng thích màu chủ đạo nào?',
+                              'truong': [{'kieu': 'mot', 'bat_buoc': True, 'lua_chon': ['Màu sáng', 'Màu tối', ' ', 'Màu sáng']}]})
+        sp = next(l for l in bo['loai'] if l['id'] == m.BO_MAC_DINH)
+        sp['cau'] = [so for so in sp['cau'] if so != 13] + [1001]          # thêm ở cuối: máy chủ tự xếp theo phần
+        sp['ten'] = 'Sản phẩm và dịch vụ'
+        r = self.luu_bo(bo, cu_pb, 'thêm câu màu chủ đạo')
+        self.assertEqual(r.status_code, 200, r.text)
+        du = r.json(); moi_pb = du['bo']['phien_ban']
+        self.assertFalse(du['dang_dung_goc']); self.assertEqual(du['lich_su'][0]['ghi_chu'], 'thêm câu màu chủ đạo')
+        c1001 = next(c for c in du['bo']['cau_hoi'] if c['so'] == 1001)
+        self.assertEqual(c1001['truong'], [{'id': 'tra_loi', 'kieu': 'mot', 'bat_buoc': True, 'lua_chon': ['Màu sáng', 'Màu tối']}])
+        ds = next(l for l in du['bo']['loai'] if l['id'] == m.BO_MAC_DINH)['cau']
+        self.assertNotIn(13, ds)
+        self.assertLess(ds.index(1001), ds.index(17))                    # câu "hình thức" đứng trước phần thời gian
+        # Khách thấy ngay: trang lấy bản mới, phiếu mới phải trả lời câu mới.
+        self.assertEqual(self.client.get('/api/bo-cau-hoi?v=' + moi_pb).status_code, 204)
+        r = self.client.get('/api/bo-cau-hoi?v=' + cu_pb)
+        self.assertEqual(r.json()['bo_cau_hoi']['phien_ban'], moi_pb)
+        self.assertIn('Video cần ghi những thông tin nào?', self.client.get('/phieu').text)
+        path = self.new(); b = self.answers()
+        r = self.client.post(path + '/gui', json={'dong_y': True, 'tra_loi': {k: v for k, v in b.items() if not k.startswith('1001.')}})
+        self.assertEqual(r.status_code, 422)
+        r = self.client.post(path + '/gui', json={'dong_y': True, 'tra_loi': b})
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertIn({'so': None, 'cau': 'Loại video', 'tra_loi': 'Sản phẩm và dịch vụ'}, r.json()['tom_tat'])
+        self.assertTrue(any(d['cau'] == 'Quý khách hàng thích màu chủ đạo nào?' and d['tra_loi'] == 'Màu sáng' for d in r.json()['tom_tat']))
+        # Phiếu cũ vẫn hiện câu trả lời của câu đã bỏ khỏi loại, cả trên trang nhân viên và trong Excel.
+        ds_phieu = self.client.get('/api/nhan-vien/phieu').json()['phieu']
+        phieu_cu = next(p for p in ds_phieu if p['id'] == cu.rsplit('/', 1)[1])
+        self.assertTrue(any(d['so'] is None and 'Không nhắc đối thủ X' in d['tra_loi'] for d in phieu_cu['tom_tat']))
+        wb = load_workbook(io.BytesIO(self.client.get('/api/nhan-vien/xuat-excel').content))
+        chu = '\n'.join(str(o.value) for t in wb.worksheets for hang in t.iter_rows() for o in hang if o.value)
+        self.assertIn('Không nhắc đối thủ X', chu); self.assertIn('Quý khách hàng thích màu chủ đạo nào?', chu)
+
+    def test_question_bank_edits_that_would_break_the_site_are_refused(self):
+        import copy
+        self.login()
+        du = self.bo_dang_dung(); pb = du['bo']['phien_ban']
+        def thu(sua, thong_bao):
+            bo = copy.deepcopy(du['bo']); sua(bo)
+            r = self.luu_bo(bo, pb)
+            self.assertEqual(r.status_code, 422, r.text)
+            self.assertIn(thong_bao, r.json()['loi']['thong_bao'])
+        cau = lambda bo, so: next(c for c in bo['cau_hoi'] if c['so'] == so)
+        loai = lambda bo, ma: next(l for l in bo['loai'] if l['id'] == ma)
+        thu(lambda bo: loai(bo, 'su-kien')['cau'].remove(19), 'không bỏ khỏi loại')
+        thu(lambda bo: loai(bo, m.BO_MAC_DINH)['cau'].remove(11), 'không bỏ khỏi loại')
+        thu(lambda bo: cau(bo, 27)['truong'][0].update(lua_chon=['Video bằng AI', 'Hoạt hình']), 'Quay thực tế')
+        thu(lambda bo: cau(bo, 15)['truong'][0].update(lua_chon=['Giọng nam', 'Giọng nữ']), 'Không cần giọng đọc')
+        thu(lambda bo: cau(bo, 14)['truong'][0].update(lua_chon=['Tiếng Nhật', 'Tiếng Anh']), 'Tiếng Việt')
+        thu(lambda bo: cau(bo, 15)['truong'][0].update(id='doi_ten'), 'ô trả lời')
+        thu(lambda bo: bo['cau_hoi'].remove(cau(bo, 20)), 'Không xóa câu')
+        thu(lambda bo: cau(bo, 5).update(cau='  '), 'không được để trống')
+        thu(lambda bo: bo['loai'].pop(), 'loại video')
+        thu(lambda bo: bo['cau_hoi'].append({'so': 49, 'nhom': 'thong-tin', 'cau': 'Câu mới?', 'truong': [{'kieu': 'chu'}]}), 'Số của câu mới')
+        thu(lambda bo: bo['cau_hoi'].append({'so': 1001, 'nhom': 'thong-tin', 'cau': 'Câu mới?', 'truong': [{'kieu': 'mot', 'lua_chon': ['Một']}]}), 'hai lựa chọn')
+        thu(lambda bo: bo['cau_hoi'].append({'so': 1001, 'nhom': 'loai-video', 'cau': 'Câu mới?', 'truong': [{'kieu': 'chu'}]}), 'phần của phiếu')
+        # Đổi được chữ, gợi ý, bắt buộc; không đổi được kiểu ô, lựa chọn gắn video mẫu, cách liên hệ.
+        bo = copy.deepcopy(du['bo'])
+        cau(bo, 15)['truong'][0]['kieu'] = 'chu'
+        cau(bo, 11)['truong'][0]['lua_chon'] = ['A', 'B']
+        cau(bo, 19)['truong'][1]['lua_chon'] = ['Thư tay', 'Bồ câu']
+        cau(bo, 19)['truong'][0]['bat_buoc'] = False
+        cau(bo, 20)['truong'][0]['bat_buoc'] = False
+        r = self.luu_bo(bo, pb); self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(m.CAU_THEO_SO[15]['truong'][0]['kieu'], 'mot')
+        self.assertEqual(m.CAU_THEO_SO[11]['truong'][0]['lua_chon'], m.BO_GOC['cau_hoi'][10]['truong'][0]['lua_chon'])
+        self.assertEqual(m.CAU_THEO_SO[19]['truong'][1]['lua_chon'], ['Zalo', 'Điện thoại', 'Email', 'Messenger'])
+        self.assertTrue(m.CAU_THEO_SO[19]['truong'][0]['bat_buoc'])
+        self.assertFalse(m.CAU_THEO_SO[20]['truong'][0]['bat_buoc'])
+        # Người khác vừa lưu: bản cũ không ghi đè được.
+        self.assertEqual(self.luu_bo(copy.deepcopy(du['bo']), pb).status_code, 409)
+
+    def test_question_bank_history_and_restore(self):
+        import copy
+        self.login()
+        du = self.bo_dang_dung(); goc_cau5 = m.CAU_THEO_SO[5]['cau']
+        bo = copy.deepcopy(du['bo']); next(c for c in bo['cau_hoi'] if c['so'] == 5)['cau'] = 'Bản một?'
+        bo['cau_hoi'].append({'so': 1001, 'nhom': 'noi-dung', 'cau': 'Câu thêm ở bản một?', 'truong': [{'kieu': 'doan', 'vi_du': 'Ví dụ'}]})
+        du1 = self.luu_bo(bo, du['bo']['phien_ban'], 'bản một').json()
+        bo = copy.deepcopy(du1['bo']); next(c for c in bo['cau_hoi'] if c['so'] == 5)['cau'] = 'Bản hai?'
+        du2 = self.luu_bo(bo, du1['bo']['phien_ban'], 'bản hai').json()
+        self.assertEqual([b['ghi_chu'] for b in du2['lich_su']], ['bản hai', 'bản một'])
+        r = self.client.post('/api/nhan-vien/bo-cau-hoi/khoi-phuc', json={'ma': 'goc', 'phien_ban': du1['bo']['phien_ban']})
+        self.assertEqual(r.status_code, 409)
+        r = self.client.post('/api/nhan-vien/bo-cau-hoi/khoi-phuc', json={'ma': 'goc', 'phien_ban': du2['bo']['phien_ban']})
+        self.assertEqual(m.CAU_THEO_SO[5]['cau'], goc_cau5)
+        self.assertIn(1001, m.CAU_THEO_SO)                         # câu thêm sau vẫn giữ trong kho để đọc phiếu cũ
+        self.assertNotIn(1001, [so for l in m.LOAI.values() for so in l['cau']])
+        du3 = r.json(); self.assertEqual(du3['lich_su'][0]['ghi_chu'], 'Khôi phục bản gốc')
+        ma_ban_mot = next(b['id'] for b in du3['lich_su'] if b['ghi_chu'] == 'bản một')
+        r = self.client.post('/api/nhan-vien/bo-cau-hoi/khoi-phuc', json={'ma': ma_ban_mot, 'phien_ban': du3['bo']['phien_ban']})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(m.CAU_THEO_SO[5]['cau'], 'Bản một?')
+        self.assertTrue(r.json()['lich_su'][0]['ghi_chu'].startswith('Khôi phục bản lúc'))
+        self.assertEqual(self.client.post('/api/nhan-vien/bo-cau-hoi/khoi-phuc', json={'ma': 'khong-co', 'phien_ban': r.json()['bo']['phien_ban']}).status_code, 404)
+
+    def test_qr_with_logo_uses_high_error_correction(self):
+        import ma_qr
+        url = 'https://d-n-web-t-ng.vercel.app/phieu?nguon=ma-qr'
+        self.assertGreater(len(ma_qr.ma_tran(url, 'H')), len(ma_qr.ma_tran(url)))
+        try:
+            import cv2, numpy as np
+        except ImportError:
+            self.skipTest('Không có OpenCV để đọc thử mã QR')
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'cong-cu'))
+        import tao_ma_qr_in
+        anh = tao_ma_qr_in.ve_the(url, 1080, 1350)
+        nang, _ = tao_ma_qr_in.doc_thu(anh, url)
+        self.assertEqual(nang, [])
 
     def test_concurrent_page_views(self):
         def view(_):

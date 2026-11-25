@@ -108,7 +108,92 @@ body.staff-page .nv .nut.nut-xoa:hover:not(:disabled) { background: #8a211c; bor
 .nv-tich { display: grid; place-items: center; min-height: 66px; cursor: pointer; }
 .nv-chan-trang { max-width: 1344px; margin: 0 auto; padding: 24px 32px; border-top: 1px solid #dededb; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; font-size: .875rem; color: #737578; }
 .nv-chan-trang a { color: #56595c; text-underline-offset: 4px; }
+/* Nút phụ (viền, nền trắng): "Tải ảnh mã QR", "Mở phiếu như khách thấy", "Thêm câu…" */
+body.staff-page .nv .nut.nho.nut-phu { background: #fff; color: #202224; border-color: #929495; }
+body.staff-page .nv .nut.nho.nut-phu:hover { background: #e9e9e6; border-color: #202224; color: #202224; }
+/* Hai thẻ: yêu cầu của khách / bộ câu hỏi */
+.nv-the { display: flex; gap: 4px; margin-bottom: 30px; border-bottom: 1px solid #d6d6d3; }
+.nv-the [role="tab"] { font: inherit; font-size: .95rem; font-weight: 700; color: #5c5f62; background: none; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; padding: 12px 18px; min-height: 48px; cursor: pointer; }
+.nv-the [role="tab"]:hover { color: #202224; }
+.nv-the [role="tab"][aria-selected="true"] { color: #202224; border-bottom-color: #202224; }
+.nv-the [role="tab"]:focus-visible { outline: 3px solid #202224; outline-offset: 2px; }
+/* Xem và sửa bộ câu hỏi */
+.sc-dang-dung { margin-top: 18px; padding: 12px 16px; background: #eaeae6; border-radius: 5px; font-size: .92rem; color: #3f4245; }
+.sc-dang-dung:empty { display: none; }
+.sc-khung { margin-top: 20px; padding: 28px; background: #fff; border: 1px solid #dededb; border-radius: 10px; }
+.sc-dau { display: grid; grid-template-columns: 280px 280px minmax(0, 1fr); gap: 16px; align-items: start; }
+.sc-cong-cu { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 20px; margin-top: 22px; padding-bottom: 16px; border-bottom: 1px solid #e1e1dd; }
+.sc-dem { margin-right: auto; color: #5c5f62; font-size: .9rem; }
+.sc-cong-cu .nut-chu { font-size: .9rem; }
+.nv .sc-cong-cu .nut.nho, .sc-them .nut.nho { min-height: 40px; padding: 8px 14px; font-size: .875rem; text-decoration: none; }
+.sc-phan { margin-top: 28px; }
+.sc-phan h3 { font-size: 1.02rem; line-height: 1.4; }
+.sc-trong { color: #6b6d70; font-size: .9rem; margin-top: 8px; }
+.sc-cau { margin-top: 10px; border: 1px solid #d7d7d3; border-radius: 8px; background: #fff; }
+.sc-cau[open] { border-color: #929592; }
+.sc-cau summary { position: relative; display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 16px 46px 16px 16px; cursor: pointer; list-style: none; }
+.sc-cau summary::-webkit-details-marker { display: none; }
+.sc-cau summary::after { content: "+"; position: absolute; right: 18px; top: 13px; color: #64676a; font-size: 1.3rem; }
+.sc-cau[open] > summary::after { content: "−"; }
+.sc-cau summary:focus-visible { outline: 3px solid #202224; outline-offset: 2px; border-radius: 8px; }
+.sc-stt { padding-top: 2px; color: #5c5f62; font-size: .85rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sc-tom b { display: block; font-size: .95rem; line-height: 1.45; overflow-wrap: anywhere; }
+.sc-tom small { display: block; margin-top: 4px; color: #6b6d70; font-size: .85rem; line-height: 1.5; overflow-wrap: anywhere; }
+.sc-nhan-ds { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.sc-nhan { padding: 3px 8px; border: 1px solid #d1d1cd; border-radius: 4px; background: #f4f4f1; color: #4d5053; font-size: .78rem; font-weight: 600; white-space: nowrap; }
+.sc-nhan.moi { background: #292b2d; border-color: #292b2d; color: #fff; }
+.sc-than { padding: 4px 20px 20px; border-top: 1px solid #dededb; background: #fafaf8; border-radius: 0 0 8px 8px; }
+.sc-o { margin-top: 16px; }
+.nv textarea { font: inherit; width: 100%; min-height: 72px; padding: 12px 14px; border: 1px solid #a9abaa; border-radius: 5px; color: #202224; background: #fff; resize: vertical; }
+.nv textarea:focus-visible { outline: 3px solid #202224; outline-offset: 3px; }
+.sc-ghi { margin-top: 12px; padding: 10px 12px; border-left: 3px solid #929592; background: #f1f1ee; color: #3f4245; font-size: .88rem; line-height: 1.55; }
+.sc-ghi-nho { display: block; color: #6b6d70; font-size: .82rem; line-height: 1.45; }
+.sc-truong { min-width: 0; margin: 18px 0 0; padding: 12px 16px 16px; border: 1px solid #dededb; border-radius: 8px; background: #fff; }
+.sc-truong legend { padding: 0 6px; font-size: .9rem; font-weight: 700; }
+.sc-truong .sc-o:first-of-type { margin-top: 8px; }
+.sc-lc { margin-top: 14px; }
+.sc-lc > .nhan { margin-bottom: 0; }
+.sc-lc ol { list-style: none; padding: 0; margin: 8px 0 10px; display: grid; gap: 8px; }
+.sc-lc li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; }
+.sc-lc li .sc-ghi-nho { grid-column: 1 / -1; }
+.nv .sc-lc li input { min-height: 42px; padding: 8px 12px; }
+.nv .sc-lc input[readonly] { background: #f1f1ee; color: #4d5053; }
+.sc-lc li .nut-chu, .sc-lc > .nut-chu { min-height: 40px; padding: 8px 6px; font-size: .875rem; }
+.sc-lc-khoa { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.sc-lc-khoa li { padding: 6px 10px; border: 1px solid #d6d6d3; border-radius: 4px; background: #f6f6f3; font-size: .88rem; }
+.sc-tich-ds { display: flex; flex-wrap: wrap; gap: 4px 26px; margin-top: 12px; }
+.sc-tich { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; min-height: 44px; font-size: .9rem; cursor: pointer; }
+.nv .sc-tich input { width: 20px; height: 20px; min-height: 0; padding: 0; accent-color: #292b2d; cursor: pointer; }
+.nv .sc-tich input:disabled { cursor: not-allowed; }
+.sc-tich small { color: #6b6d70; font-size: .82rem; }
+.nv .sc-o-so input { max-width: 180px; }
+.sc-thao-tac { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin-top: 18px; padding-top: 12px; border-top: 1px solid #e4e4e0; }
+.sc-thao-tac .nut-chu { min-height: 40px; padding: 8px 4px; font-size: .875rem; }
+.nv .sc-thao-tac .nut-nguy-hiem { margin-top: 0; }
+.nv .sc-than button:disabled { opacity: .45; cursor: not-allowed; }
+.sc-them { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+.sc-co-san { display: flex; flex-wrap: wrap; gap: 10px; flex: 1 1 440px; min-width: 0; }
+.nv .sc-co-san select { flex: 1 1 260px; min-width: 0; min-height: 40px; padding: 8px 10px; font-size: .9rem; }
+.sc-lich-su { margin-top: 24px; padding: 18px 24px; background: #fff; border: 1px solid #dededb; border-radius: 10px; }
+.sc-lich-su summary { display: flex; align-items: center; min-height: 32px; font-weight: 700; cursor: pointer; }
+.sc-lich-su .dan { margin-top: 8px; }
+.sc-lich-su ol { list-style: none; padding: 0; margin: 12px 0 16px; }
+.sc-lich-su li { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid #ecece8; font-size: .9rem; }
+.sc-ls-luc { color: #5c5f62; font-variant-numeric: tabular-nums; }
+.sc-ls-chu { overflow-wrap: anywhere; }
+.sc-lich-su li .nut-chu { min-height: 40px; padding: 8px 4px; font-size: .875rem; }
+.sc-lich-su .nut.nho { min-height: 40px; padding: 8px 14px; font-size: .875rem; }
+.sc-lich-su .nut:disabled { opacity: .45; cursor: not-allowed; }
+.sc-luu { position: sticky; bottom: 12px; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 20px; padding: 14px 18px; background: #fff; border: 1.5px solid #202224; border-radius: 10px; box-shadow: 0 6px 24px rgb(0 0 0 / .12); }
+.sc-luu-chu { display: flex; flex-direction: column; margin-right: auto; font-size: .92rem; }
+.sc-luu-chu span { color: #5c5f62; font-size: .85rem; }
+.nv .sc-luu input { flex: 1 1 280px; width: auto; min-width: 0; min-height: 42px; padding: 8px 12px; }
+.nv .sc-luu .nut.nho { min-height: 42px; padding: 8px 16px; }
+.sc-luu .nut-chu { min-height: 42px; padding: 8px 4px; font-size: .9rem; }
+.sc-luu-loi { flex-basis: 100%; color: #a32923; font-size: .9rem; font-weight: 600; }
 @media (max-width: 1100px) {
+  .sc-dau { grid-template-columns: 1fr 1fr; }
+  .sc-chon-rong { grid-column: 1 / -1; }
   #loc-phieu { grid-template-columns: minmax(0, 1fr) 180px 200px; }
   .loc-thao-tac { grid-column: 1 / -1; }
   .so-lieu li { padding: 20px; }
@@ -141,4 +226,15 @@ body.staff-page .nv .nut.nut-xoa:hover:not(:disabled) { background: #8a211c; bor
   .chi-tiet { padding-inline: 18px; }
   .chi-tiet .tom-tat { grid-template-columns: 1fr; }
   .nv-chan-trang { padding-inline: 18px; }
+  .nv-the [role="tab"] { flex: 1 1 0; padding-inline: 8px; }
+  .sc-khung { padding: 18px; }
+  .sc-dau { grid-template-columns: 1fr; }
+  .sc-cau summary { grid-template-columns: 1fr; gap: 6px; padding: 14px 40px 14px 14px; }
+  .sc-nhan-ds { justify-content: flex-start; }
+  .sc-than { padding-inline: 14px; }
+  .sc-truong { padding-inline: 12px; }
+  .sc-lich-su { padding: 16px 18px; }
+  .sc-lich-su li { grid-template-columns: 1fr auto; }
+  .sc-ls-luc { grid-column: 1 / -1; }
+  .sc-luu { bottom: 8px; padding: 12px 14px; }
 }

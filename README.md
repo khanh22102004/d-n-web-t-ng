@@ -70,7 +70,8 @@ Màn hình đầu  →  Thư viện 13 video mẫu  →  Tư vấn nhanh (2 ô) 
 - Đăng nhập bằng mật khẩu chung (`ADMIN_PASSWORD`).
 - Danh sách yêu cầu có tìm kiếm, lọc trạng thái và loại video, phân trang, xem chi tiết và ảnh, đánh dấu đã liên hệ, xóa phiếu kèm ảnh sau xác nhận.
 - Tích chọn nhiều phiếu (giữ khi chuyển trang, có "Chọn cả trang này"): tải Excel các phiếu đã chọn, xóa các phiếu đã chọn, hoặc xóa hết phiếu đang lọc. Xóa nhiều luôn hỏi lại ngay trên trang, ghi rõ số phiếu và có nút tải Excel các phiếu đó trước; xóa theo bộ lọc chỉ chạy khi số phiếu trên máy chủ đúng bằng số nhân viên đang thấy.
-- Khung "Mã QR điền phiếu": mã QR chung (tải ảnh PNG để in hoặc gửi Zalo), link `/phieu` có nút chép, và 8 link riêng từng loại video.
+- Khung "Mã QR điền phiếu": mã QR chung (tải ảnh PNG để in hoặc gửi Zalo), link `/phieu` có nút chép, và 8 link riêng từng loại video. Ảnh mã QR có logo ở giữa và dòng chữ "Phiếu câu hỏi làm video" bên dưới để in: `python cong-cu/tao_ma_qr_in.py` (xem mục 8).
+- Thẻ **Bộ câu hỏi**: xem câu hỏi của từng loại video và sửa ngay trên trang: chữ câu hỏi, gợi ý, tên ô, chữ mẫu trong ô, các lựa chọn (thêm, bớt, đổi tên), bắt buộc hay không, ô cho khách tự ghi, số lựa chọn tối đa; thêm câu mới (chọn một, chọn nhiều, chữ ngắn, đoạn văn) hoặc câu có sẵn trong kho vào một phần; bỏ câu khỏi một loại; đổi thứ tự câu trong cùng phần; đổi tên và mô tả loại video. Bấm "Lưu và áp dụng" là khách thấy ngay; mỗi lần lưu có ghi chú và nằm trong lịch sử (30 bản gần nhất), khôi phục được bản cũ hoặc bản gốc. Ai đăng nhập trang nhân viên cũng sửa được. Chỉ sửa tiếng Việt: câu sửa chữ hoặc câu mới hiện bằng tiếng Việt cả ở trang tiếng Nhật và tiếng Anh.
 - Thống kê lượt mở trang, phiếu bắt đầu/gửi, khách dừng ở phần nào, theo nguồn.
 - Xuất Excel toàn bộ yêu cầu, hoặc chỉ phiếu đã chọn / đang lọc (gồm cột "Loại video", "Loại yêu cầu" và "Mẫu tham khảo"). Trang từng khách theo khuôn 17 mục lấy câu trả lời của mọi loại video (buổi quay, khung hình, sự kiện, tuyển dụng…).
 
@@ -146,14 +147,19 @@ web-b-productions/
 ├── BRAND_SOURCES.md        # Nguồn và quyết định nhận diện
 ├── KIEM_TRA_GIAO_DIEN.md   # Kết quả kiểm tra giao diện
 ├── cong-cu/
-│   └── dong_goi.py         # Nén JS/CSS vào web/da-nen/ (chạy lại sau mỗi lần sửa CSS hoặc JS)
+│   ├── dong_goi.py         # Nén JS/CSS vào web/da-nen/ (chạy lại sau mỗi lần sửa CSS hoặc JS)
+│   └── tao_ma_qr_in.py     # Ảnh mã QR có logo và chữ bên dưới, để in hoặc gửi khách
+├── ma_qr.py                # Tạo mã QR (mức sửa lỗi M, hoặc H khi có logo), không cần thư viện ngoài
 ├── tests/
-│   ├── test_regressions.py # 28 kiểm thử máy chủ
-│   └── browser_history.py  # Kiểm thử Back/Forward bằng Chromium
+│   ├── test_regressions.py # 44 kiểm thử máy chủ
+│   ├── browser_history.py  # Kiểm thử Back/Forward bằng Chromium
+│   ├── browser_loai_video.py  # Trang điền phiếu riêng, loại video, trang nhân viên
+│   └── browser_sua_cau_hoi.py # Thẻ Bộ câu hỏi ở trang nhân viên
 └── web/
     ├── index.html          # Trang khách
     ├── chinh-sach.html     # Cách dùng thông tin
     ├── nhan-vien.html/.js  # Trang nhân viên
+    ├── sua-cau-hoi.js      # Thẻ Bộ câu hỏi ở trang nhân viên
     ├── app.js              # Toàn bộ tương tác phía khách
     ├── da-nen/             # Bản nén do cong-cu/dong_goi.py tạo: app.js, ngon-ngu.js, goi.css, dau.css (CSS màn hình đầu)
     ├── style.css, brand.css, desktop.css, can-doi.css, nhan-vien.css
@@ -223,7 +229,8 @@ Máy chủ từ chối khởi động trên Vercel hoặc Render nếu thiếu `
 | Ba mẫu nổi bật, mẫu đầu tiên trên điện thoại | `web/app.js` → `maNoiBat` (mẫu đầu danh sách cũng đứng đầu thư viện) |
 | Ảnh bìa nét hơn | Thêm `"anh_bia": "/anh-mau/<mã>-hd.webp"` vào mẫu; nên dùng ảnh dọc 9:16 |
 | Video phát tại chỗ (có tiếng cả trên iPhone) | Đặt `web/video-mau/<mã>.mp4` hoặc `.webm` (xem `DOC-TOI.txt`) |
-| Câu hỏi phiếu chi tiết | `cau_hoi.json`: `cau_hoi` là kho câu chung, mỗi câu một số `so` riêng (khóa câu trả lời là `<so>.<trường>`); `loai` là 8 loại video, mỗi loại liệt kê số câu theo thứ tự hiện; `nhom` là thứ tự các phần. `hien_khi` cho câu chỉ hiện khi câu khác có lựa chọn cần; `anh_nhan` đổi nhãn ô gửi ảnh. Không đổi số câu đã dùng để dữ liệu cũ vẫn đọc được; thêm câu mới thì thêm bản dịch tiếng Nhật, tiếng Anh vào từ điển trong `web/ngon-ngu.js` (khóa là câu tiếng Việt) rồi chạy `cong-cu/dong_goi.py` |
+| Câu hỏi phiếu chi tiết | `cau_hoi.json`: `cau_hoi` là kho câu chung, mỗi câu một số `so` riêng (khóa câu trả lời là `<so>.<trường>`); `loai` là 8 loại video, mỗi loại liệt kê số câu theo thứ tự hiện; `nhom` là thứ tự các phần. `hien_khi` cho câu chỉ hiện khi câu khác có lựa chọn cần; `anh_nhan` đổi nhãn ô gửi ảnh. Không đổi số câu đã dùng để dữ liệu cũ vẫn đọc được; thêm câu mới thì thêm bản dịch tiếng Nhật, tiếng Anh vào từ điển trong `web/ngon-ngu.js` (khóa là câu tiếng Việt) rồi chạy `cong-cu/dong_goi.py`. **Khi nhân viên đã sửa câu hỏi trên trang**, bản sửa nằm trong bảng `bo_cau_hoi` của cơ sở dữ liệu và được dùng thay `cau_hoi.json`: sửa `cau_hoi.json` rồi triển khai thì phải bấm "Khôi phục bản gốc" ở thẻ Bộ câu hỏi mới có hiệu lực (câu nhân viên thêm vẫn giữ trong kho để đọc phiếu cũ). Câu thêm trong `cau_hoi.json` đánh số dưới 1000; câu nhân viên thêm đánh số từ 1001 nên không trùng. Máy chủ không cho: xóa câu khỏi kho (chỉ bỏ khỏi loại), đổi mã hay kiểu ô của câu đã có, bỏ câu liên hệ (19) khỏi loại nào, bỏ các câu 1, 2, 4, 7, 11, 17, 18 khỏi loại "Sản phẩm, dịch vụ" (tư vấn nhanh và chọn mẫu dùng), sửa lựa chọn câu 11 (gắn video mẫu) và cách liên hệ, xóa hay đổi tên lựa chọn đang làm điều kiện hiện câu khác ("Quay thực tế", "Tiếng Việt", "Không cần giọng đọc") |
+| Ảnh mã QR để in | `python cong-cu/tao_ma_qr_in.py [--url …] [--ra thư-mục]`: mã mức sửa lỗi H, logo ở giữa, chữ "Phiếu câu hỏi làm video" bên dưới; tạo bản 1080 × 1350 (gửi Zalo/Facebook) và 2480 × 3100 (in, 300 dpi). Đường dẫn mặc định `https://d-n-web-t-ng.vercel.app/phieu?nguon=ma-qr` (khách quét mã được ghi nguồn "ma-qr"); đổi tên miền thì chạy lại với `--url`. Mỗi ảnh được đọc thử bằng ba bộ đọc QR của OpenCV ở nhiều cỡ trước khi lưu |
 
 Sửa xong khởi động lại máy chủ.
 
@@ -270,6 +277,9 @@ Trang không tự tạo đánh giá, số sao hay số lượt tương tác. Khi
 | GET | `/api/nhan-vien/phieu/{ma}/anh`, `/api/nhan-vien/anh/{anh}` | Xem ảnh của phiếu |
 | POST | `/api/nhan-vien/phieu/{ma}/lien-he` | Đánh dấu đã liên hệ |
 | GET / POST | `/api/nhan-vien/xuat-excel` | Tải Excel: GET toàn bộ; POST `{"ma": [...]}` phiếu đã chọn hoặc `{"loc": {...}}` phiếu đang lọc |
+| GET | `/api/bo-cau-hoi?v=<phiên bản>` | Bộ câu hỏi mới nhất; cùng phiên bản thì trả 204. Trang gọi khi mở, vì trang có thể lấy từ bản lưu sẵn của CDN |
+| GET / PUT | `/api/nhan-vien/bo-cau-hoi` | Xem bộ câu hỏi đang dùng, lịch sử, các phần bị khóa / lưu bản sửa `{"bo": …, "phien_ban": …, "ghi_chu": …}` (409 nếu người khác vừa lưu, 422 kèm câu báo lỗi nếu sửa không hợp lệ) |
+| POST | `/api/nhan-vien/bo-cau-hoi/khoi-phuc` | Khôi phục `{"ma": "<mã bản>" hoặc "goc", "phien_ban": …}`; lưu thành bản mới |
 
 Mọi đường dẫn `/api/nhan-vien/*` (trừ đăng nhập) cần phiên đăng nhập.
 
@@ -315,7 +325,7 @@ python -m pip install -r requirements-test.txt
 python -m unittest discover -s tests -v
 ```
 
-39 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: ảnh (đồng thời, tệp giả, giới hạn), quyền xóa, lưu đến muộn, phân trang, Excel, tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn tần suất, gửi lại, gửi đồng thời, trả lời bổ sung, gộp với phiếu chi tiết), đánh giá chỉ hiện khi đủ điều kiện, 8 bộ câu hỏi theo loại video (cấu trúc, gửi đủ 8 loại, số câu khách thấy, câu ngoài bộ bị bỏ, câu quay thực tế), lọc, xuất Excel và xóa nhiều phiếu, trang điền phiếu riêng, mã QR (đọc thử bằng OpenCV nếu máy có).
+44 kiểm thử máy chủ chạy trên SQLite tạm, không đọc dữ liệu khách: ảnh (đồng thời, tệp giả, giới hạn), quyền xóa, lưu đến muộn, phân trang, Excel, tư vấn nhanh (đồng ý, dữ liệu sai, giới hạn tần suất, gửi lại, gửi đồng thời, trả lời bổ sung, gộp với phiếu chi tiết), đánh giá chỉ hiện khi đủ điều kiện, 8 bộ câu hỏi theo loại video (cấu trúc, gửi đủ 8 loại, số câu khách thấy, câu ngoài bộ bị bỏ, câu quay thực tế), lọc, xuất Excel và xóa nhiều phiếu, trang điền phiếu riêng, mã QR (đọc thử bằng OpenCV nếu máy có), mã QR có logo, sửa bộ câu hỏi (khách thấy ngay, phiếu cũ vẫn đọc được câu đã bỏ, các sửa đổi làm hỏng trang bị từ chối, lịch sử và khôi phục).
 
 **Back/Forward bằng Chromium** (chỉ chạy trên máy chủ thử có `DATA_DIR` riêng, vì bài thử tạo phiếu giả):
 
@@ -325,9 +335,10 @@ python -m playwright install chromium
 python -m uvicorn may_chu:app --host 127.0.0.1 --port 8000     # cửa sổ khác, DATA_DIR thử
 python tests/browser_history.py --base-url http://127.0.0.1:8000
 python tests/browser_loai_video.py --base-url http://127.0.0.1:8000 --mat-khau <ADMIN_PASSWORD>   # trang điền phiếu riêng, mã QR, câu hiện theo điều kiện, tiếng Nhật, trang nhân viên
+python tests/browser_sua_cau_hoi.py --base-url http://127.0.0.1:8000 --mat-khau <ADMIN_PASSWORD>  # thẻ Bộ câu hỏi; cần máy chủ thử mới tạo (bộ câu hỏi là bản gốc)
 ```
 
-Cả hai bài thử tạo phiếu giả; máy chủ giới hạn 8 phiếu mới mỗi giờ cho một địa chỉ, nên chạy lại nhiều lần thì khởi động lại máy chủ thử với `DATA_DIR` trống.
+Các bài thử tạo phiếu giả; máy chủ giới hạn 8 phiếu mới mỗi giờ cho một địa chỉ, nên chạy lại nhiều lần thì khởi động lại máy chủ thử với `DATA_DIR` trống.
 
 **Đóng gói sau khi sửa CSS hoặc JS.** Trang chủ dùng bản nén trong `web/da-nen/` và chèn thẳng CSS màn hình đầu vào trang (mã băm của nó tự thêm vào chính sách bảo mật CSP). Sửa `web/*.css`, `web/app.js` hoặc `web/ngon-ngu.js` xong thì chạy lại:
 
@@ -351,6 +362,7 @@ Kết quả kiểm tra giao diện theo từng bản ở [KIEM_TRA_GIAO_DIEN.md]
 
 | Ngày | Bản | Thay đổi chính |
 |---|---|---|
+| 25/11/2026 | Nhân viên xem và sửa bộ câu hỏi; mã QR có logo | Trang nhân viên có thẻ "Bộ câu hỏi": xem câu hỏi từng loại video, sửa chữ, lựa chọn, bắt buộc, thêm câu mới hoặc câu có sẵn, bỏ câu khỏi loại, đổi thứ tự, đổi tên loại. Lưu là khách thấy ngay (bản sửa lưu trong bảng `bo_cau_hoi`, máy chủ đọc lại tối đa 10 giây một lần; trang khách hỏi bản mới nhất khi mở vì trang có thể lấy từ CDN); lịch sử 30 bản, khôi phục bản cũ hoặc bản gốc. Máy chủ kiểm mọi bản sửa và từ chối những thay đổi làm hỏng tư vấn nhanh, chọn mẫu, kiểm tra liên hệ, câu hiện theo điều kiện hay dữ liệu cũ. Phiếu cũ vẫn hiện câu trả lời của câu đã bỏ (trang nhân viên và Excel). Khách đang điền dở lúc nhân viên sửa: gửi phiếu thì trang lấy bộ mới và đưa khách tới câu mới còn thiếu. Mã QR: thêm mức sửa lỗi H vào `ma_qr.py` và `cong-cu/tao_ma_qr_in.py` tạo ảnh có logo ở giữa, chữ "Phiếu câu hỏi làm video" bên dưới, đọc thử trước khi lưu. Nút phụ ở trang nhân viên (Tải ảnh mã QR…) nền trắng viền xám thay cho nền đen |
 | 19/11/2026 | Ô thông tin ghi trong video dễ hiểu hơn | Ô phụ dưới câu "Sau khi xem video… muốn người xem làm gì?" đổi từ "Thông tin cần hiện đúng từng chữ" thành "Số điện thoại, website hoặc mã ưu đãi cần ghi trong video, nếu có"; bộ tuyển dụng: "Email, số điện thoại hoặc hạn nộp hồ sơ cần ghi trong video, nếu có". Giữ nguyên khóa câu trả lời; Excel ghi "Thông tin ghi trong video"; có bản dịch Nhật, Anh |
 | 19/11/2026 | Trang điền phiếu riêng và mã QR | Link gửi khách và mã QR mở thẳng trang điền phiếu `/phieu` (một mã QR chung) hoặc `/phieu/<loại>`, không qua trang chủ: chỉ còn khung đồng ý ngay trên trang, phiếu và lời cảm ơn; không tải ảnh mẫu, video YouTube. Máy yếu: 213 KB, hiện nội dung chính 1,35 giây. Mã QR tự tạo trên máy chủ (`ma_qr.py`, không cần thư viện ngoài), đọc thử đúng ở mọi độ dài link đến 210 ký tự. Trang nhân viên có khung mã QR, nút tải ảnh, link chung và 8 link riêng. Nút "Gửi link" dưới phiếu cho link ngắn `/phieu/<loại>` |
 | 19/11/2026 | Bộ câu hỏi theo loại video, gửi link phiếu, xuất và xóa nhiều phiếu | Theo yêu cầu của sếp: phiếu bắt đầu bằng bước chọn 1 trong 8 loại video như trang công ty mẹ, mỗi loại một bộ 18–20 câu (câu chung: đơn vị, ngành, nơi dùng, số lượng, độ dài, khung hình, cách làm, buổi quay khi chọn quay thực tế, tư liệu, ngôn ngữ, giọng, AI, thời hạn, ngân sách, liên hệ; câu riêng theo loại). Bộ "Sản phẩm, dịch vụ" giữ nguyên 20 câu cũ. Nút "Gửi link phiếu này cho người khác": người nhận mở phiếu mới cùng loại, phiếu về cùng Excel. Trang nhân viên: lọc theo loại video, tích chọn nhiều phiếu để tải Excel hoặc xóa, xóa hết phiếu đang lọc (hỏi lại kèm số phiếu, có nút tải Excel trước), 8 link phiếu theo loại để chép gửi khách. Excel thêm cột loại video, khuôn 17 mục lấy câu của mọi loại. Bản dịch Nhật, Anh cho 219 câu chữ mới và 3 mẫu câu. Sửa phần "Quy trình làm video" vẫn hiện phía trên phiếu khi đang điền. Đo máy yếu: điện thoại 483 → 496 KB, laptop 478 → 491 KB, cuộn 60/59 khung hình/giây, 0 lần giật |

@@ -32,6 +32,11 @@
   </form>
 
   <div id="bang" hidden>
+    <div class="nv-the" role="tablist" aria-label="Khu vực làm việc">
+      <button type="button" role="tab" id="the-phieu" aria-controls="khu-phieu" aria-selected="true">Yêu cầu của khách</button>
+      <button type="button" role="tab" id="the-cau-hoi" aria-controls="khu-cau-hoi" aria-selected="false" tabindex="-1">Bộ câu hỏi</button>
+    </div>
+    <div id="khu-phieu" role="tabpanel" aria-labelledby="the-phieu">
     <div class="nv-dau">
       <div><h1>Quản lý yêu cầu</h1><p class="dan">Xem thông tin, theo dõi liên hệ và chuẩn bị phương án video.</p></div>
       <a class="nut" href="/api/nhan-vien/xuat-excel">Tải file Excel ↓</a>
@@ -85,9 +90,47 @@
       <section class="nv-phan"><h2>Khách dừng ở phần nào</h2><table id="bang-dung"><caption class="an-di">Số phiếu đang dở theo từng phần</caption><thead><tr><th scope="col">Phần</th><th scope="col">Số phiếu dở</th></tr></thead><tbody></tbody></table></section>
       <section class="nv-phan"><h2>Theo nguồn</h2><table id="bang-nguon"><caption class="an-di">Lượt mở trang và gửi phiếu theo nguồn</caption><thead><tr><th scope="col">Nguồn</th><th scope="col">Mở trang</th><th scope="col">Gửi phiếu</th></tr></thead><tbody></tbody></table></section>
     </div>
+    </div>
+
+    <div id="khu-cau-hoi" role="tabpanel" aria-labelledby="the-cau-hoi" hidden>
+      <div class="nv-dau">
+        <div><h1>Bộ câu hỏi</h1><p class="dan">Xem và sửa câu hỏi khách trả lời ở phiếu. Bấm “Lưu và áp dụng” là khách thấy ngay; mỗi lần lưu được giữ trong lịch sử để khôi phục. Câu sửa chữ hoặc câu mới hiện bằng tiếng Việt cả ở trang tiếng Nhật và tiếng Anh.</p></div>
+      </div>
+      <p class="sc-dang-dung" id="sc-dang-dung" role="status">Đang tải bộ câu hỏi…</p>
+      <p class="bao-loi" id="sc-loi-tai" role="alert" hidden></p>
+      <section class="sc-khung" id="sc-khung" aria-labelledby="sc-loai-nhan" hidden>
+        <div class="sc-dau">
+          <div class="sc-chon"><label class="nhan" for="sc-loai" id="sc-loai-nhan">Loại video</label><select id="sc-loai"></select></div>
+          <div class="sc-chon"><label class="nhan" for="sc-ten-loai">Tên loại hiện cho khách</label><input type="text" id="sc-ten-loai" maxlength="60"></div>
+          <div class="sc-chon sc-chon-rong"><label class="nhan" for="sc-mo-ta-loai">Mô tả ngắn dưới tên loại</label><input type="text" id="sc-mo-ta-loai" maxlength="120"></div>
+        </div>
+        <div class="sc-cong-cu">
+          <p class="sc-dem" id="sc-dem"></p>
+          <button type="button" class="nut-chu" id="sc-mo-het">Mở tất cả câu</button>
+          <a class="nut nho nut-phu" id="sc-xem" href="/phieu" target="_blank" rel="noopener" title="Phiếu mở ra là bản đã lưu">Mở phiếu như khách thấy ↗</a>
+        </div>
+        <p class="nv-bao" id="sc-bao" role="status" hidden></p>
+        <div id="sc-ds"></div>
+      </section>
+      <details class="sc-lich-su" id="sc-lich-su-hop" hidden>
+        <summary>Lịch sử thay đổi</summary>
+        <p class="dan">Khôi phục một bản là lưu lại bản đó thành bản mới, nên bản đang dùng vẫn còn trong lịch sử.</p>
+        <ol id="sc-lich-su"></ol>
+        <button type="button" class="nut nho nut-phu" id="sc-ve-goc">Khôi phục bản gốc</button>
+      </details>
+      <div class="sc-luu" id="sc-luu" role="region" aria-label="Lưu thay đổi bộ câu hỏi" hidden>
+        <p class="sc-luu-chu"><b id="sc-so-doi">Có thay đổi chưa lưu</b><span>Bấm lưu là khách thấy ngay.</span></p>
+        <label class="an-di" for="sc-ghi-chu">Ghi chú cho lần sửa này</label>
+        <input type="text" id="sc-ghi-chu" maxlength="200" placeholder="Ghi chú, ví dụ: thêm câu hỏi về màu chủ đạo">
+        <button type="button" class="nut nho" id="sc-luu-nut">Lưu và áp dụng</button>
+        <button type="button" class="nut-chu" id="sc-bo-doi">Bỏ thay đổi</button>
+        <p class="sc-luu-loi" id="sc-luu-loi" role="alert" hidden></p>
+      </div>
+    </div>
   </div>
 </main>
 <footer class="nv-chan-trang"><span>B PRODUCTIONS · Khu vực nhân viên</span><a href="/chinh-sach">Cách dùng thông tin</a></footer>
 <script src="/nhan-vien.js" defer></script>
+<script src="/sua-cau-hoi.js" defer></script>
 </body>
 </html>

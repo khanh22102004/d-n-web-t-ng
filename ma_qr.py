@@ -1,8 +1,9 @@
-"""Tạo mã QR (chế độ byte, mức sửa lỗi M, phiên bản 1–10) không cần thư viện ngoài.
+"""Tạo mã QR (chế độ byte, mức sửa lỗi M hoặc H, phiên bản 1–10) không cần thư viện ngoài.
 
 Dùng cho mã QR mở trang điền phiếu: đường dẫn ngắn (dưới 200 ký tự) nên phiên bản 10 là đủ.
 Theo chuẩn ISO/IEC 18004; cách đặt mô-đun và tính Reed–Solomon theo hướng dẫn của Project Nayuki.
     ma_tran("https://…/phieu")  -> danh sách hàng, mỗi ô True là ô đen
+    ma_tran(url, muc="H")       -> mức sửa lỗi cao (đọc được dù 30% mã bị che), dùng khi đặt logo giữa mã
     svg(ma_tran)                -> chuỗi SVG có lề trắng 4 ô
 """
 
@@ -12,6 +13,14 @@ KHOI_M = {
     6: (16, [(4, 27)]), 7: (18, [(4, 31)]), 8: (22, [(2, 38), (2, 39)]), 9: (22, [(3, 36), (2, 37)]),
     10: (26, [(4, 43), (1, 44)]),
 }
+# Mức H (theo bảng 9 của chuẩn): dùng cho mã có logo ở giữa.
+KHOI_H = {
+    1: (17, [(1, 9)]), 2: (28, [(1, 16)]), 3: (22, [(2, 13)]), 4: (16, [(4, 9)]), 5: (22, [(2, 11), (2, 12)]),
+    6: (28, [(4, 15)]), 7: (26, [(4, 13), (1, 14)]), 8: (26, [(4, 14), (2, 15)]), 9: (24, [(4, 12), (4, 13)]),
+    10: (28, [(6, 15), (2, 16)]),
+}
+KHOI = {"M": KHOI_M, "H": KHOI_H}
+BIT_MUC = {"M": 0b00, "H": 0b10}   # hai bit mức sửa lỗi trong thông tin định dạng
 CAN_CHINH = {1: [], 2: [6, 18], 3: [6, 22], 4: [6, 26], 5: [6, 30], 6: [6, 34],
              7: [6, 22, 38], 8: [6, 24, 42], 9: [6, 26, 46], 10: [6, 28, 50]}
 MASK = [
@@ -57,9 +66,9 @@ def _du(du_lieu, so_chia):
     return kq
 
 
-def _ma_hoa(du_lieu: bytes):
+def _ma_hoa(du_lieu: bytes, muc="M"):
     """Chọn phiên bản nhỏ nhất chứa được dữ liệu; trả (phiên bản, dãy mã đã xen khối)."""
-    for pb, (so_sua, khoi) in KHOI_M.items():
+    for pb, (so_sua, khoi) in KHOI[muc].items():
         suc_chua = sum(n * d for n, d in khoi)
         bit_dem = 8 if pb <= 9 else 16
         if 4 + bit_dem + 8 * len(du_lieu) <= suc_chua * 8:
@@ -91,8 +100,8 @@ def _ma_hoa(du_lieu: bytes):
     return pb, ket_qua
 
 
-def ma_tran(chu: str):
-    pb, ma = _ma_hoa(chu.encode("utf-8"))
+def ma_tran(chu: str, muc="M"):
+    pb, ma = _ma_hoa(chu.encode("utf-8"), muc)
     n = pb * 4 + 17
     o = [[False] * n for _ in range(n)]
     co_dinh = [[False] * n for _ in range(n)]
@@ -121,7 +130,7 @@ def ma_tran(chu: str):
                     dat(a + dx, b + dy, max(abs(dx), abs(dy)) != 1)
 
     def thong_tin_dinh_dang(mask):
-        du_lieu = (0 << 3) | mask                       # mức M = 00
+        du_lieu = (BIT_MUC[muc] << 3) | mask
         du = du_lieu
         for _ in range(10):
             du = (du << 1) ^ ((du >> 9) * 0x537)

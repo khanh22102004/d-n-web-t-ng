@@ -1186,6 +1186,20 @@
   function datBoTheoPhieu(tl, nhomDung) {
     datBo(tl._bo || (nhomDung && nhomDung !== "loai-video" ? cauHinh.bo_cau_hoi.bo_mac_dinh : ""));
   }
+  // Trang có thể lấy từ bản lưu sẵn của CDN (đến một ngày): hỏi máy chủ bộ câu hỏi mới nhất, vì nhân viên sửa câu hỏi
+  // là khách phải thấy ngay. Cùng bản thì máy chủ trả 204, không tải lại gì. Chờ tối đa 2,5 giây rồi dùng bản đang có.
+  let hoiBoMoi = null, lucHoiBo = 0;
+  function napBoMoi() {
+    lucHoiBo = Date.now();
+    hoiBoMoi = goi(`/api/bo-cau-hoi?v=${encodeURIComponent(cauHinh.bo_cau_hoi.phien_ban || "")}`).then(du => {
+      if (!du.bo_cau_hoi) return;
+      cauHinh.bo_cau_hoi = du.bo_cau_hoi; tatCaCau = du.bo_cau_hoi.cau_hoi; tatCaNhom = du.bo_cau_hoi.nhom; dsLoai = du.bo_cau_hoi.loai;
+      datBo(boDangChon);
+    }).catch(() => {});
+    return hoiBoMoi;
+  }
+  // Trang mở đã lâu (quá 5 phút) thì hỏi lại trước khi bắt đầu phiếu mới.
+  const choBoMoi = () => Promise.race([!hoiBoMoi || Date.now() - lucHoiBo > 300000 ? napBoMoi() : hoiBoMoi, new Promise(xong => setTimeout(xong, 2500))]);
   function chonBo(id, chuyenTiep = true) {
     if (id !== boDangChon) { datBo(id); ghi("_bo", id); }
     if (chuyenTiep) doiNhom(1);
@@ -1505,7 +1519,10 @@
       daGui = true; canLuu = false; clearTimeout(henLuu); xoaBanNhap(); nho.xoa(KHOA_TU_VAN); hienCamOn(kq.tom_tat || []);
     } catch (e) {
       const thieu = e.chi_tiet?.thieu?.[0];
-      if (thieu) { const c = cau.find(x => x.so === thieu.so); doiNhom(nhom.findIndex(n => n.id === c.nhom), { thayThe: true }); baoLoi(c, thieu.thong_bao); $(`cau-${c.so}`).scrollIntoView({ block: "start" }); }
+      let c = thieu && cau.find(x => x.so === thieu.so);
+      // Câu còn thiếu không có trên trang: nhân viên vừa sửa bộ câu hỏi trong lúc khách điền. Lấy bộ mới rồi đưa khách tới câu đó.
+      if (thieu && !c) { hoiBoMoi = null; await napBoMoi(); c = cau.find(x => x.so === thieu.so); }
+      if (c) { doiNhom(nhom.findIndex(n => n.id === c.nhom), { thayThe: true }); baoLoi(c, thieu.thong_bao); $(`cau-${c.so}`).scrollIntoView({ block: "start" }); }
       else { loi.textContent = e.message; loi.hidden = false; }
     } finally { dangGui = false; if (canLuu && !daGui) henLuuLai(); $("tiep-tuc").disabled = false; if (!$("phieu").hidden) $("tiep-tuc").textContent = viTri === nhom.length - 1 && boDangChon ? "Gửi phiếu" : "Lưu và tiếp tục"; }
   }
@@ -1602,6 +1619,7 @@
 
   async function batDau() {
     const loi = cheDoPhieu ? $("loi-dong-y-luu") : $("loi-mo-dau"); loi.hidden = true;
+    if (!maPhieu || daGui) await choBoMoi();
     if (canTaiPhieu) {
       await khoiPhuc();
       if (canTaiPhieu) {
@@ -1863,6 +1881,8 @@
     }
     if (cauHinh.zalo) { ["link-zalo", "zalo-cam-on"].forEach(id => { $(id).href = cauHinh.zalo; $(id).hidden = false; }); }
     veMau(); ganXem(); ganTuVan(); ganBoSung(); ganThanhDuoi(); ganQuayLai(); ganQuyTrinh(); veMenu(); ganXemTruoc(); veDanhGia(); ganHieuUng(); ganNghieng(); gan3D();
+    napBoMoi();
+    if (nho.doc(KHOA_PHIEU)) await choBoMoi();   // không có phiếu dở thì không chờ: phiếu mới chờ ở batDau, trước khi tạo phiếu
     await khoiPhuc(); khoiTaoLichSu(); moTrangPhieu();
     $("gui-link").addEventListener("click", guiLink);
     $("bat-dau-hop").addEventListener("close", () => { $("bat-dau-loai").hidden = true; });
