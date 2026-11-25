@@ -1355,7 +1355,7 @@
       day.append(b);
     });
     const loi = tao("p", "loi-cau"); loi.hidden = true; loi.setAttribute("role", "alert");
-    khung.append(tieuDe, tao("p", "goi-y", "Mỗi loại có bộ câu hỏi riêng, khoảng 20 câu. Quý khách hàng có thể quay lại đổi loại sau."), day, loi);
+    khung.append(tieuDe, tao("p", "goi-y", "Mỗi loại có bộ câu hỏi riêng. Quý khách hàng có thể quay lại đổi loại sau."), day, loi);
     hop.append(khung); return hop;
   }
 
